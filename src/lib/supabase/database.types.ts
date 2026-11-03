@@ -3028,6 +3028,10 @@ export type Database = {
         Args: { p_user_id: string };
         Returns: Json;
       };
+      rate_limit_check: {
+        Args: { p_key: string; p_limit: number; p_window_seconds: number };
+        Returns: boolean;
+      };
       recruiter_mark_viewed: {
         Args: { p_application_id: string };
         Returns: undefined;
