@@ -1,5 +1,5 @@
 /** Locale-aware formatting helpers (Intl-based, no external data). */
-const intlLocale = (locale: string) => (locale === "ar" ? "ar-DZ-u-nu-latn" : locale === "en" ? "en-GB" : locale === "es" ? "es-ES" : "fr-FR");
+const intlLocale = (locale: string) => (locale === "ar" ? "ar-u-nu-latn" : locale === "en" ? "en-GB" : locale === "es" ? "es-ES" : "fr-FR");
 
 export function formatMoneyMinor(amountMinor: number, currency: string, locale: string, minorUnits = 2): string {
   return new Intl.NumberFormat(intlLocale(locale), {
@@ -31,37 +31,6 @@ export function formatDateTime(value: string | Date | null | undefined, locale: 
 
 export function formatNumber(value: number, locale: string): string {
   return new Intl.NumberFormat(intlLocale(locale)).format(value);
-}
-
-const regionNames = new Map<string, Intl.DisplayNames>();
-export function countryName(code: string | null | undefined, locale: string): string {
-  if (!code) return "";
-  let names = regionNames.get(locale);
-  if (!names) {
-    names = new Intl.DisplayNames([intlLocale(locale)], { type: "region" });
-    regionNames.set(locale, names);
-  }
-  try {
-    return names.of(code.toUpperCase()) ?? code;
-  } catch {
-    return code;
-  }
-}
-
-const languageNames = new Map<string, Intl.DisplayNames>();
-export function languageName(code: string | null | undefined, locale: string): string {
-  if (!code) return "";
-  let names = languageNames.get(locale);
-  if (!names) {
-    names = new Intl.DisplayNames([intlLocale(locale)], { type: "language" });
-    languageNames.set(locale, names);
-  }
-  try {
-    const n = names.of(code) ?? code;
-    return n.charAt(0).toLocaleUpperCase(intlLocale(locale)) + n.slice(1);
-  } catch {
-    return code;
-  }
 }
 
 export function countryFlag(code: string): string {

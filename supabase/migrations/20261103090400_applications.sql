@@ -10,6 +10,8 @@ create table public.applications (
   resume_version_id uuid references public.candidate_resume_versions (id) on delete set null,
   status public.application_status not null default 'submitted',
   candidate_snapshot jsonb not null check (jsonb_typeof(candidate_snapshot) = 'object'),
+  job_title text not null default '',
+  company_name text not null default '',
   consent_version text not null,
   recruiter_rating smallint check (recruiter_rating between 1 and 5),
   is_archived boolean not null default false,

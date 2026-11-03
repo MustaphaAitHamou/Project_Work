@@ -207,8 +207,9 @@ begin
   end if;
 
   -- 5/6. Atomic insert bound to the exact CV version
-  insert into public.applications (job_id, company_id, candidate_id, resume_version_id, candidate_snapshot, consent_version)
-  values (p_job_id, v_job.company_id, v_uid, v_resume_version, app.build_candidate_snapshot(v_uid), v_status ->> 'consent_version')
+  insert into public.applications (job_id, company_id, candidate_id, resume_version_id, candidate_snapshot, consent_version, job_title, company_name)
+  values (p_job_id, v_job.company_id, v_uid, v_resume_version, app.build_candidate_snapshot(v_uid), v_status ->> 'consent_version',
+          v_job.title, v_job.company_name)
   on conflict (job_id, candidate_id) do nothing
   returning id into v_app_id;
 
