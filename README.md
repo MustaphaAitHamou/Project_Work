@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tamurt Jobs
 
-## Getting Started
+Plateforme internationale d'offres d'emploi de **Tamurt Services LLC** — « Le talent avant les préjugés ».
 
-First, run the development server:
+- **Candidats** : profil gratuit, CV versionnés stockés en privé, candidature en un clic sans redirection, suivi honnête des statuts (« consultée » uniquement si un recruteur a réellement ouvert la candidature), alertes, export et suppression des données.
+- **Entreprises vérifiées** : vérification par registres officiels (France, Royaume-Uni, UE/VIES, Suisse, États-Unis/Canada via OpenCorporates) ou revue manuelle, publication payante **par annonce active et par mois** (Stripe Checkout + Billing, renouvellement automatique, résiliable sans engagement), réception sécurisée des candidatures. **Aucune messagerie** entre candidats et recruteurs, **aucun accès à une base de CV**.
+- **Back-office** : rôles distincts (super-admin, vérification, modération, finance, protection des données, support), modération humaine, signalements, activation des 9 marchés après checklist de conformité, tarifs par pays/devise, paiements et remboursements, demandes RGPD, journal d'audit, API interne **Tamurt HQ** (indicateurs agrégés uniquement).
+- **9 marchés** : France, Algérie, Canada, États-Unis, Suisse, Luxembourg, Espagne, Royaume-Uni, Belgique — **4 langues** : français, anglais, espagnol, arabe (RTL) — **6 devises** : EUR, USD, CAD, DZD, CHF, GBP.
+
+> État réel du projet, éléments testés et points bloqués : **[docs/STATUS.md](docs/STATUS.md)**.
+
+## Pile technique
+
+Next.js 16 (App Router, TypeScript strict) · Tailwind CSS 4 · composants Radix/shadcn · Supabase (PostgreSQL 17, Auth, Storage privé, RLS) · Stripe (Checkout, Billing, webhooks signés) · Resend ou SMTP · next-intl · Vitest · Playwright + axe-core · GitHub Actions · Vercel.
+
+## Démarrage rapide (local)
+
+Prérequis : Node.js ≥ 22.12, Docker.
+
+```bash
+npm ci
+```
+
+```bash
+npm run supabase:start
+```
+
+```bash
+npm run test:env -- --app
+```
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+L'application est servie sur http://localhost:3000, les e-mails sont visibles dans Mailpit (http://127.0.0.1:54324). Détails, données de démonstration locales et premier administrateur : [docs/INSTALLATION.md](docs/INSTALLATION.md).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Commande | Rôle |
+|---|---|
+| `npm run dev` / `build` / `start` | serveur de développement, build et serveur de production |
+| `npm run typecheck` · `npm run lint` | TypeScript strict · ESLint |
+| `npm run test:unit` | tests unitaires (validation, fichiers, e-mails, permissions, traductions ICU) |
+| `npm run test:integration` | tests d'intégration SQL contre Supabase local (RLS, candidature, facturation, décisions d'administration) |
+| `npm run test:e2e` | tests de bout en bout Playwright (parcours candidat, recruteur, webhooks Stripe, back-office, accessibilité) |
+| `npm run supabase:start` · `supabase:stop` · `db:reset` | pile Supabase locale |
+| `npm run db:types` · `db:lint` | types TypeScript générés · analyse statique des fonctions SQL |
+| `npm run seed:dev` | données de démonstration **locales uniquement** (refuse toute base non locale) |
+| `npm run admin:grant -- <email>` | attribue le rôle super-admin à un compte existant et confirmé |
 
-## Learn More
+## Documentation
 
-To learn more about Next.js, take a look at the following resources:
+| Document | Contenu |
+|---|---|
+| [INSTALLATION](docs/INSTALLATION.md) | installation locale, Stripe en local, dépannage |
+| [DEPLOYMENT](docs/DEPLOYMENT.md) | mise en production Supabase, Vercel, Stripe, e-mails, tâches planifiées, checklist de lancement |
+| [ARCHITECTURE](docs/ARCHITECTURE.md) | organisation du code, flux de paiement, vérification, modération, e-mails, choix techniques |
+| [SECURITY](docs/SECURITY.md) | modèle de menace, contrôles en place, limites connues |
+| [DATA_RETENTION](docs/DATA_RETENTION.md) | durées de conservation appliquées et à définir |
+| [COMPLIANCE_CHECKLIST](docs/COMPLIANCE_CHECKLIST.md) | points réglementaires à valider pays par pays |
+| [TAMURT_HQ_API](docs/TAMURT_HQ_API.md) | API interne d'indicateurs agrégés |
+| [STATUS](docs/STATUS.md) | fait, testé, bloqué |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Les textes juridiques (`content/legal/`) sont des **projets à faire valider** par un conseil juridique ; ils sont affichés avec un bandeau l'indiquant.

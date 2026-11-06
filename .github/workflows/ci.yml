@@ -24,6 +24,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Known vulnerabilities in production dependencies
+        run: npm audit --omit=dev --audit-level=high
       - run: npm run typecheck
       - run: npm run lint
       - name: Unit tests (validation, files, e-mails, permissions parity, translations completeness)
@@ -57,7 +59,7 @@ jobs:
         run: npm run build
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
-      - name: End-to-end tests (candidate, employer, Stripe webhook, back-office, accessibility)
+      - name: End-to-end tests (candidate, employer, Stripe webhook, back-office, scheduled jobs, accessibility)
         run: npm run test:e2e -- --trace off
       - name: Upload Playwright report
         if: failure()
