@@ -65,7 +65,7 @@ export function BarChart({
     <figure className="space-y-2">
       <figcaption className="text-sm font-medium">{title}</figcaption>
       <div ref={ref} className="relative" onMouseLeave={() => setActive(null)}>
-        <svg width={width} height={height} role="img" aria-label={title} className="block overflow-visible">
+        <svg width={width} height={height} role="group" aria-label={title} className="block overflow-visible">
           <line x1={padL} x2={width - padR} y1={padT} y2={padT} className="stroke-border" strokeDasharray="2 3" />
           <text x={padL - 6} y={padT + 4} textAnchor="end" className="fill-muted-foreground text-[10px]">
             {format(max)}
@@ -83,6 +83,7 @@ export function BarChart({
                 height={innerH}
                 fill="transparent"
                 tabIndex={0}
+                role="img"
                 aria-label={`${b.label} : ${format(b.value)}`}
                 onMouseEnter={() => setActive(i)}
                 onFocus={() => setActive(i)}

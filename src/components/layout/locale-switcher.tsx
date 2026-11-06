@@ -18,8 +18,10 @@ export function LocaleSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" aria-label={t("changeLanguage")} className="gap-1.5">
+        {/* The accessible name contains the visible text (WCAG 2.5.3 Label in Name). */}
+        <Button variant="ghost" size="sm" className="gap-1.5">
           <Languages aria-hidden />
+          <span className="sr-only">{t("changeLanguage")}, </span>
           <span className="uppercase">{locale}</span>
         </Button>
       </DropdownMenuTrigger>

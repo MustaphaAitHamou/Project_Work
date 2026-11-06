@@ -36,8 +36,8 @@ export function UserMenu({ user }: Props) {
     <DropdownMenu>
       <DropdownMenuTrigger
         className="ms-1 flex size-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground"
-        aria-label={t("accountMenu")}
       >
+        <span className="sr-only">{t("accountMenu")} </span>
         {initials(user.firstName, user.lastName)}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">
