@@ -11,7 +11,7 @@ Ce document distingue strictement ce qui est **implémenté et vérifié par des
 | Bout en bout (`npm run test:e2e`) | 25/25 | parcours candidat complet, parcours recruteur complet, sécurité et idempotence du webhook Stripe, back-office (8 scénarios), tâches planifiées, accessibilité (axe, WCAG 2.2 A/AA, FR/AR, thème sombre) |
 | Qualité | OK | `tsc` strict, ESLint sans erreur, `supabase db lint` sans erreur, `npm audit` (production) sans vulnérabilité, `next build` réussi |
 
-Les tests d'intégration et E2E s'exécutent contre une pile Supabase locale réelle (PostgreSQL, Auth, Storage, Mailpit) et le vrai serveur Next.js. La CI GitHub Actions reproduit l'ensemble.
+Les tests d'intégration et E2E s'exécutent contre une pile Supabase locale réelle (PostgreSQL, Auth, Storage, Mailpit) et le vrai serveur Next.js (en CI : build de production). La **CI GitHub Actions est verte** sur `main` : audit des dépendances, typage, lint, tests unitaires, migrations appliquées sur une base vierge, lint SQL, cohérence des types générés, tests d'intégration, build de production et tests E2E. Les tests E2E n'interrogent pas les registres d'entreprises (services tiers), pour rester déterministes.
 
 ## Implémenté et vérifié
 
