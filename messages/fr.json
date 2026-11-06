@@ -878,7 +878,7 @@
   "pricingTitle": "Un tarif simple",
   "planName": "Annonce active",
   "perJobPerMonth": "par mois et par annonce active, renouvellement automatique",
-  "taxExclusive": "Prix hors taxes : la TVA ou les taxes éventuellement applicables selon votre pays et votre statut sont calculées et affichées avant le paiement.",
+  "taxExclusive": "Prix hors taxes (HT). Le montant exact, taxes éventuelles comprises, est affiché sur la page de paiement avant validation.",
   "taxInclusive": "Prix toutes taxes comprises.",
   "f1": "Candidatures illimitées sur l'annonce",
   "f2": "CV téléchargeables de manière sécurisée",
@@ -927,7 +927,7 @@
   "s2Title": "Des annonces contrôlées",
   "s2Text": "Les annonces sont analysées avant publication pour repérer les critères discriminatoires (âge, sexe, origine, apparence, situation familiale…). Les cas signalés sont examinés par un modérateur humain. Les conditions légales d'emploi (autorisation de travail, diplôme réglementé) restent possibles et sont distinguées des discriminations.",
   "s3Title": "Des recruteurs vérifiés",
-  "s3Text": "Une entreprise inscrite au registre n'est pas automatiquement un employeur vérifié : nous contrôlons aussi la capacité de la personne qui la représente.",
+  "s3Text": "Une entreprise inscrite au registre n'est pas automatiquement un employeur vérifié : lorsque le registre le permet, nous vérifions aussi que la personne qui l'inscrit figure parmi ses représentants ; à défaut, un examen manuel sur justificatifs est réalisé.",
   "s4Title": "Signalez-nous les abus",
   "s4Text": "Chaque annonce peut être signalée en un clic. Les signalements sont traités par notre équipe de modération.",
   "s5Title": "Ce que nous ne faisons pas",
@@ -1362,7 +1362,7 @@
    "needs_documents": "Aucun registre public n'est interrogeable automatiquement pour ce pays : ajoutez un extrait d'immatriculation récent (moins de 3 mois) pour une vérification manuelle.",
    "needs_authority": "Votre entreprise a été trouvée au registre, mais votre nom ne figure pas parmi ses représentants légaux. Ajoutez un justificatif de pouvoir (délégation, mandat signé) pour finaliser la vérification.",
    "registry_unavailable": "Le registre officiel n'a pas pu être consulté pour le moment. Votre dossier est transmis à notre équipe ; vous pouvez ajouter un extrait d'immatriculation pour accélérer le traitement.",
-   "manual_review": "Les contrôles automatiques sont terminés. Un membre de l'équipe finalise la vérification de votre entreprise (généralement sous 2 jours ouvrés)."
+   "manual_review": "Les contrôles automatiques sont terminés. Un membre de l'équipe finalise la vérification de votre entreprise ; vous serez informé(e) de la décision par e-mail."
   }
  },
  "employer": {
