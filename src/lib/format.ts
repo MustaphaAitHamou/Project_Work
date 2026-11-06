@@ -52,3 +52,8 @@ export function parseJobSlug(param: string): string | null {
   const m = /-([23456789abcdefghjkmnpqrstuvwxyz]{10})$/.exec(param) ?? /^([23456789abcdefghjkmnpqrstuvwxyz]{10})$/.exec(param);
   return m ? m[1] : null;
 }
+
+/** True when the instant is in the past (evaluated at request time on the server). */
+export function isPast(iso: string): boolean {
+  return new Date(iso).getTime() < Date.now();
+}

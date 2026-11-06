@@ -2835,6 +2835,20 @@ export type Database = {
         Args: { p_id: string };
         Returns: undefined;
       };
+      admin_search_users: {
+        Args: { p_limit?: number; p_query: string };
+        Returns: {
+          account_type: Database["public"]["Enums"]["account_type"];
+          company_name: string;
+          created_at: string;
+          email: string;
+          first_name: string;
+          id: string;
+          last_name: string;
+          roles: string[];
+          status: Database["public"]["Enums"]["user_status"];
+        }[];
+      };
       admin_set_company_suspension: {
         Args: {
           p_company_id: string;
@@ -3029,6 +3043,10 @@ export type Database = {
         Args: { p_version: string };
         Returns: undefined;
       };
+      has_admin_permission: {
+        Args: { p_permission: string };
+        Returns: boolean;
+      };
       hq_metrics: { Args: { p_from: string; p_to: string }; Returns: Json };
       privacy_prepare_account_deletion: {
         Args: { p_user_id: string };
@@ -3159,7 +3177,7 @@ export type Database = {
         }[];
       };
       service_client_authenticate: {
-        Args: { p_token_hash: string };
+        Args: { p_ip: string; p_token_hash: string };
         Returns: Json;
       };
       set_primary_resume: { Args: { p_resume_id: string }; Returns: undefined };

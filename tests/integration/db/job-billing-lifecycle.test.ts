@@ -15,6 +15,13 @@ import {
   type TestCompany,
 } from "../../helpers/supabase";
 
+/** Stripe object ids must be unique per run: the local database is not reset between runs. */
+const run = randomUUID().slice(0, 8);
+const sid = (prefix: string) => `${prefix}_${run}_${randomUUID().slice(0, 8)}`;
+const renewInvoice = sid("in_renew");
+const refundIntent = sid("pi_refund");
+const customerId = sid("cus");
+
 async function payJob(jobId: string, actor: string) {
   const prep = await serviceClient.rpc("billing_prepare_checkout", { p_actor: actor, p_job_id: jobId });
   if (prep.error) throw prep.error;
@@ -24,7 +31,7 @@ async function payJob(jobId: string, actor: string) {
     p_job_id: jobId,
     p_plan_id: plan.id,
     p_session_id: sessionId,
-    p_customer_id: "cus_test",
+    p_customer_id: customerId,
   });
   if (reg.error) throw reg.error;
   return { sessionId, subscriptionId: `sub_${randomUUID().slice(0, 12)}` };
@@ -78,7 +85,7 @@ describe("job lifecycle", () => {
     await company.owner.client.rpc("submit_job", { p_job_id: job.id });
     const { sessionId } = await payJob(job.id, company.owner.id);
     const unpaid = await serviceClient.rpc("billing_checkout_completed", {
-      p: { session_id: sessionId, subscription_id: "sub_unpaid_1", customer_id: "cus_test", payment_status: "unpaid", job_id: job.id },
+      p: { session_id: sessionId, subscription_id: sid("sub_unpaid"), customer_id: customerId, payment_status: "unpaid", job_id: job.id },
     });
     expect(unpaid.error).toBeNull();
     const [row] = await sql(`select status from public.jobs where id = $1`, [job.id]);
@@ -99,7 +106,7 @@ describe("job lifecycle", () => {
     });
     expect(first.data).toMatchObject({ already_processed: false });
     const done = await serviceClient.rpc("billing_checkout_completed", {
-      p: { session_id: sessionId, subscription_id: subscriptionId, customer_id: "cus_test", payment_status: "paid", job_id: job.id, livemode: false },
+      p: { session_id: sessionId, subscription_id: subscriptionId, customer_id: customerId, payment_status: "paid", job_id: job.id, livemode: false },
     });
     expect(done.data).toMatchObject({ job_result: "activated" });
     await serviceClient.rpc("billing_finish_event", { p_id: eventId });
@@ -118,7 +125,7 @@ describe("job lifecycle", () => {
       p: { stripe_subscription_id: subscriptionId, status: "past_due", job_id: job.id, current_period_end: periodEnd, event_created: new Date().toISOString() },
     });
     const failed = await serviceClient.rpc("billing_record_payment", {
-      p: { stripe_subscription_id: subscriptionId, stripe_invoice_id: "in_renew_1", attempt_number: 1, amount: 595, currency: "eur", status: "failed", failure_code: "card_declined" },
+      p: { stripe_subscription_id: subscriptionId, stripe_invoice_id: renewInvoice, attempt_number: 1, amount: 595, currency: "eur", status: "failed", failure_code: "card_declined" },
     });
     expect(failed.data).toMatchObject({ result: "failure_recorded" });
     [row] = await sql(`select status from public.jobs where id = $1`, [job.id]);
@@ -129,7 +136,7 @@ describe("job lifecycle", () => {
     [row] = await sql(`select status, suspension_reason from public.jobs where id = $1`, [job.id]);
     expect(row).toMatchObject({ status: "suspended", suspension_reason: "payment_failed" });
     const paid = await serviceClient.rpc("billing_record_payment", {
-      p: { stripe_subscription_id: subscriptionId, stripe_invoice_id: "in_renew_1", attempt_number: 2, amount: 595, currency: "eur", status: "succeeded", period_end: periodEnd },
+      p: { stripe_subscription_id: subscriptionId, stripe_invoice_id: renewInvoice, attempt_number: 2, amount: 595, currency: "eur", status: "succeeded", period_end: periodEnd },
     });
     expect(paid.data).toMatchObject({ result: "activated" });
     [row] = await sql(`select status from public.jobs where id = $1`, [job.id]);
@@ -162,7 +169,7 @@ describe("job lifecycle", () => {
     await company.owner.client.rpc("submit_job", { p_job_id: job.id });
     const { sessionId, subscriptionId } = await payJob(job.id, company.owner.id);
     await serviceClient.rpc("billing_checkout_completed", {
-      p: { session_id: sessionId, subscription_id: subscriptionId, customer_id: "cus_test", payment_status: "paid", job_id: job.id },
+      p: { session_id: sessionId, subscription_id: subscriptionId, customer_id: customerId, payment_status: "paid", job_id: job.id },
     });
     await serviceClient.rpc("billing_sync_subscription", {
       p: { stripe_subscription_id: subscriptionId, status: "canceled", event_created: new Date().toISOString() },
@@ -176,13 +183,13 @@ describe("job lifecycle", () => {
     await company.owner.client.rpc("submit_job", { p_job_id: job.id });
     const { sessionId, subscriptionId } = await payJob(job.id, company.owner.id);
     await serviceClient.rpc("billing_checkout_completed", {
-      p: { session_id: sessionId, subscription_id: subscriptionId, customer_id: "cus_test", payment_status: "paid", job_id: job.id },
+      p: { session_id: sessionId, subscription_id: subscriptionId, customer_id: customerId, payment_status: "paid", job_id: job.id },
     });
     await serviceClient.rpc("billing_record_payment", {
-      p: { stripe_subscription_id: subscriptionId, stripe_invoice_id: "in_first_x", attempt_number: 1, amount: 595, currency: "eur", status: "succeeded", payment_intent_id: "pi_refund_test" },
+      p: { stripe_subscription_id: subscriptionId, stripe_invoice_id: sid("in_first"), attempt_number: 1, amount: 595, currency: "eur", status: "succeeded", payment_intent_id: refundIntent },
     });
     const refund = await serviceClient.rpc("billing_record_refund", {
-      p: { stripe_refund_id: `re_${randomUUID()}`, payment_intent_id: "pi_refund_test", amount: 595, currency: "eur", status: "succeeded", reason: "Annonce rejetée par la modération" },
+      p: { stripe_refund_id: `re_${randomUUID()}`, payment_intent_id: refundIntent, amount: 595, currency: "eur", status: "succeeded", reason: "Annonce rejetée par la modération" },
     });
     expect(refund.data).toMatchObject({ result: "recorded", refunded_total: 595 });
     const [p] = await sql(`select status, amount_refunded from public.payments where stripe_payment_intent_id = 'pi_refund_test'`);
