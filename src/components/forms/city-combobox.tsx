@@ -46,19 +46,17 @@ export function CityCombobox({
   const listId = useId();
   const [text, setText] = useState(defaultText);
   const [selectedId, setSelectedId] = useState<number | null>(defaultId ?? null);
-  const [items, setItems] = useState<CityOption[]>([]);
+  const [results, setResults] = useState<CityOption[]>([]);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abort = useRef<AbortController | null>(null);
+  // No suggestions while the query is too short or once a city has been chosen.
+  const searchable = text.trim().length >= 2 && !selectedId;
+  const items = searchable ? results : [];
 
   useEffect(() => {
-    if (timer.current) clearTimeout(timer.current);
-    if (text.trim().length < 2 || selectedId) {
-      setItems([]);
-      return;
-    }
-    timer.current = setTimeout(async () => {
+    if (!searchable) return;
+    const handle = setTimeout(async () => {
       abort.current?.abort();
       abort.current = new AbortController();
       try {
@@ -66,14 +64,15 @@ export function CityCombobox({
         if (country) qs.set("country", country);
         const res = await fetch(`/api/cities?${qs}`, { signal: abort.current.signal });
         const json = (await res.json()) as { items: CityOption[] };
-        setItems(json.items);
+        setResults(json.items);
         setOpen(true);
         setActive(-1);
       } catch {
         /* aborted */
       }
     }, 200);
-  }, [text, country, selectedId]);
+    return () => clearTimeout(handle);
+  }, [text, country, searchable]);
 
   const choose = (c: CityOption) => {
     setText(c.name);

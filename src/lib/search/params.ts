@@ -98,7 +98,9 @@ export function toQueryString(p: SearchParams, overrides: Partial<SearchParams> 
 
 /** Criteria stored in a job alert (no pagination/sorting). */
 export function alertCriteria(p: SearchParams): SearchParams {
-  const { page: _page, sort: _sort, ...rest } = p;
+  const rest = { ...p };
+  delete rest.page;
+  delete rest.sort;
   return rest;
 }
 

@@ -1,4 +1,3 @@
-import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { createReadyCandidate, serviceClient, sql, uniqueEmail } from "../helpers/supabase";

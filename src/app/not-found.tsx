@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 // Fallback for non-localised URLs that do not match any route.
 export default function GlobalNotFound() {
   return (
@@ -5,7 +7,7 @@ export default function GlobalNotFound() {
       <body style={{ fontFamily: "system-ui, sans-serif", padding: "4rem 1rem", textAlign: "center" }}>
         <h1>404</h1>
         <p>
-          Page introuvable · Page not found · <a href="/fr">Tamurt Jobs</a>
+          Page introuvable · Page not found · <Link href="/fr">Tamurt Jobs</Link>
         </p>
       </body>
     </html>
