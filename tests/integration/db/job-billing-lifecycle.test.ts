@@ -192,7 +192,7 @@ describe("job lifecycle", () => {
       p: { stripe_refund_id: `re_${randomUUID()}`, payment_intent_id: refundIntent, amount: 595, currency: "eur", status: "succeeded", reason: "Annonce rejetée par la modération" },
     });
     expect(refund.data).toMatchObject({ result: "recorded", refunded_total: 595 });
-    const [p] = await sql(`select status, amount_refunded from public.payments where stripe_payment_intent_id = 'pi_refund_test'`);
+    const [p] = await sql(`select status, amount_refunded from public.payments where stripe_payment_intent_id = $1`, [refundIntent]);
     expect(p).toMatchObject({ status: "refunded", amount_refunded: 595 });
   });
 });
