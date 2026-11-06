@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { AdminForm } from "@/components/admin/admin-form";
 import { deleteEmailTemplateAction, upsertEmailTemplateAction } from "../actions";
 
-const SAMPLE = { job_title: "Comptable", company_name: "ACME", status: "shortlisted", outcome: "verified", decision: "approve", alert_name: "Comptable Lyon", jobs: [], grace_days: 3, type: "export" };
+const SAMPLE = { job_title: "Comptable", company_name: "ACME", status: "shortlisted", outcome: "verified", decision: "approve", alert_name: "Comptable Lyon", jobs: [], grace_days: 3, type: "export", suspended: true, reason: "Annonce non conforme" };
 
 export default async function AdminEmailsPage({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ template?: string; lang?: string }> }) {
   const { locale } = await params;

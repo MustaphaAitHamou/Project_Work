@@ -20,6 +20,7 @@ export const EMAIL_TEMPLATES = [
   "job_suspended_payment",
   "job_expired",
   "account_suspended",
+  "company_suspension",
   "privacy_request_update",
 ] as const;
 export type EmailTemplate = (typeof EMAIL_TEMPLATES)[number];
@@ -114,6 +115,17 @@ const DEFINITIONS: Record<EmailTemplate, (c: Ctx) => Omit<EmailContent, "locale"
     subject: t("account_suspended.subject"),
     paragraphs: [t("account_suspended.body"), ...(p.reason ? [t("account_suspended.reason", { reason: s(p.reason) })] : [])],
   }),
+  company_suspension: ({ t, p, url }) => {
+    const suspended = p.suspended === true;
+    const company = s(p.company_name);
+    return {
+      subject: suspended ? t("company_suspension.subjectSuspended", { company }) : t("company_suspension.subjectReinstated", { company }),
+      paragraphs: suspended
+        ? [t("company_suspension.suspended"), ...(p.reason ? [t("company_suspension.reason", { reason: s(p.reason) })] : [])]
+        : [t("company_suspension.reinstated")],
+      cta: { label: t("company_suspension.cta"), url: url("/employer") },
+    };
+  },
   privacy_request_update: ({ t, te, p, url }) => ({
     subject: t("privacy_request_update.subject"),
     paragraphs: [

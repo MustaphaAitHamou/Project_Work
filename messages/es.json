@@ -908,7 +908,7 @@
    "q2": "Que se passe-t-il si un paiement échoue ?",
    "q2a": "Vous êtes prévenu par e-mail. L'annonce reste en ligne pendant un court délai de grâce, puis est suspendue jusqu'à la régularisation, et réactivée automatiquement après paiement.",
    "q3": "Comment ma société est-elle vérifiée ?",
-   "q3a": "Selon le pays, nous consultons les registres officiels disponibles (SIRENE, Companies House, BCE, UID…) et contrôlons la capacité du représentant. Sinon, une vérification manuelle sur justificatifs est réalisée.",
+   "q3a": "Selon le pays, nous interrogeons les registres et services officiels disponibles (Recherche d'entreprises/SIRENE, Companies House, VIES, Zefix…) et vérifions, lorsque le registre le permet, que le représentant y figure. Sinon, une vérification manuelle sur justificatifs est réalisée.",
    "q4": "Les candidats paient-ils ?",
    "q4a": "Jamais. La candidature est gratuite et se fait directement sur Tamurt Jobs.",
    "q5": "Puis-je contacter les candidats ?",
@@ -960,7 +960,7 @@
    "notice": "Mentions légales"
   },
   "draftBanner": "Projet de document à faire valider par un professionnel du droit avant mise en production. Il ne constitue pas une garantie de conformité.",
-  "fallbackNotice": "Ce document n'est pas encore traduit : version française affichée."
+  "fallbackNotice": "Ce document n'est pas encore disponible dans votre langue. Langue d'affichage : {language}."
  },
  "emails": {
   "greeting": "Bonjour {name},",
@@ -1037,6 +1037,14 @@
    "subject": "Votre compte Tamurt Jobs est suspendu",
    "body": "Votre compte a été suspendu par notre équipe. Si vous pensez qu'il s'agit d'une erreur, répondez à cet e-mail.",
    "reason": "Motif : {reason}"
+  },
+  "company_suspension": {
+   "subjectSuspended": "Entreprise suspendue : {company}",
+   "subjectReinstated": "Suspension levée : {company}",
+   "suspended": "Votre entreprise a été suspendue par notre équipe. Ses annonces ne sont plus visibles et leur renouvellement s'arrêtera à la fin de la période payée. Si vous pensez qu'il s'agit d'une erreur, répondez à cet e-mail.",
+   "reason": "Motif : {reason}",
+   "reinstated": "La suspension de votre entreprise a été levée : vous pouvez de nouveau publier des annonces. Les annonces suspendues ne sont pas remises en ligne automatiquement ; répondez à cet e-mail pour demander leur rétablissement.",
+   "cta": "Accéder à mon espace recruteur"
   },
   "privacy_request_update": {
    "subject": "Votre demande relative à vos données",
@@ -1750,6 +1758,7 @@
   "price": "Prix",
   "billingCurrency": "Devise de facturation",
   "taxExclusive": "Prix hors taxes : les taxes éventuellement applicables (TVA ou équivalent) sont calculées selon votre adresse de facturation et votre numéro de TVA, et affichées avant la validation du paiement.",
+  "taxExclusiveNoAutoTax": "Prix hors taxes (HT).",
   "taxInclusive": "Prix toutes taxes comprises.",
   "renewal": "Abonnement mensuel renouvelé automatiquement à la même date, jusqu'à résiliation.",
   "cancellation": "Sans engagement : vous pouvez résilier ou clôturer l'annonce à tout moment depuis votre espace ; aucun prélèvement n'aura lieu pour les périodes suivantes. La période en cours n'est pas remboursée automatiquement.",
@@ -1799,7 +1808,8 @@
     "stripe_webhook_secret_missing": "secret du webhook Stripe absent",
     "email_provider_missing": "aucun fournisseur d'e-mail configuré",
     "cron_secret_missing": "CRON_SECRET absent : les tâches planifiées sont refusées",
-    "captcha_not_configured": "anti-robot (Turnstile) non configuré"
+    "captcha_not_configured": "anti-robot (Turnstile) non configuré",
+    "stripe_tax_disabled": "calcul automatique des taxes Stripe désactivé (STRIPE_AUTOMATIC_TAX)"
    },
    "sectionActivity": "Activité",
    "sectionRevenue": "Abonnements et revenus",

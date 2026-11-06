@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getJobPrice } from "@/lib/jobs/queries";
 import { getStripe } from "@/lib/billing/stripe";
 import { formatMoneyMinor } from "@/lib/format";
+import { env } from "@/lib/env";
 import { getCountryNamer } from "@/lib/i18n/names-server";
 import { PageHeader } from "@/components/layout/dashboard-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -76,7 +77,7 @@ export default async function CheckoutPage({ params, searchParams }: { params: P
             )}
           </dl>
           <ul className="list-disc space-y-1 ps-5 text-muted-foreground">
-            <li>{price?.tax_behavior === "inclusive" ? t("taxInclusive") : t("taxExclusive")}</li>
+            <li>{price?.tax_behavior === "inclusive" ? t("taxInclusive") : env().STRIPE_AUTOMATIC_TAX ? t("taxExclusive") : t("taxExclusiveNoAutoTax")}</li>
             <li>{t("renewal")}</li>
             <li>{t("cancellation")}</li>
             <li>{t("activation")}</li>

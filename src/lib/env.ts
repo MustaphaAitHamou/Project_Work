@@ -90,6 +90,7 @@ export function integrationStatus() {
     if (e.EMAIL_PROVIDER === "none") problems.push("email_provider_missing");
     if (!e.CRON_SECRET) problems.push("cron_secret_missing");
     if (!e.TURNSTILE_SECRET_KEY) problems.push("captcha_not_configured");
+    if (!e.STRIPE_AUTOMATIC_TAX) problems.push("stripe_tax_disabled");
   }
   return {
     stripe: { mode: stripeMode, webhook: Boolean(e.STRIPE_WEBHOOK_SECRET), automaticTax: e.STRIPE_AUTOMATIC_TAX },
