@@ -95,7 +95,7 @@ npm run test:integration
 npm run test:e2e
 ```
 
-Les tests d'intégration et E2E nécessitent la pile Supabase locale et le fichier `.env.test.local`. Les tests E2E démarrent le serveur de développement s'il ne tourne pas déjà. Les événements Stripe y sont simulés par des **événements signés** envoyés au vrai point d'entrée du webhook (aucun appel à l'API Stripe).
+Les tests d'intégration et E2E nécessitent la pile Supabase locale et le fichier `.env.test.local`. Les tests E2E démarrent le serveur de développement s'il ne tourne pas déjà, **sans interrogation des registres d'entreprises** (services tiers) pour que les résultats soient déterministes ; si vous réutilisez un serveur déjà lancé avec accès réseau, lancez-le avec `REGISTRY_FR_ENABLED=false REGISTRY_VIES_ENABLED=false`. Les événements Stripe y sont simulés par des **événements signés** envoyés au vrai point d'entrée du webhook (aucun appel à l'API Stripe).
 
 ## Dépannage
 

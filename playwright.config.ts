@@ -41,5 +41,9 @@ export default defineConfig({
         url: `${baseURL}/fr`,
         reuseExistingServer: !process.env.CI,
         timeout: 180_000,
+        // Company registries are third-party services: the server started for the tests does not
+        // query them, so verification outcomes are deterministic (registry connectors are covered by
+        // unit tests with recorded responses). A reused, already running server keeps its own settings.
+        env: { ...process.env, REGISTRY_FR_ENABLED: "false", REGISTRY_VIES_ENABLED: "false" } as Record<string, string>,
       },
 });

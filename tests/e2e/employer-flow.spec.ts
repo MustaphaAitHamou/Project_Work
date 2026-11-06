@@ -35,7 +35,7 @@ test.describe("Employer journey", () => {
     await page.getByLabel("Numéro officiel").fill(siren);
     await page.getByRole("button", { name: "Enregistrer et vérifier" }).click();
     await expect(page).toHaveURL(/\/fr\/employer\/verification/);
-    // Registries are unreachable from this environment -> manual review, never auto-verified.
+    // Registry lookups are disabled for the E2E server (see playwright.config.ts) -> manual review, never auto-verified.
     await expect(page.getByText("Vérification manuelle", { exact: true })).toBeVisible();
 
     // An administrator approves the company (the back-office flow is covered in admin tests).
