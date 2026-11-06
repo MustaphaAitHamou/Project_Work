@@ -1,4 +1,5 @@
 "use client";
+import { ActionForm } from "@/components/forms/action-form";
 import { useActionState, useTransition } from "react";
 import { Search, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -32,7 +33,7 @@ function AlertRow({ alert }: { alert: AlertItem }) {
   const [pending, start] = useTransition();
   return (
     <li className="rounded-xl border bg-card p-4">
-      <form action={action} className="space-y-3">
+      <ActionForm action={action} className="space-y-3">
         <input type="hidden" name="locale" value={locale} />
         <input type="hidden" name="id" value={alert.id} />
         <FormMessage state={state} toastOnSuccess />
@@ -83,7 +84,7 @@ function AlertRow({ alert }: { alert: AlertItem }) {
           </div>
         </div>
         {alert.last_sent_at && <p className="text-xs text-muted-foreground">{t("lastSent", { date: formatDate(alert.last_sent_at, locale) })}</p>}
-      </form>
+      </ActionForm>
     </li>
   );
 }

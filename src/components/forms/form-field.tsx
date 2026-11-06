@@ -17,15 +17,14 @@ export function FormField({ id, label, hint, error, required, className, childre
   const describedBy = [hint ? `${id}-hint` : null, error ? `${id}-error` : null].filter(Boolean).join(" ") || undefined;
   return (
     <div className={cn("space-y-1.5", className)}>
-      <Label htmlFor={id}>
-        {label}
+      <div className="flex items-baseline gap-1">
+        <Label htmlFor={id}>{label}</Label>
         {required && (
-          <span aria-hidden className="text-destructive">
-            {" "}
+          <span aria-hidden className="text-sm text-destructive">
             *
           </span>
         )}
-      </Label>
+      </div>
       {children({ id, "aria-describedby": describedBy, "aria-invalid": error ? true : undefined, required })}
       {hint && (
         <p id={`${id}-hint`} className="text-xs text-muted-foreground">

@@ -1,4 +1,5 @@
 "use client";
+import { ActionForm } from "@/components/forms/action-form";
 import { useActionState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { initialActionState } from "@/lib/action-state";
@@ -14,7 +15,7 @@ export function ForgotForm() {
   const locale = useLocale();
   const [state, action] = useActionState(forgotPasswordAction, initialActionState);
   return (
-    <form action={action} className="space-y-4" noValidate>
+    <ActionForm action={action} className="space-y-4" noValidate>
       <input type="hidden" name="locale" value={locale} />
       <FormMessage state={state} />
       <FormField id="email" label={t("email")} required error={state.fieldErrors?.email}>
@@ -22,6 +23,6 @@ export function ForgotForm() {
       </FormField>
       <Turnstile />
       <SubmitButton className="w-full">{t("sendResetLink")}</SubmitButton>
-    </form>
+    </ActionForm>
   );
 }

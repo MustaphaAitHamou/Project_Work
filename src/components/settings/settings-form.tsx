@@ -1,4 +1,5 @@
 "use client";
+import { ActionForm } from "@/components/forms/action-form";
 import { useActionState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { initialActionState } from "@/lib/action-state";
@@ -34,7 +35,7 @@ export function SettingsForm({
           <CardDescription>{t("preferencesHint")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={action} className="space-y-4">
+          <ActionForm action={action} className="space-y-4">
             <input type="hidden" name="locale" value={locale} />
             <FormMessage state={state} toastOnSuccess />
             <FormField id="preferredLocale" label={t("language")}>
@@ -73,7 +74,7 @@ export function SettingsForm({
               <p className="text-xs text-muted-foreground">{t("importantNotice")}</p>
             </fieldset>
             <SubmitButton>{t("save")}</SubmitButton>
-          </form>
+          </ActionForm>
         </CardContent>
       </Card>
       <Card>
@@ -82,7 +83,7 @@ export function SettingsForm({
           <CardDescription>{t("emailHint", { email: values.email })}</CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={emailAction} className="flex flex-wrap items-end gap-2">
+          <ActionForm action={emailAction} className="flex flex-wrap items-end gap-2">
             <input type="hidden" name="locale" value={locale} />
             <div className="min-w-64 flex-1">
               <FormField id="newEmail" label={t("newEmail")}>
@@ -90,7 +91,7 @@ export function SettingsForm({
               </FormField>
             </div>
             <SubmitButton variant="outline">{t("changeEmail")}</SubmitButton>
-          </form>
+          </ActionForm>
           <div className="mt-3">
             <FormMessage state={emailState} />
           </div>

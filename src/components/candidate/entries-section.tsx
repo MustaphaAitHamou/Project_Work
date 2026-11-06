@@ -1,4 +1,5 @@
 "use client";
+import { ActionForm } from "@/components/forms/action-form";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -55,7 +56,7 @@ function ExperienceForm({ entry, onDone }: { entry?: Experience; onDone: () => v
     }
   }, [state, onDone]);
   return (
-    <form action={action} className="space-y-4">
+    <ActionForm action={action} className="space-y-4">
       <input type="hidden" name="locale" value={locale} />
       {entry && <input type="hidden" name="id" value={entry.id} />}
       {!state.ok && <FormMessage state={state} />}
@@ -84,7 +85,7 @@ function ExperienceForm({ entry, onDone }: { entry?: Experience; onDone: () => v
         {(p) => <Textarea {...p} name="description" defaultValue={entry?.description ?? ""} maxLength={2000} rows={4} />}
       </FormField>
       <SubmitButton className="w-full">{t("save")}</SubmitButton>
-    </form>
+    </ActionForm>
   );
 }
 
@@ -99,7 +100,7 @@ function EducationForm({ entry, onDone }: { entry?: Education; onDone: () => voi
     }
   }, [state, onDone]);
   return (
-    <form action={action} className="space-y-4">
+    <ActionForm action={action} className="space-y-4">
       <input type="hidden" name="locale" value={locale} />
       {entry && <input type="hidden" name="id" value={entry.id} />}
       {!state.ok && <FormMessage state={state} />}
@@ -124,7 +125,7 @@ function EducationForm({ entry, onDone }: { entry?: Education; onDone: () => voi
         {(p) => <Textarea {...p} name="description" defaultValue={entry?.description ?? ""} maxLength={1500} rows={3} />}
       </FormField>
       <SubmitButton className="w-full">{t("save")}</SubmitButton>
-    </form>
+    </ActionForm>
   );
 }
 

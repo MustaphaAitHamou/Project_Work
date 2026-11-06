@@ -1,9 +1,14 @@
 import path from "node:path";
 import { expect, test } from "@playwright/test";
 import { activateJob, createCompany, createDraftJob, sql, uniqueEmail } from "../helpers/supabase";
+import { resetRateLimits } from "../helpers/supabase";
 import { emailSubjects, signUpAndConfirm } from "./helpers";
 
 const fixture = (name: string) => path.join(__dirname, "../fixtures", name);
+
+test.beforeEach(async () => {
+  await resetRateLimits();
+});
 
 test.describe("Candidate journey", () => {
   let jobPath = "";

@@ -1,4 +1,5 @@
 "use client";
+import { ActionForm } from "@/components/forms/action-form";
 import { useActionState } from "react";
 import { Download, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -62,7 +63,7 @@ export function PrivacyPanel({ requests, retentionMonths, accountType }: { reque
           <CardDescription>{t("requestText")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <form action={reqAction} className="space-y-3">
+          <ActionForm action={reqAction} className="space-y-3">
             <input type="hidden" name="locale" value={locale} />
             <FormMessage state={reqState} />
             <FormField id="privacy-type" label={t("requestType")}>
@@ -80,7 +81,7 @@ export function PrivacyPanel({ requests, retentionMonths, accountType }: { reque
               {(p) => <Textarea {...p} name="details" rows={4} maxLength={3000} required minLength={5} />}
             </FormField>
             <SubmitButton variant="outline">{t("requestSubmit")}</SubmitButton>
-          </form>
+          </ActionForm>
           {requests.length > 0 && (
             <ul className="divide-y rounded-lg border text-sm">
               {requests.map((r) => (
@@ -106,7 +107,7 @@ export function PrivacyPanel({ requests, retentionMonths, accountType }: { reque
           <CardDescription>{accountType === "candidate" ? t("deleteTextCandidate") : t("deleteTextEmployer")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={delAction} className="space-y-3">
+          <ActionForm action={delAction} className="space-y-3">
             <input type="hidden" name="locale" value={locale} />
             <FormMessage state={delState} />
             <FormField id="confirmation" label={t("deleteConfirmLabel", { keyword: t("deleteKeyword") })}>
@@ -116,7 +117,7 @@ export function PrivacyPanel({ requests, retentionMonths, accountType }: { reque
               <Trash2 aria-hidden />
               {t("deleteButton")}
             </SubmitButton>
-          </form>
+          </ActionForm>
         </CardContent>
       </Card>
     </div>

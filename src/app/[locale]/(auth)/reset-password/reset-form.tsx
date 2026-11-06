@@ -1,4 +1,5 @@
 "use client";
+import { ActionForm } from "@/components/forms/action-form";
 import { useActionState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -25,7 +26,7 @@ export function ResetForm() {
     );
   }
   return (
-    <form action={action} className="space-y-4" noValidate>
+    <ActionForm action={action} className="space-y-4" noValidate>
       <input type="hidden" name="locale" value={locale} />
       <FormMessage state={state} />
       <FormField id="password" label={t("newPassword")} hint={t("passwordHint")} required error={state.fieldErrors?.password}>
@@ -35,6 +36,6 @@ export function ResetForm() {
         {(p) => <Input {...p} name="confirm" type="password" autoComplete="new-password" />}
       </FormField>
       <SubmitButton className="w-full">{t("updatePassword")}</SubmitButton>
-    </form>
+    </ActionForm>
   );
 }

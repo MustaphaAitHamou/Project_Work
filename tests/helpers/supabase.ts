@@ -5,6 +5,8 @@
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import pg from "pg";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -86,12 +88,16 @@ export async function createReadyCandidate(): Promise<TestUser & { versionId: st
     .eq("user_id", user.id);
   if (upd.error) throw upd.error;
   const versionId = randomUUID();
+  const storagePath = `${user.id}/${versionId}.pdf`;
+  const file = readFileSync(path.join(__dirname, "../fixtures/cv-valid.pdf"));
+  const up = await serviceClient.storage.from("resumes").upload(storagePath, file, { contentType: "application/pdf" });
+  if (up.error) throw up.error;
   const reg = await serviceClient.rpc("resume_register_version", {
     p_user_id: user.id,
     p_resume_id: null as unknown as string,
     p_label: "CV principal",
     p_version_id: versionId,
-    p_storage_path: `${user.id}/test/${versionId}.pdf`,
+    p_storage_path: storagePath,
     p_filename: "cv.pdf",
     p_mime_type: "application/pdf",
     p_size_bytes: 1234,
@@ -173,6 +179,11 @@ export async function activateJob(jobId: string) {
 
 export async function setCountryPaidPublishing(code: string, enabled: boolean) {
   await sql(`update public.countries set is_paid_publishing_enabled = $2 where code = $1`, [code, enabled]);
+}
+
+/** Rate-limit counters are shared by every test running from the same IP. */
+export async function resetRateLimits() {
+  await sql(`delete from public.rate_limits`);
 }
 
 export async function grantAdminRole(userId: string, role: string) {

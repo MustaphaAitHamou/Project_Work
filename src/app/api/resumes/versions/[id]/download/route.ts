@@ -16,6 +16,11 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   const { data, error } = await supabase.rpc("authorize_resume_download", { p_version_id: id });
   if (error || !data) return NextResponse.json({ error: "forbidden" }, { status: error?.code === "42501" ? 403 : 404 });
   const info = data as { storage_path: string; filename: string };
-  const url = await signedDownloadUrl(RESUME_BUCKET, info.storage_path, info.filename, 60);
-  return NextResponse.redirect(url, { status: 303, headers: { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" } });
+  try {
+    const url = await signedDownloadUrl(RESUME_BUCKET, info.storage_path, info.filename, 60);
+    return NextResponse.redirect(url, { status: 303, headers: { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" } });
+  } catch (e) {
+    console.error("resume file unavailable", id, e instanceof Error ? e.message : e);
+    return NextResponse.json({ error: "file_unavailable" }, { status: 404 });
+  }
 }

@@ -1,4 +1,5 @@
 "use client";
+import { ActionForm } from "@/components/forms/action-form";
 import { useActionState, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -51,7 +52,7 @@ export function ProfileForm({ values, regionsByCountry }: { values: ProfileFormV
   const regions = regionsByCountry[country] ?? [];
 
   return (
-    <form action={action} className="space-y-6" noValidate>
+    <ActionForm action={action} className="space-y-6" noValidate>
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="languages" value={JSON.stringify(languages)} />
       <FormMessage state={state} toastOnSuccess />
@@ -225,6 +226,6 @@ export function ProfileForm({ values, regionsByCountry }: { values: ProfileFormV
       <div className="flex justify-end">
         <SubmitButton size="lg">{t("save")}</SubmitButton>
       </div>
-    </form>
+    </ActionForm>
   );
 }

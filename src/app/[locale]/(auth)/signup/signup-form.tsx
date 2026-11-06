@@ -1,4 +1,5 @@
 "use client";
+import { ActionForm } from "@/components/forms/action-form";
 import { useActionState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -17,7 +18,7 @@ export function SignupForm({ accountType }: { accountType: "candidate" | "employ
   const [state, action] = useActionState(signUpAction, initialActionState);
   const fe = state.fieldErrors ?? {};
   return (
-    <form action={action} className="space-y-4" noValidate>
+    <ActionForm action={action} className="space-y-4" noValidate>
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="accountType" value={accountType} />
       <FormMessage state={state} />
@@ -75,6 +76,6 @@ export function SignupForm({ accountType }: { accountType: "candidate" | "employ
         {t("createAccount")}
       </SubmitButton>
       <p className="text-xs text-muted-foreground">{accountType === "employer" ? t("employerFree") : t("candidateFree")}</p>
-    </form>
+    </ActionForm>
   );
 }

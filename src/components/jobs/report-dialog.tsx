@@ -1,4 +1,5 @@
 "use client";
+import { ActionForm } from "@/components/forms/action-form";
 import { useActionState, useEffect, useState } from "react";
 import { Flag } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -41,7 +42,7 @@ export function ReportDialog({ jobId, anonymous }: { jobId: string; anonymous: b
           <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
-        <form action={action} className="space-y-4">
+        <ActionForm action={action} className="space-y-4">
           <input type="hidden" name="jobId" value={jobId} />
           <input type="hidden" name="locale" value={locale} />
           <FormMessage state={state} />
@@ -66,7 +67,7 @@ export function ReportDialog({ jobId, anonymous }: { jobId: string; anonymous: b
           )}
           {anonymous && <Turnstile />}
           <SubmitButton className="w-full">{t("submit")}</SubmitButton>
-        </form>
+        </ActionForm>
       </DialogContent>
     </Dialog>
   );

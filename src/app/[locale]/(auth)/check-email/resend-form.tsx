@@ -1,4 +1,5 @@
 "use client";
+import { ActionForm } from "@/components/forms/action-form";
 import { useActionState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { initialActionState } from "@/lib/action-state";
@@ -12,7 +13,7 @@ export function ResendForm() {
   const locale = useLocale();
   const [state, action] = useActionState(resendConfirmationAction, initialActionState);
   return (
-    <form action={action} className="space-y-3">
+    <ActionForm action={action} className="space-y-3">
       <input type="hidden" name="locale" value={locale} />
       <FormMessage state={state} />
       <label htmlFor="resend-email" className="text-sm font-medium">
@@ -22,6 +23,6 @@ export function ResendForm() {
         <Input id="resend-email" name="email" type="email" autoComplete="email" required />
         <SubmitButton variant="outline">{t("resend")}</SubmitButton>
       </div>
-    </form>
+    </ActionForm>
   );
 }

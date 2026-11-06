@@ -1,4 +1,5 @@
 "use client";
+import { ActionForm } from "@/components/forms/action-form";
 import { useActionState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -15,7 +16,7 @@ export function LoginForm({ next }: { next?: string }) {
   const locale = useLocale();
   const [state, action] = useActionState(signInAction, initialActionState);
   return (
-    <form action={action} className="space-y-4" noValidate>
+    <ActionForm action={action} className="space-y-4" noValidate>
       <input type="hidden" name="locale" value={locale} />
       {next && <input type="hidden" name="next" value={next} />}
       <FormMessage state={state} />
@@ -34,6 +35,6 @@ export function LoginForm({ next }: { next?: string }) {
       <SubmitButton className="w-full" pendingLabel={t("signingIn")}>
         {t("signIn")}
       </SubmitButton>
-    </form>
+    </ActionForm>
   );
 }
