@@ -1,3 +1,6 @@
+import { existsSync } from "node:fs";
+
+if (existsSync(".env.test.local")) process.loadEnvFile(".env.test.local");
 import { afterAll, beforeAll } from "vitest";
 import { SUPABASE_URL, closeDb, sql } from "../helpers/supabase";
 
