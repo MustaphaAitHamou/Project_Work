@@ -1,7 +1,10 @@
+import { redirect } from "next/navigation";
 import { MailCheck } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AuthCard } from "../auth-card";
 import { ResendForm } from "./resend-form";
+import { SessionWatcher } from "./session-watcher";
+import { getSessionUser } from "@/lib/auth/session";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -12,6 +15,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function CheckEmailPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  // Once the e-mail is confirmed (often in another tab), go straight to the user's space.
+  if (await getSessionUser()) redirect(`/${locale}/welcome`);
   const t = await getTranslations("auth");
   return (
     <AuthCard title={t("checkEmailTitle")}>
@@ -20,6 +25,7 @@ export default async function CheckEmailPage({ params }: { params: Promise<{ loc
         <p className="text-sm">{t("checkEmailText")}</p>
       </div>
       <ResendForm />
+      <SessionWatcher />
     </AuthCard>
   );
 }
