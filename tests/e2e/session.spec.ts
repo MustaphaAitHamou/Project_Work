@@ -32,6 +32,7 @@ test("the check-email page moves on by itself once the link is opened in another
   await page.getByRole("textbox", { name: "Nom", exact: true }).fill("Onglet");
   await page.getByRole("textbox", { name: "Adresse e-mail", exact: true }).fill(email);
   await page.locator("input[name=password]").fill("Str0ngPassw0rd");
+  await page.locator("input[name=passwordConfirm]").fill("Str0ngPassw0rd");
   await page.locator("input[name=terms]").check();
   await page.getByRole("button", { name: "Créer mon compte" }).click();
   await expect(page).toHaveURL(/check-email/);
@@ -43,4 +44,36 @@ test("the check-email page moves on by itself once the link is opened in another
 
   // The first tab notices the session without any action from the user.
   await expect(page).toHaveURL(/\/fr\/candidate/, { timeout: 15_000 });
+});
+
+test.describe("Sign-up checks", () => {
+  async function fill(page: import("@playwright/test").Page, email: string, password: string, confirm: string) {
+    await page.goto("/fr/signup");
+    await page.waitForLoadState("networkidle");
+    await page.getByRole("textbox", { name: "Prénom", exact: true }).fill("Test");
+    await page.getByRole("textbox", { name: "Nom", exact: true }).fill("Inscription");
+    await page.getByRole("textbox", { name: "Adresse e-mail", exact: true }).fill(email);
+    await page.locator("input[name=password]").fill(password);
+    await page.locator("input[name=passwordConfirm]").fill(confirm);
+    await page.locator("input[name=terms]").check();
+    await page.getByRole("button", { name: "Créer mon compte" }).click();
+  }
+
+  test("passwords must match", async ({ page }) => {
+    await fill(page, uniqueEmail("e2e.mismatch"), "Str0ngPassw0rd", "Str0ngPassw0rX");
+    await expect(page.getByText("Les deux mots de passe ne correspondent pas.")).toBeVisible();
+    await expect(page).toHaveURL(/\/fr\/signup/);
+  });
+
+  test("an address on a domain that cannot receive e-mail is refused", async ({ page }) => {
+    await fill(page, "erzfgujeifgu@gergfe.invalid", "Str0ngPassw0rd", "Str0ngPassw0rd");
+    await expect(page.getByText("Ce domaine n'existe pas ou ne reçoit pas d'e-mails. Vérifiez l'adresse.")).toBeVisible();
+  });
+
+  test("an address that already has an account gets an explicit message", async ({ page }) => {
+    const existing = await createTestUser("candidate");
+    await fill(page, existing.email, "Str0ngPassw0rd", "Str0ngPassw0rd");
+    await expect(page.getByText("Un compte existe déjà avec cette adresse e-mail.", { exact: false })).toBeVisible();
+    await expect(page).toHaveURL(/\/fr\/signup/);
+  });
 });

@@ -148,6 +148,8 @@
   "rateLimited": "Trop de demandes. Réessayez dans quelques minutes.",
   "captchaFailed": "La vérification anti-robot a échoué. Réessayez.",
   "signupFailed": "L'inscription n'a pas pu aboutir. Réessayez dans un instant.",
+  "emailAlreadyRegistered": "Un compte existe déjà avec cette adresse e-mail. Connectez-vous, ou utilisez « Mot de passe oublié ? » si vous ne vous en souvenez plus.",
+  "emailAlreadyRegisteredShort": "Un compte existe déjà avec cette adresse.",
   "suspendedTitle": "Compte suspendu",
   "suspendedText": "Votre compte a été suspendu. Si vous pensez qu'il s'agit d'une erreur, contactez le support en répondant à l'e-mail de notification.",
   "validation": {
@@ -158,7 +160,8 @@
    "password": "10 caractères minimum, avec une majuscule, une minuscule et un chiffre.",
    "confirm": "Les deux mots de passe ne correspondent pas.",
    "terms": "Vous devez accepter les conditions pour continuer.",
-   "accountType": "Type de compte invalide."
+   "accountType": "Type de compte invalide.",
+   "emailDomain": "Ce domaine n'existe pas ou ne reçoit pas d'e-mails. Vérifiez l'adresse."
   }
  },
  "forms": {

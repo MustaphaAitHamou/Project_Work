@@ -31,6 +31,7 @@ export async function signUpAndConfirm(page: Page, opts: { email: string; firstN
   await page.getByRole("textbox", { name: "Nom", exact: true }).fill(opts.lastName);
   await page.getByRole("textbox", { name: opts.employer ? "E-mail professionnel" : "Adresse e-mail", exact: true }).fill(opts.email);
   await page.locator("input[name=password]").fill("Str0ngPassw0rd");
+  await page.locator("input[name=passwordConfirm]").fill("Str0ngPassw0rd");
   await page.locator("input[name=terms]").check();
   await page.getByRole("button", { name: "Créer mon compte" }).click();
   await expect(page).toHaveURL(/check-email/);

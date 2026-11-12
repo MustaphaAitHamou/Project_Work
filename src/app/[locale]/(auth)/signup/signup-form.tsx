@@ -42,6 +42,9 @@ export function SignupForm({ accountType }: { accountType: "candidate" | "employ
       <FormField id="password" label={t("password")} hint={t("passwordHint")} required error={fe.password}>
         {(p) => <Input {...p} name="password" type="password" autoComplete="new-password" minLength={10} />}
       </FormField>
+      <FormField id="passwordConfirm" label={t("confirmPassword")} required error={fe.confirm}>
+        {(p) => <Input {...p} name="passwordConfirm" type="password" autoComplete="new-password" minLength={10} />}
+      </FormField>
       <div className="space-y-1">
         <label className="flex items-start gap-2 text-sm">
           <Checkbox name="terms" className="mt-0.5" aria-invalid={fe.terms ? true : undefined} aria-describedby={fe.terms ? "terms-error" : undefined} />

@@ -148,6 +148,8 @@
   "rateLimited": "Demasiadas solicitudes. Inténtelo de nuevo en unos minutos.",
   "captchaFailed": "La verificación antirrobot ha fallado. Inténtelo de nuevo.",
   "signupFailed": "No se ha podido completar el registro. Inténtelo de nuevo en un momento.",
+  "emailAlreadyRegistered": "Ya existe una cuenta con esta dirección de correo. Inicie sesión, o utilice «¿Ha olvidado su contraseña?» si no la recuerda.",
+  "emailAlreadyRegisteredShort": "Ya existe una cuenta con esta dirección.",
   "suspendedTitle": "Cuenta suspendida",
   "suspendedText": "Su cuenta ha sido suspendida. Si cree que se trata de un error, contacte con el soporte respondiendo al correo de notificación.",
   "validation": {
@@ -158,7 +160,8 @@
    "password": "Mínimo 10 caracteres, con una mayúscula, una minúscula y una cifra.",
    "confirm": "Las dos contraseñas no coinciden.",
    "terms": "Debe aceptar las condiciones para continuar.",
-   "accountType": "Tipo de cuenta no válido."
+   "accountType": "Tipo de cuenta no válido.",
+   "emailDomain": "Este dominio no existe o no puede recibir correos. Compruebe la dirección."
   }
  },
  "forms": {

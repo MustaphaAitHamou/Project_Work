@@ -148,6 +148,8 @@
   "rateLimited": "Too many requests. Try again in a few minutes.",
   "captchaFailed": "The anti-bot check failed. Please try again.",
   "signupFailed": "Sign-up could not be completed. Try again in a moment.",
+  "emailAlreadyRegistered": "An account already exists with this e-mail address. Sign in, or use “Forgot your password?” if you don't remember it.",
+  "emailAlreadyRegisteredShort": "An account already exists with this address.",
   "suspendedTitle": "Account suspended",
   "suspendedText": "Your account has been suspended. If you think this is a mistake, contact support by replying to the notification e-mail.",
   "validation": {
@@ -158,7 +160,8 @@
    "password": "At least 10 characters, with an uppercase letter, a lowercase letter and a digit.",
    "confirm": "The two passwords do not match.",
    "terms": "You must accept the terms to continue.",
-   "accountType": "Invalid account type."
+   "accountType": "Invalid account type.",
+   "emailDomain": "This domain does not exist or cannot receive e-mail. Check the address."
   }
  },
  "forms": {

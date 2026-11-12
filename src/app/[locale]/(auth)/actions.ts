@@ -7,7 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 import { failure, success, type ActionState } from "@/lib/action-state";
 import { ipKey, safeNextPath } from "@/lib/security/request";
 import { rateLimit } from "@/lib/security/rate-limit";
-import { siteUrl } from "@/lib/env";
+import { isProductionDeployment, siteUrl } from "@/lib/env";
+import { checkEmailDomain } from "@/lib/security/email-domain";
 import { routing } from "@/i18n/routing";
 import { passwordSchema, TERMS_VERSION } from "@/lib/validation/auth";
 
@@ -22,8 +23,9 @@ const signUpSchema = z.object({
   lastName: z.string().trim().min(1).max(100),
   email: z.email().max(254),
   password: passwordSchema,
+  passwordConfirm: z.string(),
   terms: z.literal("on"),
-});
+}).refine((v) => v.password === v.passwordConfirm, { path: ["confirm"] });
 
 export async function signUpAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const locale = localeFrom(formData);
@@ -34,6 +36,7 @@ export async function signUpAction(_prev: ActionState, formData: FormData): Prom
     lastName: formData.get("lastName"),
     email: String(formData.get("email") ?? "").trim().toLowerCase(),
     password: formData.get("password"),
+    passwordConfirm: formData.get("passwordConfirm") ?? "",
     terms: formData.get("terms"),
   });
   if (!parsed.success) {
@@ -46,6 +49,9 @@ export async function signUpAction(_prev: ActionState, formData: FormData): Prom
   }
   if (!(await rateLimit(`signup:${await ipKey()}`, 10, 3600))) {
     return failure(t("rateLimited"));
+  }
+  if ((await checkEmailDomain(parsed.data.email, { allowTestDomains: !isProductionDeployment() })) !== "ok") {
+    return failure(t("validation.fixErrors"), { email: t("validation.emailDomain") });
   }
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
@@ -68,10 +74,15 @@ export async function signUpAction(_prev: ActionState, formData: FormData): Prom
     if (error.code === "weak_password") return failure(t("validation.password"), { password: t("validation.password") });
     if (error.code === "over_email_send_rate_limit" || error.status === 429) return failure(t("rateLimited"));
     if (error.code === "captcha_failed") return failure(t("captchaFailed"));
+    // Explicit on purpose (product decision): the sign-up form says when an address already
+    // has an account. Enumeration is bounded by the per-IP rate limit and the captcha.
+    if (error.code === "user_already_exists" || error.code === "email_exists") {
+      return failure(t("emailAlreadyRegistered"), { email: t("emailAlreadyRegisteredShort") });
+    }
     console.error("signUp failed", error.code, error.message);
     return failure(t("signupFailed"));
   }
-  // Same response whether or not the address already exists (no account enumeration).
+  // An existing but unconfirmed address gets a new confirmation e-mail (Supabase resends it).
   redirect(`/${locale}/check-email?reason=signup`);
 }
 
