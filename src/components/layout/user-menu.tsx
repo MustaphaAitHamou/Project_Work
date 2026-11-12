@@ -1,4 +1,5 @@
 "use client";
+import { useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Briefcase, FileText, LayoutDashboard, LogOut, Settings, Shield, User } from "lucide-react";
 import { Link } from "@/i18n/navigation";
@@ -18,6 +19,7 @@ interface Props {
 
 export function UserMenu({ user }: Props) {
   const t = useTranslations("nav");
+  const signOutForm = useRef<HTMLFormElement>(null);
   const items =
     user.accountType === "candidate"
       ? [
@@ -65,15 +67,13 @@ export function UserMenu({ user }: Props) {
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
-        <form action="/auth/signout" method="post">
-          <DropdownMenuItem asChild>
-            <button type="submit" className="w-full">
-              <LogOut aria-hidden />
-              {t("logout")}
-            </button>
-          </DropdownMenuItem>
-        </form>
+        {/* The form lives outside the menu: closing the menu unmounts its content before a nested submit fires. */}
+        <DropdownMenuItem onSelect={() => signOutForm.current?.requestSubmit()}>
+          <LogOut aria-hidden />
+          {t("logout")}
+        </DropdownMenuItem>
       </DropdownMenuContent>
+      <form ref={signOutForm} action="/auth/signout" method="post" hidden />
     </DropdownMenu>
   );
 }
