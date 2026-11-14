@@ -3,6 +3,7 @@ import { Link } from "@/i18n/navigation";
 import type { SessionUser } from "@/lib/auth/session";
 import { Button } from "@/components/ui/button";
 import { Logo } from "./logo";
+import { TamurtYaz } from "./tamurt-yaz";
 import { LocaleSwitcher } from "./locale-switcher";
 import { ThemeToggle } from "./theme-toggle";
 import { UserMenu } from "./user-menu";
@@ -50,6 +51,7 @@ export async function SiteHeader({ user }: { user: SessionUser | null }) {
             </Button>
           )}
           <MobileNav links={links} loggedIn={Boolean(user)} />
+          <TamurtYaz />
         </div>
       </div>
     </header>

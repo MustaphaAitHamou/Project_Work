@@ -22,7 +22,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   ];
   return (
     <>
-      <section className="relative overflow-hidden border-b bg-gradient-to-b from-primary/10 via-background to-background">
+      <section className="relative overflow-hidden bg-gradient-to-b from-primary/10 via-background to-background">
         <div className="container-page py-16 sm:py-24">
           <div className="mx-auto max-w-3xl text-center">
             <p className="mb-4 inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
@@ -44,6 +44,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             ))}
           </nav>
         </div>
+        {/* Jobs frise "comb" under the home banner (one per screen). */}
+        <div className="frise" aria-hidden />
       </section>
 
       <section className="container-page py-14" aria-labelledby="promises">

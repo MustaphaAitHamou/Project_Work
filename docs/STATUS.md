@@ -41,6 +41,11 @@ Les tests d'intégration et E2E s'exécutent contre une pile Supabase locale ré
 - Comptes et clés : Stripe live (et Stripe Tax), fournisseur d'e-mail, Turnstile, registres, projets Supabase et Vercel.
 - Choix de la région d'hébergement et encadrement des transferts de données.
 
+**Identité visuelle (DA Tamurt Services, novembre 2026)**
+- Couleurs, police Bitter, coins, logos, favicons, frise et bouton yaz appliqués. Vérifié : typecheck, lint, tests unitaires (64/64) et build. Rendu contrôlé en français et en arabe, en clair et en sombre.
+- Tests d'intégration et E2E non relancés après ce changement : ils exigent la pile Supabase locale (Docker), indisponible dans l'environnement de travail. À relancer avant fusion.
+- Bouton yaz masqué tant que `TAMURT_SERVICES_URL` est vide, puisque le site Tamurt Services n'est pas encore en ligne.
+
 **Recommandé**
 - Double authentification obligatoire pour les comptes du back-office (non implémentée).
 - Analyse antivirus des fichiers déposés (contrôles structurels seulement aujourd'hui).

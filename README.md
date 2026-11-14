@@ -9,6 +9,15 @@ Plateforme internationale d'offres d'emploi de **Tamurt Services LLC** — « Le
 
 > État réel du projet, éléments testés et points bloqués : **[docs/STATUS.md](docs/STATUS.md)**.
 
+## Identité visuelle
+
+Tamurt Jobs suit la direction artistique de la famille **Tamurt Services** :
+- **Couleur** : bleu de travail `#2747b0` (`#93a9f4` en sombre) sur les neutres chauds communs à la famille. Le rouge Tamurt est réservé au bouton yaz ; l'or est réservé aux étoiles d'évaluation.
+- **Police** : Bitter, aux empattements carrés comme un contrat tapé ou une annonce de journal. Noto Serif prend le relais pour les lettres kabyles (ɛ, ɣ) et Noto Naskh Arabic pour l'arabe ; ces deux polices ne se téléchargent que si une lettre les demande.
+- **Formes** : coins de 4 px (boutons, champs, puces) et de 6 px (cartes), frise « peigne » sous l'accueil.
+- **Fichiers** : logos dans `public/brand`, favicons et icône Apple dans `public/icons` et `public/icon.svg` ; jetons dans `src/app/globals.css`.
+- **Bouton yaz** rouge en haut à droite, affiché si `TAMURT_SERVICES_URL` est renseignée.
+
 ## Pile technique
 
 Next.js 16 (App Router, TypeScript strict) · Tailwind CSS 4 · composants Radix/shadcn · Supabase (PostgreSQL 17, Auth, Storage privé, RLS) · Stripe (Checkout, Billing, webhooks signés) · Resend ou SMTP · next-intl · Vitest · Playwright + axe-core · GitHub Actions · Vercel.

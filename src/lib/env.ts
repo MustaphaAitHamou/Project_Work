@@ -47,6 +47,8 @@ const schema = z.object({
   REGISTRY_HTTP_TIMEOUT_MS: z.coerce.number().int().positive().default(8000),
 
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+  /** Tamurt Services (parent company) address: enables the red yaz button at the top right. Empty: no button. */
+  TAMURT_SERVICES_URL: z.union([z.url(), z.literal("")]).optional(),
 });
 
 export type Env = z.infer<typeof schema>;

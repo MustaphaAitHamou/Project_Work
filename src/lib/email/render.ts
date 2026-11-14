@@ -53,22 +53,22 @@ export function renderEmail(c: EmailContent): RenderedEmail {
     ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 18px 0;">${c.items
         .map(
           (i) =>
-            `<tr><td style="padding:10px 0;border-bottom:1px solid #e2e8f0;text-align:${align};">${
-              i.url ? `<a href="${escapeHtml(i.url)}" style="color:#0f766e;font-weight:bold;text-decoration:none;">${escapeHtml(i.title)}</a>` : `<strong>${escapeHtml(i.title)}</strong>`
-            }${i.subtitle ? `<br><span style="color:#64748b;font-size:13px;">${escapeHtml(i.subtitle)}</span>` : ""}</td></tr>`,
+            `<tr><td style="padding:10px 0;border-bottom:1px solid #dedbd4;text-align:${align};">${
+              i.url ? `<a href="${escapeHtml(i.url)}" style="color:#2747b0;font-weight:bold;text-decoration:none;">${escapeHtml(i.title)}</a>` : `<strong>${escapeHtml(i.title)}</strong>`
+            }${i.subtitle ? `<br><span style="color:#5c5852;font-size:13px;">${escapeHtml(i.subtitle)}</span>` : ""}</td></tr>`,
         )
         .join("")}</table>`
     : "";
   const cta = c.cta
-    ? `<p style="margin:22px 0;"><a href="${escapeHtml(c.cta.url)}" style="background:#0f766e;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;display:inline-block;font-weight:bold;">${escapeHtml(c.cta.label)}</a></p>`
+    ? `<p style="margin:22px 0;"><a href="${escapeHtml(c.cta.url)}" style="background:#2747b0;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:4px;display:inline-block;font-weight:bold;">${escapeHtml(c.cta.label)}</a></p>`
     : "";
   const html = `<!doctype html><html lang="${escapeHtml(c.locale)}" dir="${dir}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(c.subject)}</title></head>
-<body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,Helvetica,sans-serif;color:#0f172a;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6f8;padding:24px 0;"><tr><td align="center">
+<body style="margin:0;padding:0;background:#f6f5f2;font-family:Arial,Helvetica,sans-serif;color:#1d1b19;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f5f2;padding:24px 0;"><tr><td align="center">
 <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:12px;padding:32px;text-align:${align};" dir="${dir}">
-<tr><td style="font-size:20px;font-weight:bold;color:#0f766e;padding-bottom:16px;">Tamurt Jobs</td></tr>
+<tr><td style="font-size:20px;font-weight:bold;color:#2747b0;padding-bottom:16px;"><span style="color:#e5162f;letter-spacing:1px;">TAMURT</span> Jobs</td></tr>
 <tr><td style="font-size:15px;line-height:1.6;">${paragraphs}${items}${cta}</td></tr>
-<tr><td style="font-size:12px;color:#64748b;padding-top:20px;border-top:1px solid #e2e8f0;">${escapeHtml(c.footer)}</td></tr>
+<tr><td style="font-size:12px;color:#5c5852;padding-top:20px;border-top:1px solid #dedbd4;">${escapeHtml(c.footer)}</td></tr>
 </table></td></tr></table></body></html>`;
   const text = [
     ...c.paragraphs,
