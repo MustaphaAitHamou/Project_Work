@@ -1,14 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import {
-  BadgeCheck,
-  CheckCircle2,
-  FileUp,
-  Globe2,
-  MousePointerClick,
-  Scale,
-  ShieldCheck,
-  UserRound,
-} from "lucide-react";
+import { CheckCircle2, ShieldCheck } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { getJobPrice, getLatestJobs, getRegionNames } from "@/lib/jobs/queries";
 import { MARKETS } from "@/lib/domain";
@@ -20,6 +11,28 @@ import { Button } from "@/components/ui/button";
 import { CountryFlag } from "@/components/home/country-flag";
 import { EmptyBoardIllustration } from "@/components/home/empty-board-illustration";
 import { HeroIllustration } from "@/components/home/hero-illustration";
+import {
+  DashboardSpot,
+  EqualitySpot,
+  OneClickSpot,
+  ProfileSpot,
+  SendSpot,
+  UploadSpot,
+  VerifiedSpot,
+} from "@/components/home/spot-illustrations";
+
+/** The nine markets as a little cluster of flags, for the "9 markets" promise. */
+function MarketsSpot() {
+  return (
+    <div className="grid size-32 place-items-center rounded-full border-2 border-dashed border-primary/35 bg-card">
+      <div className="grid grid-cols-3 gap-1.5">
+        {MARKETS.map((c) => (
+          <CountryFlag key={c} code={c} className="h-[18px] w-[27px]" />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default async function HomePage({
   params,
@@ -36,15 +49,45 @@ export default async function HomePage({
     getCountryNamer(),
   ]);
   const now = new Date();
+  const spot = "w-full max-w-[176px]";
   const promises = [
-    { icon: BadgeCheck, title: t("promise1Title"), text: t("promise1Text") },
     {
-      icon: MousePointerClick,
+      art: <VerifiedSpot className={spot} />,
+      title: t("promise1Title"),
+      text: t("promise1Text"),
+    },
+    {
+      art: <OneClickSpot className={spot} />,
       title: t("promise2Title"),
       text: t("promise2Text"),
     },
-    { icon: Globe2, title: t("promise3Title"), text: t("promise3Text") },
-    { icon: Scale, title: t("promise4Title"), text: t("promise4Text") },
+    {
+      art: <MarketsSpot />,
+      title: t("promise3Title"),
+      text: t("promise3Text"),
+    },
+    {
+      art: <EqualitySpot className={spot} />,
+      title: t("promise4Title"),
+      text: t("promise4Text"),
+    },
+  ];
+  const steps = [
+    {
+      art: <ProfileSpot className="w-full max-w-[200px]" />,
+      title: t("step1Title"),
+      text: t("step1Text"),
+    },
+    {
+      art: <UploadSpot className="w-full max-w-[200px]" />,
+      title: t("step2Title"),
+      text: t("step2Text"),
+    },
+    {
+      art: <SendSpot className="w-full max-w-[200px]" />,
+      title: t("step3Title"),
+      text: t("step3Text"),
+    },
   ];
   return (
     <>
@@ -93,34 +136,48 @@ export default async function HomePage({
         <SearchBar size="lg" />
       </div>
 
-      <section className="container-page py-14" aria-labelledby="promises">
-        <h2 id="promises" className="sr-only">
+      {/* Commitments: four large tiles, each with its own illustration. */}
+      <section
+        className="container-page py-16 sm:py-20"
+        aria-labelledby="promises"
+      >
+        <h2
+          id="promises"
+          className="text-center text-3xl font-extrabold sm:text-4xl"
+        >
           {t("promisesTitle")}
         </h2>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-10 grid gap-6 md:grid-cols-2">
           {promises.map((p) => (
-            <div
+            <article
               key={p.title}
-              className="rounded-xl border bg-card p-6 transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+              className="grid items-center gap-6 rounded-xl border bg-card p-6 transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg motion-reduce:transition-none motion-reduce:hover:translate-y-0 sm:grid-cols-[184px_1fr]"
             >
-              <span className="grid size-12 place-items-center rounded-md bg-secondary text-primary">
-                <p.icon className="size-6" aria-hidden />
-              </span>
-              <h3 className="mt-4 text-lg font-bold">{p.title}</h3>
-              <p className="mt-1.5 text-sm text-muted-foreground">{p.text}</p>
-            </div>
+              <div className="grid h-40 place-items-center rounded-md bg-secondary px-3">
+                {p.art}
+              </div>
+              <div>
+                <h3 className="text-xl font-bold">{p.title}</h3>
+                <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+                  {p.text}
+                </p>
+              </div>
+            </article>
           ))}
         </div>
       </section>
 
-      <section className="container-page pb-14" aria-labelledby="latest">
-        <div className="mb-5 flex items-end justify-between gap-4">
-          <h2 id="latest" className="text-2xl font-bold">
+      <section
+        className="container-page pb-16 sm:pb-20"
+        aria-labelledby="latest"
+      >
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <h2 id="latest" className="text-3xl font-extrabold">
             {t("latestTitle")}
           </h2>
           <Link
             href="/jobs?sort=date"
-            className="text-sm font-medium text-primary hover:underline"
+            className="text-sm font-bold text-primary hover:underline"
           >
             {t("seeAllJobs")}
           </Link>
@@ -159,55 +216,38 @@ export default async function HomePage({
         )}
       </section>
 
-      <section className="border-y bg-muted/30" aria-labelledby="how">
-        <div className="container-page py-14">
-          <h2 id="how" className="text-center text-2xl font-bold">
+      {/* How it works: a tinted band, one illustration per step. */}
+      <section className="bg-secondary/70" aria-labelledby="how">
+        <div className="container-page py-16 sm:py-20">
+          <h2
+            id="how"
+            className="text-center text-3xl font-extrabold sm:text-4xl"
+          >
             {t("howTitle")}
           </h2>
-          <div className="relative mt-14">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-x-[17%] top-0 hidden border-t-2 border-dashed border-primary/40 md:block"
-            />
-            <ol className="relative grid gap-12 md:grid-cols-3 md:gap-6">
-              {[
-                {
-                  icon: UserRound,
-                  title: t("step1Title"),
-                  text: t("step1Text"),
-                },
-                { icon: FileUp, title: t("step2Title"), text: t("step2Text") },
-                {
-                  icon: MousePointerClick,
-                  title: t("step3Title"),
-                  text: t("step3Text"),
-                },
-              ].map((s, i) => (
-                <li
-                  key={s.title}
-                  className="relative rounded-xl border bg-card px-6 pt-11 pb-6 text-center"
-                >
+          <ol className="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
+            {steps.map((s, i) => (
+              <li key={s.title}>
+                <div className="relative grid h-48 place-items-center rounded-xl border bg-card p-5 shadow-sm">
+                  {s.art}
                   <span
                     aria-hidden
-                    className="absolute inset-x-0 -top-7 mx-auto grid size-14 place-items-center rounded-full bg-primary text-2xl font-extrabold text-primary-foreground shadow-lg"
+                    className="absolute -top-5 start-5 grid size-12 place-items-center rounded-full bg-primary text-xl font-extrabold text-primary-foreground shadow-lg"
                   >
                     {i + 1}
                   </span>
-                  <span className="text-sm font-semibold text-primary">
-                    {t("stepLabel", { n: i + 1 })}
-                  </span>
-                  <span className="mx-auto mt-3 grid size-12 place-items-center rounded-md bg-secondary text-primary">
-                    <s.icon className="size-6" aria-hidden />
-                  </span>
-                  <h3 className="mt-3 text-lg font-bold">{s.title}</h3>
-                  <p className="mt-1.5 text-sm text-muted-foreground">
-                    {s.text}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </div>
-          <div className="mt-8 flex justify-center gap-3">
+                </div>
+                <p className="mt-6 text-sm font-bold tracking-[0.08em] text-primary uppercase">
+                  {t("stepLabel", { n: i + 1 })}
+                </p>
+                <h3 className="mt-1 text-xl font-bold">{s.title}</h3>
+                <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+                  {s.text}
+                </p>
+              </li>
+            ))}
+          </ol>
+          <div className="mt-12 flex justify-center">
             <Button asChild size="lg">
               <Link href="/signup">{t("ctaCandidate")}</Link>
             </Button>
@@ -215,20 +255,26 @@ export default async function HomePage({
         </div>
       </section>
 
-      <section className="container-page py-14" aria-labelledby="recruiters">
-        <div className="grid items-center gap-8 rounded-2xl border bg-card p-8 md:grid-cols-[1.4fr_1fr]">
+      {/* Recruiters: the applications dashboard next to the pitch and the price. */}
+      <section
+        className="container-page py-16 sm:py-20"
+        aria-labelledby="recruiters"
+      >
+        <div className="grid items-center gap-10 rounded-2xl border bg-card p-6 sm:p-10 lg:grid-cols-[1fr_1.05fr]">
           <div>
-            <h2 id="recruiters" className="text-2xl font-bold">
+            <h2 id="recruiters" className="text-3xl font-extrabold">
               {t("recruitersTitle")}
             </h2>
-            <p className="mt-2 text-muted-foreground">{t("recruitersText")}</p>
-            <ul className="mt-5 space-y-3 text-sm">
+            <p className="mt-3 text-lg leading-relaxed text-muted-foreground">
+              {t("recruitersText")}
+            </p>
+            <ul className="mt-6 space-y-3 text-base">
               {[
                 t("recruitersPoint1"),
                 t("recruitersPoint2"),
                 t("recruitersPoint3"),
               ].map((point) => (
-                <li key={point} className="flex items-start gap-2.5">
+                <li key={point} className="flex items-start gap-3">
                   <CheckCircle2
                     className="mt-0.5 size-5 shrink-0 text-primary"
                     aria-hidden
@@ -237,25 +283,33 @@ export default async function HomePage({
                 </li>
               ))}
             </ul>
+            <div className="relative mt-8 flex flex-col gap-5 overflow-hidden rounded-xl bg-[image:var(--brand-gradient)] p-6 text-white sm:flex-row sm:items-center sm:justify-between">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -end-14 -top-16 size-44 rounded-full bg-white/10"
+              />
+              {price ? (
+                <div className="relative">
+                  <p className="text-sm">{t("priceFrom")}</p>
+                  <p className="text-4xl font-extrabold">
+                    {formatMoneyMinor(
+                      price.unit_amount,
+                      price.currency,
+                      locale,
+                    )}
+                  </p>
+                  <p className="text-sm">
+                    {t("pricePer")} · {t("priceTaxes")}
+                  </p>
+                </div>
+              ) : null}
+              <Button asChild variant="inverse" className="relative shrink-0">
+                <Link href="/recruiters">{t("ctaRecruiter")}</Link>
+              </Button>
+            </div>
           </div>
-          <div className="relative overflow-hidden rounded-xl bg-[image:var(--brand-gradient)] p-6 text-center text-white">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -end-16 -top-16 size-48 rounded-full bg-white/10"
-            />
-            {price ? (
-              <>
-                <p className="relative text-sm">{t("priceFrom")}</p>
-                <p className="relative mt-1 text-4xl font-extrabold">
-                  {formatMoneyMinor(price.unit_amount, price.currency, locale)}
-                </p>
-                <p className="relative text-sm">{t("pricePer")}</p>
-                <p className="relative mt-1 text-xs">{t("priceTaxes")}</p>
-              </>
-            ) : null}
-            <Button asChild variant="inverse" className="relative mt-4 w-full">
-              <Link href="/recruiters">{t("ctaRecruiter")}</Link>
-            </Button>
+          <div className="rounded-xl bg-secondary p-4 sm:p-6">
+            <DashboardSpot className="w-full" />
           </div>
         </div>
       </section>
