@@ -65,7 +65,7 @@ En cas d'échec d'un renouvellement, l'entreprise est prévenue par e-mail. L'an
 
 ### 8.1 Accès limité
 
-L'entreprise reçoit **uniquement** les candidatures adressées à ses propres annonces : informations du profil au moment de la candidature et CV choisi par le candidat. Elle n'a pas accès à une base de CV ni aux profils des autres candidats. Les CV sont téléchargés au moyen de liens temporaires ; chaque téléchargement est journalisé et visible par le candidat dans l'export de ses données. L'état « consultée » est affiché au candidat uniquement lorsqu'un membre de l'entreprise a effectivement ouvert sa candidature.
+L'entreprise reçoit **uniquement** les candidatures adressées à ses propres annonces. La présélection est **anonyme** : profil professionnel au moment de la candidature et version anonymisée du CV validée par le candidat, sous un alias propre à chaque candidature. L'identité, les coordonnées et le CV d'origine ne sont communiqués que si le candidat accepte la demande de levée de l'anonymat de l'entreprise ; un refus ne vaut pas retrait de la candidature, et le candidat peut retirer son accord ultérieurement. Le masquage automatique ne garantit pas un anonymat absolu ; l'entreprise s'interdit toute tentative de réidentification d'un candidat avant son accord. Elle n'a pas accès à une base de CV ni aux profils des autres candidats. Les CV sont téléchargés au moyen de liens temporaires ; chaque téléchargement est journalisé et visible par le candidat dans l'export de ses données. L'état « consultée » est affiché au candidat uniquement lorsqu'un membre de l'entreprise a effectivement ouvert sa candidature.
 
 Lorsqu'un candidat retire sa candidature ou supprime son compte, l'entreprise n'y a plus accès sur la Plateforme.
 
@@ -84,7 +84,7 @@ Sur la Plateforme, les candidatures sont anonymisées **24 mois** après la clô
 
 ### 8.3 Contact des candidats
 
-La Plateforme n'intègre **aucune messagerie**. L'entreprise contacte les candidats par les coordonnées figurant dans la candidature et met à jour l'état des candidatures (présélectionnée, non retenue, etc.), ce qui informe le candidat.
+La Plateforme n'intègre **aucune messagerie**. Pour contacter un candidat, l'entreprise lui demande de lever l'anonymat, en un clic, sans message à rédiger ; elle utilise ensuite les coordonnées communiquées, pour ce recrutement uniquement. Elle met à jour l'état des candidatures (présélectionnée, non retenue, etc.), ce qui informe le candidat. Tant qu'une candidature est refusée, l'identité du candidat n'est plus affichée à l'entreprise sur la Plateforme.
 
 ## 9. Obligations de Tamurt Jobs
 

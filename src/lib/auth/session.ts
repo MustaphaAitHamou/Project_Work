@@ -53,6 +53,20 @@ function loginPath(locale: string, next?: string) {
   return `/${locale}/login${next ? `?next=${encodeURIComponent(next)}` : ""}`;
 }
 
+/** Space of a signed-in user: candidates and employers each have their own. */
+export function spacePath(locale: string, user: Pick<SessionUser, "accountType">): string {
+  return `/${locale}/${user.accountType === "employer" ? "employer" : "candidate"}`;
+}
+
+/**
+ * Sign-up pages are for visitors only: a signed-in user is sent to their own space
+ * instead of being asked to create an account again.
+ */
+export async function redirectIfSignedIn(locale: string): Promise<void> {
+  const user = await getSessionUser();
+  if (user) redirect(spacePath(locale, user));
+}
+
 export async function requireUser(locale: string, next?: string): Promise<SessionUser> {
   const user = await getSessionUser();
   if (!user) redirect(loginPath(locale, next));

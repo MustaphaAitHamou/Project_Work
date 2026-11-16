@@ -1,6 +1,6 @@
 "use client";
 import { useState, useTransition } from "react";
-import { CheckCircle2, Loader2, MousePointerClick, ShieldCheck } from "lucide-react";
+import { CheckCircle2, EyeOff, Loader2, Lock, MousePointerClick, ShieldCheck } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Link } from "@/i18n/navigation";
@@ -13,7 +13,7 @@ export type ApplyState =
   | { kind: "employer" }
   | { kind: "closed" }
   | { kind: "incomplete"; missing: string[] }
-  | { kind: "consent"; consentVersion: string; transmitted: string[] }
+  | { kind: "consent"; consentVersion: string; transmitted: { anonymous: string[]; onReveal: string[] } }
   | { kind: "ready" }
   | { kind: "applied"; applicationId: string };
 
@@ -147,14 +147,37 @@ export function ApplyButton({ jobId, initial, jobTitle }: { jobId: string; initi
             <DialogDescription>{t("consentIntro")}</DialogDescription>
           </DialogHeader>
           {state.kind === "consent" && (
-            <ul className="grid gap-1.5 rounded-lg bg-muted/50 p-4 text-sm sm:grid-cols-2">
-              {state.transmitted.map((item) => (
-                <li key={item} className="flex items-start gap-2">
-                  <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
-                  {t(`transmitted.${item}` as never)}
-                </li>
-              ))}
-            </ul>
+            <div className="space-y-3">
+              <section aria-labelledby="consent-anonymous" className="rounded-lg bg-muted/50 p-4">
+                <h3 id="consent-anonymous" className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                  <EyeOff className="size-4 text-primary" aria-hidden />
+                  {t("anonymousGroup")}
+                </h3>
+                <ul className="grid gap-1.5 text-sm sm:grid-cols-2">
+                  {state.transmitted.anonymous.map((item) => (
+                    <li key={item} className="flex items-start gap-2">
+                      <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+                      {t(`transmitted.${item}` as never)}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+              <section aria-labelledby="consent-reveal" className="rounded-lg border border-dashed p-4">
+                <h3 id="consent-reveal" className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                  <Lock className="size-4 text-primary" aria-hidden />
+                  {t("revealGroup")}
+                </h3>
+                <ul className="grid gap-1.5 text-sm sm:grid-cols-2">
+                  {state.transmitted.onReveal.map((item) => (
+                    <li key={item} className="flex items-start gap-2">
+                      <Lock className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+                      {t(`transmitted.${item}` as never)}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-xs text-muted-foreground">{t("consentRefusal")}</p>
+              </section>
+            </div>
           )}
           <div className="space-y-2 text-sm text-muted-foreground">
             <p>{t("consentRecipients")}</p>

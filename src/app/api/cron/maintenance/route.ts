@@ -7,7 +7,7 @@ import { processEmailOutbox } from "@/lib/email/outbox";
 
 export const maxDuration = 60;
 
-/** Hourly: payment grace periods, deadlines, renewal reconciliation, retention purges. */
+/** Hourly: payment grace periods, deadlines, renewal reconciliation, retention purges, expired identity requests. */
 export async function GET(request: Request) {
   if (!isAuthorizedCron(request)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const admin = createAdminClient();
@@ -24,6 +24,14 @@ export async function GET(request: Request) {
     const del = await admin.storage.from(VERIFICATION_BUCKET).remove(report.verification_documents_to_delete.map((d) => d.storage_path));
     if (!del.error) await admin.rpc("verification_documents_mark_deleted", { p_ids: report.verification_documents_to_delete.map((d) => d.document_id) });
   }
+  // Requests to lift an application's anonymity that the candidate did not answer in time.
+  const { data: expiredIdentityRequests } = await admin.rpc("expire_identity_requests");
   const emails = await processEmailOutbox(50);
-  return NextResponse.json({ ...report, renewals_stopped: renewals.done.length, renewals_failed: renewals.failed.length, emails });
+  return NextResponse.json({
+    ...report,
+    identity_requests_expired: expiredIdentityRequests ?? 0,
+    renewals_stopped: renewals.done.length,
+    renewals_failed: renewals.failed.length,
+    emails,
+  });
 }

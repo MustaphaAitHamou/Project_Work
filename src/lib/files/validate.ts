@@ -100,6 +100,9 @@ export interface ZipEntry {
   compressedSize: number;
   uncompressedSize: number;
   encrypted: boolean;
+  /** 0 = stored, 8 = deflate. */
+  method: number;
+  localHeaderOffset: number;
 }
 
 export function readZipCentralDirectory(buf: Uint8Array): ZipEntry[] | null {
@@ -123,14 +126,16 @@ export function readZipCentralDirectory(buf: Uint8Array): ZipEntry[] | null {
   for (let n = 0; n < totalEntries; n++) {
     if (p + 46 > buf.length || view.getUint32(p, true) !== 0x02014b50) return null;
     const flags = view.getUint16(p + 8, true);
+    const method = view.getUint16(p + 10, true);
     const compressedSize = view.getUint32(p + 20, true);
     const uncompressedSize = view.getUint32(p + 24, true);
     const nameLen = view.getUint16(p + 28, true);
     const extraLen = view.getUint16(p + 30, true);
     const commentLen = view.getUint16(p + 32, true);
+    const localHeaderOffset = view.getUint32(p + 42, true);
     if (p + 46 + nameLen > buf.length) return null;
     const name = Buffer.from(buf.subarray(p + 46, p + 46 + nameLen)).toString("utf8");
-    entries.push({ name, compressedSize, uncompressedSize, encrypted: (flags & 0x1) === 1 });
+    entries.push({ name, compressedSize, uncompressedSize, encrypted: (flags & 0x1) === 1, method, localHeaderOffset });
     p += 46 + nameLen + extraLen + commentLen;
   }
   return entries;

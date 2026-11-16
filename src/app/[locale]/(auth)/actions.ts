@@ -11,76 +11,77 @@ import { isProductionDeployment, siteUrl } from "@/lib/env";
 import { checkEmailDomain } from "@/lib/security/email-domain";
 import { routing } from "@/i18n/routing";
 import { passwordSchema, TERMS_VERSION } from "@/lib/validation/auth";
+import { getSessionUser, spacePath } from "@/lib/auth/session";
+import { classifySignUpResult, signupFailureMessages, validateSignUp, type SignupFailureKind } from "@/lib/auth/signup-errors";
 
 function localeFrom(formData: FormData): string {
   const l = String(formData.get("locale") ?? "");
   return (routing.locales as readonly string[]).includes(l) ? l : routing.defaultLocale;
 }
 
-const signUpSchema = z.object({
-  accountType: z.enum(["candidate", "employer"]),
-  firstName: z.string().trim().min(1).max(100),
-  lastName: z.string().trim().min(1).max(100),
-  email: z.email().max(254),
-  password: passwordSchema,
-  passwordConfirm: z.string(),
-  terms: z.literal("on"),
-}).refine((v) => v.password === v.passwordConfirm, { path: ["confirm"] });
+export type SignupResultData = {
+  /** "email_taken" makes the form offer the login and password-reset links. */
+  reason?: SignupFailureKind;
+  /** Supabase Auth error code, only outside production, to help diagnose a setup problem. */
+  technical?: string;
+};
 
-export async function signUpAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+export async function signUpAction(_prev: ActionState, formData: FormData): Promise<ActionState<SignupResultData>> {
   const locale = localeFrom(formData);
+  // Already signed in (e.g. the page was opened before logging in elsewhere): no second account.
+  const current = await getSessionUser();
+  if (current) redirect(spacePath(locale, current));
   const t = await getTranslations({ locale, namespace: "auth" });
-  const parsed = signUpSchema.safeParse({
+  const checked = validateSignUp({
     accountType: formData.get("accountType"),
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
-    email: String(formData.get("email") ?? "").trim().toLowerCase(),
+    email: formData.get("email"),
     password: formData.get("password"),
-    passwordConfirm: formData.get("passwordConfirm") ?? "",
+    passwordConfirm: formData.get("passwordConfirm"),
     terms: formData.get("terms"),
   });
-  if (!parsed.success) {
-    const fieldErrors: Record<string, string> = {};
-    for (const issue of parsed.error.issues) {
-      const field = String(issue.path[0]);
-      fieldErrors[field] ??= t(`validation.${field}` as never);
-    }
-    return failure(t("validation.fixErrors"), fieldErrors);
+  if (!checked.ok) {
+    const fieldErrors = Object.fromEntries(Object.entries(checked.fieldErrors).map(([f, key]) => [f, t(key as never)]));
+    return failure(t(checked.message as never), fieldErrors);
   }
-  if (!(await rateLimit(`signup:${await ipKey()}`, 10, 3600))) {
-    return failure(t("rateLimited"));
-  }
-  if ((await checkEmailDomain(parsed.data.email, { allowTestDomains: !isProductionDeployment() })) !== "ok") {
-    return failure(t("validation.fixErrors"), { email: t("validation.emailDomain") });
+  const input = checked.data;
+  const [ipOk, emailOk] = await Promise.all([
+    rateLimit(`signup:${await ipKey()}`, 10, 3600),
+    rateLimit(`signup:email:${input.email}`, 5, 3600),
+  ]);
+  if (!ipOk || !emailOk) return failure(t("errors.tooManyAttempts"));
+  if ((await checkEmailDomain(input.email, { allowTestDomains: !isProductionDeployment() })) !== "ok") {
+    return failure(t("validation.emailDomain"), { email: t("validation.emailDomain") });
   }
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
-    email: parsed.data.email,
-    password: parsed.data.password,
+  const { data, error } = await supabase.auth.signUp({
+    email: input.email,
+    password: input.password,
     options: {
       emailRedirectTo: siteUrl("/auth/confirm"),
       captchaToken: (formData.get("captchaToken") as string) || undefined,
       data: {
-        account_type: parsed.data.accountType,
-        first_name: parsed.data.firstName,
-        last_name: parsed.data.lastName,
+        account_type: input.accountType,
+        first_name: input.firstName,
+        last_name: input.lastName,
         locale,
         terms_accepted: true,
         terms_version: TERMS_VERSION,
       },
     },
   });
-  if (error) {
-    if (error.code === "weak_password") return failure(t("validation.password"), { password: t("validation.password") });
-    if (error.code === "over_email_send_rate_limit" || error.status === 429) return failure(t("rateLimited"));
-    if (error.code === "captcha_failed") return failure(t("captchaFailed"));
-    // Explicit on purpose (product decision): the sign-up form says when an address already
-    // has an account. Enumeration is bounded by the per-IP rate limit and the captcha.
-    if (error.code === "user_already_exists" || error.code === "email_exists") {
-      return failure(t("emailAlreadyRegistered"), { email: t("emailAlreadyRegisteredShort") });
-    }
-    console.error("signUp failed", error.code, error.message);
-    return failure(t("signupFailed"));
+  const outcome = classifySignUpResult(error, data?.user);
+  if (outcome) {
+    if (outcome.kind === "server") console.error("signUp failed", outcome.code, error?.status, error?.message);
+    const { message, field } = signupFailureMessages(outcome.kind);
+    // Product decision: the form says that an address may already have an account (the
+    // Supabase Auth sign-up endpoint answers the same to anyone calling it directly);
+    // enumeration is bounded by the per-IP and per-address limits above and the captcha.
+    return {
+      ...failure(t(message as never), field ? { [field.name]: t(field.message as never) } : undefined),
+      data: { reason: outcome.kind, technical: isProductionDeployment() ? undefined : outcome.code },
+    };
   }
   // An existing but unconfirmed address gets a new confirmation e-mail (Supabase resends it).
   redirect(`/${locale}/check-email?reason=signup`);

@@ -32,8 +32,12 @@ describe("apply_to_job (one-click application)", () => {
     const [app] = await sql(`select * from public.applications where id = $1`, [appId]);
     expect(app.resume_version_id).toBe(cand.versionId);
     expect(app.status).toBe("submitted");
-    expect(app.candidate_snapshot.email).toBe(cand.email);
+    // The snapshot is the professional profile; the identity is stored apart (anonymous applications).
+    expect(app.candidate_snapshot.email).toBeUndefined();
     expect(app.candidate_snapshot.skills).toEqual(["React", "TypeScript"]);
+    expect(app.public_alias).toMatch(/^TJ-[0-9A-Z]{6}$/);
+    const [identity] = await sql(`select identity from public.application_identities where application_id = $1`, [appId]);
+    expect(identity.identity.email).toBe(cand.email);
     const history = await sql(`select to_status, actor from public.application_status_history where application_id = $1`, [appId]);
     expect(history).toEqual([{ to_status: "submitted", actor: "candidate" }]);
     const outbox = await sql(`select template from public.email_outbox where dedupe_key like $1 order by template`, [`%${appId}%`]);
@@ -112,7 +116,7 @@ describe("apply_to_job (one-click application)", () => {
     expect(app).toMatchObject({ status: "submitted", first_viewed_at: null });
 
     // Listing applications does not mark them as viewed.
-    await company.owner.client.from("applications").select("id").eq("job_id", job.id);
+    expect((await company.owner.client.rpc("recruiter_list_applications", { p_job_id: job.id })).error).toBeNull();
     [app] = await sql(`select status from public.applications where id = $1`, [appId]);
     expect(app.status).toBe("submitted");
 
@@ -140,8 +144,8 @@ describe("apply_to_job (one-click application)", () => {
     const res = await cand.client.rpc("apply_to_job", { p_job_id: job.id });
     const appId = (res.data as { application_id: string }).application_id;
     expect((await cand.client.rpc("withdraw_application", { p_application_id: appId })).error).toBeNull();
-    const recruiterView = await company.owner.client.from("applications").select("id").eq("id", appId);
-    expect(recruiterView.data).toEqual([]);
+    const recruiterView = await company.owner.client.rpc("recruiter_get_application", { p_application_id: appId });
+    expect(recruiterView.error?.code).toBe("42501");
     const download = await company.owner.client.rpc("authorize_resume_download", { p_version_id: cand.versionId });
     expect(download.error?.code).toBe("42501");
   });

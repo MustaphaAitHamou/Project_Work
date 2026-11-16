@@ -49,6 +49,12 @@ export const KNOWN_ERROR_KEYS = [
   "billing_unavailable",
   "captcha_failed",
   "file_invalid",
+  "application_rejected",
+  "request_cooldown",
+  "no_pending_request",
+  "request_expired",
+  "application_closed",
+  "nothing_to_revoke",
   "generic",
 ] as const;
 export type ErrorKey = (typeof KNOWN_ERROR_KEYS)[number];

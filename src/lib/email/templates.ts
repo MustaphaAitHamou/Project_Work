@@ -22,6 +22,8 @@ export const EMAIL_TEMPLATES = [
   "account_suspended",
   "company_suspension",
   "privacy_request_update",
+  "identity_reveal_requested",
+  "identity_reveal_answered",
 ] as const;
 export type EmailTemplate = (typeof EMAIL_TEMPLATES)[number];
 
@@ -124,6 +126,21 @@ const DEFINITIONS: Record<EmailTemplate, (c: Ctx) => Omit<EmailContent, "locale"
         ? [t("company_suspension.suspended"), ...(p.reason ? [t("company_suspension.reason", { reason: s(p.reason) })] : [])]
         : [t("company_suspension.reinstated")],
       cta: { label: t("company_suspension.cta"), url: url("/employer") },
+    };
+  },
+  // To the candidate: a recruiter asks to lift the anonymity of an application.
+  identity_reveal_requested: ({ t, p, url }) => ({
+    subject: t("identity_reveal_requested.subject", { job: s(p.job_title) }),
+    paragraphs: [t("identity_reveal_requested.body", { job: s(p.job_title), company: s(p.company_name), days: Number(p.days ?? 14) })],
+    cta: { label: t("identity_reveal_requested.cta"), url: url("/candidate/applications") },
+  }),
+  // To the recruiters: the answer, under the alias only (no personal data in e-mails).
+  identity_reveal_answered: ({ t, p, url }) => {
+    const outcome = (["accepted", "refused", "revoked"].includes(s(p.outcome)) ? s(p.outcome) : "accepted") as "accepted" | "refused" | "revoked";
+    return {
+      subject: t(`identity_reveal_answered.subject_${outcome}`, { alias: s(p.alias) }),
+      paragraphs: [t(`identity_reveal_answered.body_${outcome}`, { alias: s(p.alias), job: s(p.job_title) })],
+      cta: { label: t("identity_reveal_answered.cta"), url: url(`/employer/applications/${s(p.application_id)}`) },
     };
   },
   privacy_request_update: ({ t, te, p, url }) => ({

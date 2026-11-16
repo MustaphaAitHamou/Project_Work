@@ -124,6 +124,88 @@ export type Database = {
           },
         ];
       };
+      application_identities: {
+        Row: {
+          application_id: string;
+          created_at: string;
+          identity: NonNullable<Json>;
+        };
+        ComputedFields: never;
+        Insert: {
+          application_id: string;
+          created_at?: string;
+          identity: NonNullable<Json>;
+        };
+        Update: {
+          application_id?: string;
+          created_at?: string;
+          identity?: NonNullable<Json>;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "application_identities_application_id_fkey";
+            columns: ["application_id"];
+            isOneToOne: true;
+            referencedRelation: "applications";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      application_identity_reveals: {
+        Row: {
+          application_id: string;
+          expires_at: string;
+          id: string;
+          origin: string;
+          requested_at: string;
+          requested_by: string | null;
+          responded_at: string | null;
+          revoked_at: string | null;
+          status: Database["public"]["Enums"]["identity_reveal_status"];
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          application_id: string;
+          expires_at: string;
+          id?: string;
+          origin?: string;
+          requested_at?: string;
+          requested_by?: string | null;
+          responded_at?: string | null;
+          revoked_at?: string | null;
+          status?: Database["public"]["Enums"]["identity_reveal_status"];
+          updated_at?: string;
+        };
+        Update: {
+          application_id?: string;
+          expires_at?: string;
+          id?: string;
+          origin?: string;
+          requested_at?: string;
+          requested_by?: string | null;
+          responded_at?: string | null;
+          revoked_at?: string | null;
+          status?: Database["public"]["Enums"]["identity_reveal_status"];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "application_identity_reveals_application_id_fkey";
+            columns: ["application_id"];
+            isOneToOne: false;
+            referencedRelation: "applications";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "application_identity_reveals_requested_by_fkey";
+            columns: ["requested_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       application_status_history: {
         Row: {
           actor: string;
@@ -186,6 +268,7 @@ export type Database = {
           is_archived: boolean;
           job_id: string;
           job_title: string;
+          public_alias: string;
           recruiter_rating: number | null;
           resume_first_downloaded_at: string | null;
           resume_version_id: string | null;
@@ -208,6 +291,7 @@ export type Database = {
           is_archived?: boolean;
           job_id: string;
           job_title?: string;
+          public_alias?: string;
           recruiter_rating?: number | null;
           resume_first_downloaded_at?: string | null;
           resume_version_id?: string | null;
@@ -229,6 +313,7 @@ export type Database = {
           is_archived?: boolean;
           job_id?: string;
           job_title?: string;
+          public_alias?: string;
           recruiter_rating?: number | null;
           resume_first_downloaded_at?: string | null;
           resume_version_id?: string | null;
@@ -513,6 +598,11 @@ export type Database = {
       };
       candidate_resume_versions: {
         Row: {
+          anonymized_approved_at: string | null;
+          anonymized_status: string;
+          anonymized_summary: NonNullable<Json>;
+          anonymized_text: string | null;
+          anonymized_updated_at: string | null;
           created_at: string;
           file_deleted_at: string | null;
           id: string;
@@ -528,6 +618,11 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          anonymized_approved_at?: string | null;
+          anonymized_status?: string;
+          anonymized_summary?: NonNullable<Json>;
+          anonymized_text?: string | null;
+          anonymized_updated_at?: string | null;
           created_at?: string;
           file_deleted_at?: string | null;
           id?: string;
@@ -542,6 +637,11 @@ export type Database = {
           user_id: string;
         };
         Update: {
+          anonymized_approved_at?: string | null;
+          anonymized_status?: string;
+          anonymized_summary?: NonNullable<Json>;
+          anonymized_text?: string | null;
+          anonymized_updated_at?: string | null;
           created_at?: string;
           file_deleted_at?: string | null;
           id?: string;
@@ -2934,6 +3034,10 @@ export type Database = {
         Returns: string;
       };
       apply_to_job: { Args: { p_job_id: string }; Returns: Json };
+      authorize_application_resume_download: {
+        Args: { p_application_id: string };
+        Returns: Json;
+      };
       authorize_resume_download: {
         Args: { p_version_id: string };
         Returns: Json;
@@ -2991,6 +3095,14 @@ export type Database = {
         Returns: undefined;
       };
       bootstrap_super_admin: { Args: { p_email: string }; Returns: string };
+      candidate_answer_identity_request: {
+        Args: { p_accept: boolean; p_application_id: string };
+        Returns: string;
+      };
+      candidate_revoke_identity_access: {
+        Args: { p_application_id: string };
+        Returns: undefined;
+      };
       close_job: { Args: { p_job_id: string }; Returns: Json };
       create_company: { Args: { p: Json; p_actor: string }; Returns: string };
       delete_draft_job: { Args: { p_job_id: string }; Returns: undefined };
@@ -3031,6 +3143,10 @@ export type Database = {
         };
         Returns: undefined;
       };
+      expire_identity_requests: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
       export_my_data: { Args: Record<PropertyKey, never>; Returns: Json };
       get_job_price: { Args: { p_country?: string }; Returns: Json };
       get_my_candidate_status: {
@@ -3054,9 +3170,48 @@ export type Database = {
         Args: { p_key: string; p_limit: number; p_window_seconds: number };
         Returns: boolean;
       };
+      recruiter_application_counts: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          fresh: number;
+          job_id: string;
+          total: number;
+        }[];
+      };
+      recruiter_get_application: {
+        Args: { p_application_id: string };
+        Returns: Json;
+      };
+      recruiter_list_applications: {
+        Args: {
+          p_archived?: boolean;
+          p_job_id: string;
+          p_status?: Database["public"]["Enums"]["application_status"];
+        };
+        Returns: {
+          alias: string;
+          country_code: string;
+          created_at: string;
+          display_name: string;
+          first_viewed_at: string;
+          headline: string;
+          id: string;
+          identity_revealed: boolean;
+          is_archived: boolean;
+          recruiter_rating: number;
+          region_code: string;
+          reveal_status: Database["public"]["Enums"]["identity_reveal_status"];
+          skills: string[];
+          status: Database["public"]["Enums"]["application_status"];
+        }[];
+      };
       recruiter_mark_viewed: {
         Args: { p_application_id: string };
         Returns: undefined;
+      };
+      recruiter_request_identity: {
+        Args: { p_application_id: string };
+        Returns: string;
       };
       recruiter_set_application_status: {
         Args: {
@@ -3097,6 +3252,19 @@ export type Database = {
           p_version_id: string;
         };
         Returns: Json;
+      };
+      resume_save_anonymized_text: {
+        Args: { p_approve: boolean; p_text: string; p_version_id: string };
+        Returns: Json;
+      };
+      resume_store_anonymized_draft: {
+        Args: {
+          p_summary?: Json;
+          p_text: string;
+          p_user_id: string;
+          p_version_id: string;
+        };
+        Returns: string;
       };
       run_maintenance: { Args: Record<PropertyKey, never>; Returns: Json };
       search_cities: {
@@ -3263,6 +3431,8 @@ export type Database = {
       email_status: "pending" | "sending" | "sent" | "failed" | "cancelled";
       experience_level:
         "entry" | "junior" | "mid" | "senior" | "lead" | "executive";
+      identity_reveal_status:
+        "pending" | "accepted" | "refused" | "revoked" | "expired";
       job_status:
         | "draft"
         | "pending_payment"
@@ -3471,6 +3641,13 @@ export const Constants = {
         "senior",
         "lead",
         "executive",
+      ],
+      identity_reveal_status: [
+        "pending",
+        "accepted",
+        "refused",
+        "revoked",
+        "expired",
       ],
       job_status: [
         "draft",

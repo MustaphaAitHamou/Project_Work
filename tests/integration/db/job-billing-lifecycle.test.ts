@@ -160,7 +160,8 @@ describe("job lifecycle", () => {
     });
     [row] = await sql(`select status from public.jobs where id = $1`, [job.id]);
     expect(row.status).toBe("closed");
-    const apps = await company.owner.client.from("applications").select("status").eq("job_id", job.id);
+    // Recruiters read applications through the anonymous listing function.
+    const apps = await company.owner.client.rpc("recruiter_list_applications", { p_job_id: job.id });
     expect(apps.data?.[0]?.status).toBe("job_closed");
   });
 

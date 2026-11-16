@@ -147,21 +147,32 @@
   "tooManyAttempts": "Demasiados intentos. Espere unos minutos antes de volver a intentarlo.",
   "rateLimited": "Demasiadas solicitudes. Inténtelo de nuevo en unos minutos.",
   "captchaFailed": "La verificación antirrobot ha fallado. Inténtelo de nuevo.",
-  "signupFailed": "No se ha podido completar el registro. Inténtelo de nuevo en un momento.",
-  "emailAlreadyRegistered": "Ya existe una cuenta con esta dirección de correo. Inicie sesión, o utilice «¿Ha olvidado su contraseña?» si no la recuerda.",
-  "emailAlreadyRegisteredShort": "Ya existe una cuenta con esta dirección.",
   "suspendedTitle": "Cuenta suspendida",
   "suspendedText": "Su cuenta ha sido suspendida. Si cree que se trata de un error, contacte con el soporte respondiendo al correo de notificación.",
   "validation": {
    "fixErrors": "Corrija los campos indicados.",
    "firstName": "Indique su nombre.",
    "lastName": "Indique sus apellidos.",
-   "email": "Indique una dirección de correo válida.",
+   "email": "Introduce una dirección de correo electrónico válida.",
    "password": "Mínimo 10 caracteres, con una mayúscula, una minúscula y una cifra.",
    "confirm": "Las dos contraseñas no coinciden.",
    "terms": "Debe aceptar las condiciones para continuar.",
    "accountType": "Tipo de cuenta no válido.",
    "emailDomain": "Este dominio no existe o no puede recibir correos. Compruebe la dirección."
+  },
+  "resetMyPassword": "Restablecer mi contraseña",
+  "errors": {
+   "required": "Este campo es obligatorio.",
+   "missingFields": "Rellena todos los campos obligatorios.",
+   "invalidEmail": "Introduce una dirección de correo electrónico válida.",
+   "weakPassword": "Tu contraseña no cumple los criterios de seguridad indicados.",
+   "pwnedPassword": "Esta contraseña aparece en filtraciones de datos conocidas: elige otra.",
+   "emailTaken": "Es posible que esta dirección de correo ya esté asociada a una cuenta. Prueba a iniciar sesión o a restablecer tu contraseña.",
+   "emailTakenField": "Es posible que esta dirección ya esté asociada a una cuenta.",
+   "network": "No se puede contactar con el servidor. Comprueba tu conexión a Internet.",
+   "tooManyAttempts": "Se han realizado demasiados intentos. Vuelve a intentarlo más tarde.",
+   "server": "Se ha producido un error técnico. Vuelve a intentarlo más tarde.",
+   "technicalDetail": "Detalle técnico (solo fuera de producción): {code}"
   }
  },
  "forms": {
@@ -216,7 +227,13 @@
   "billing_unavailable": "El pago aún no está configurado en esta plataforma.",
   "captcha_failed": "La verificación antirrobot ha fallado.",
   "file_invalid": "Archivo rechazado.",
-  "generic": "Se ha producido un error. Inténtelo de nuevo."
+  "generic": "Se ha producido un error. Inténtelo de nuevo.",
+  "application_rejected": "Esta candidatura fue rechazada: ya no se puede levantar el anonimato.",
+  "request_cooldown": "La persona candidata respondió hace poco: podrás enviar una nueva solicitud más adelante.",
+  "no_pending_request": "No hay ninguna solicitud pendiente para esta candidatura.",
+  "request_expired": "Esta solicitud ha caducado.",
+  "application_closed": "Esta candidatura ya no está en curso.",
+  "nothing_to_revoke": "Tu identidad no está compartida para esta candidatura."
  },
  "enums": {
   "contractType": {
@@ -508,24 +525,29 @@
    "profile": "un perfil de candidato"
   },
   "consentTitle": "Información transmitida al reclutador",
-  "consentIntro": "Para esta candidatura y las siguientes, Tamurt Jobs transmitirá al reclutador de la oferta correspondiente:",
+  "consentIntro": "Tu candidatura es anónima al principio: la empresa evalúa tus competencias antes de saber quién eres.",
   "transmitted": {
    "identity": "Nombre y apellidos",
    "contact": "Correo y teléfono (si se indica)",
-   "location": "País, región y ciudad",
+   "location": "País y región",
    "headline": "Puesto buscado y resumen",
    "skills": "Competencias",
    "experience": "Experiencia profesional",
-   "education": "Formación",
+   "education": "Formación (sin fechas)",
    "languages": "Idiomas",
    "preferences": "Preferencias (contrato, teletrabajo, movilidad)",
-   "resume": "Su CV principal (versión actual)"
+   "resume": "Tu CV original (versión actual)",
+   "city": "Ciudad",
+   "anonymizedCv": "La versión anónima de tu CV, si la has validado"
   },
   "consentRecipients": "Solo la empresa que publica la oferta tiene acceso. Ninguna otra empresa puede consultar su perfil.",
   "consentNoPhoto": "No se solicita ni se transmite ninguna foto. Nunca se recogen su nacionalidad ni su origen.",
   "consentRights": "Puede retirar una candidatura, exportar o eliminar sus datos en cualquier momento.",
   "privacyPolicy": "Política de privacidad",
-  "consentConfirm": "Entendido, postularme"
+  "consentConfirm": "Entendido, postularme",
+  "anonymousGroup": "Visible desde el envío, con un alias (por ejemplo, «Candidato #TJ-7K4Q9M»)",
+  "revealGroup": "Solo se comparte si aceptas una solicitud de la empresa",
+  "consentRefusal": "Rechazar una solicitud nunca descarta tu candidatura, y puedes retirar el acceso más adelante."
  },
  "report": {
   "trigger": "Denunciar",
@@ -582,7 +604,7 @@
   },
   "profile": {
    "title": "Mi perfil",
-   "description": "Esta información solo se transmite a los reclutadores de las ofertas a las que se postula.",
+   "description": "Tu perfil profesional se transmite a las empresas de las ofertas a las que te postulas; tu nombre, datos de contacto y ciudad, solo con tu acuerdo.",
    "identityTitle": "Identidad y contacto",
    "identityHint": "No se pide ninguna foto: Tamurt Jobs destaca sus competencias.",
    "firstName": "Nombre",
@@ -675,7 +697,7 @@
   },
   "resumes": {
    "title": "Mis CV",
-   "description": "Sus CV se guardan en un espacio privado y solo se transmiten a los reclutadores de las ofertas a las que se postula.",
+   "description": "Tus CV se guardan en un espacio privado. Durante la preselección, las empresas solo leen la versión anónima que has validado; el archivo original solo se comparte con tu acuerdo.",
    "addTitle": "Añadir un CV",
    "constraints": "PDF o Word (.docx), {mb} MB como máximo. Los archivos se analizan antes de guardarse.",
    "upload": "Importar un CV",
@@ -825,7 +847,7 @@
   "step2Title": "Suba su CV",
   "step2Text": "PDF o Word, guardado de forma privada y segura.",
   "step3Title": "Postúlese en 1 clic",
-  "step3Text": "Su candidatura se transmite directamente al reclutador.",
+  "step3Text": "Tu candidatura anónima llega directamente a la empresa: primero tus competencias.",
   "ctaCandidate": "Crear mi perfil gratis",
   "recruitersTitle": "¿Está contratando?",
   "recruitersText": "Publique sus ofertas para candidatos de 9 países y reciba las candidaturas directamente en su espacio.",
@@ -915,7 +937,7 @@
    "q4": "¿Pagan los candidatos?",
    "q4a": "Nunca. La candidatura es gratuita y se hace directamente en Tamurt Jobs.",
    "q5": "¿Puedo contactar con los candidatos?",
-   "q5a": "Sí, con los datos de contacto incluidos en la candidatura. Tamurt Jobs no integra mensajería.",
+   "q5a": "Sí, cuando la persona candidata acepta tu solicitud de levantar el anonimato: sus datos de contacto aparecen entonces en la candidatura. Tamurt Jobs no incluye mensajería.",
    "q6": "¿Por qué algunos anuncios pasan por moderación?",
    "q6a": "Un control automático detecta formulaciones potencialmente discriminatorias o solicitudes de candidatura fuera de la plataforma. Decide un moderador humano; ningún anuncio se rechaza automáticamente."
   },
@@ -976,13 +998,13 @@
   },
   "new_application": {
    "subject": "Nueva candidatura: {job}",
-   "body": "Ha recibido una nueva candidatura para el anuncio «{job}». Consulte el perfil y el CV desde su espacio de reclutador.",
+   "body": "Has recibido una nueva candidatura para la oferta «{job}». Descubre el perfil anónimo desde tu espacio de empresa.",
    "cta": "Ver las candidaturas"
   },
   "application_status_changed": {
    "subject": "Su candidatura «{job}»: {status}",
    "body_viewed": "El reclutador de {company} ha consultado su candidatura al puesto «{job}».",
-   "body_shortlisted": "Buenas noticias: {company} ha preseleccionado su candidatura al puesto «{job}». El reclutador podrá contactarle con los datos de su candidatura.",
+   "body_shortlisted": "Buenas noticias: tu candidatura al puesto «{job}» ha sido preseleccionada por {company}. Para contactarte, la empresa te pedirá primero que levantes el anonimato.",
    "body_rejected": "{company} no ha seleccionado su candidatura al puesto «{job}». No se desanime: cada día se publican nuevas ofertas.",
    "body_hired": "Enhorabuena: {company} ha indicado que su candidatura al puesto «{job}» ha sido seleccionada.",
    "body_job_closed": "La oferta «{job}» de {company} se ha cerrado. Su candidatura ya no está en curso.",
@@ -1053,6 +1075,20 @@
    "subject": "Su solicitud relativa a sus datos",
    "body": "Su solicitud ({type}) se ha actualizado: {status}.",
    "cta": "Ver mis solicitudes"
+  },
+  "identity_reveal_requested": {
+   "subject": "Una empresa quiere conocer tu identidad: {job}",
+   "body": "La empresa {company} está interesada en tu candidatura al puesto «{job}» y te pide que levantes el anonimato. Si aceptas, verá tu nombre, tus datos de contacto y tu CV original. Rechazar no descarta tu candidatura. Tienes {days} días para responder.",
+   "cta": "Responder a la solicitud"
+  },
+  "identity_reveal_answered": {
+   "subject_accepted": "Candidato #{alias}: anonimato levantado",
+   "subject_refused": "Candidato #{alias}: prefiere seguir en el anonimato",
+   "subject_revoked": "Candidato #{alias}: acceso a la identidad retirado",
+   "body_accepted": "Para la oferta «{job}», el candidato #{alias} aceptó tu solicitud: su identidad y su CV original ya son visibles en tu espacio de empresa.",
+   "body_refused": "Para la oferta «{job}», el candidato #{alias} prefiere seguir en el anonimato por ahora. La candidatura sigue abierta: puedes seguir evaluándola por sus competencias.",
+   "body_revoked": "Para la oferta «{job}», el candidato #{alias} retiró el acceso a su identidad y a su CV original.",
+   "cta": "Ver la candidatura"
   }
  },
  "countries": {
@@ -1671,7 +1707,7 @@
   },
   "applications": {
    "title": "Candidaturas — {job}",
-   "description": "Consulte los perfiles y CV recibidos. El estado «Consultada» se muestra al candidato cuando abre su candidatura.",
+   "description": "Perfiles anónimos: descubres las competencias antes que la identidad. El estado «Vista» se muestra a la persona candidata cuando abres su candidatura.",
    "filterStatus": "Estado",
    "allStatuses": "Todos",
    "sort": "Ordenar por",
@@ -1706,8 +1742,8 @@
    "educations": "Formación",
    "present": "actualidad",
    "contact": "Datos de contacto",
-   "contactNotice": "Datos de contacto transmitidos solo para esta candidatura. Contacte directamente con el candidato; Tamurt Jobs no integra mensajería.",
-   "downloadCv": "Descargar el CV",
+   "contactNotice": "Datos de contacto compartidos solo para esta candidatura. Contacta directamente con la persona candidata; Tamurt Jobs no incluye mensajería.",
+   "downloadCv": "Descargar el CV original",
    "cvUnavailable": "CV no disponible (retirado o anonimizado).",
    "decision": "Decisión",
    "shortlist": "Preseleccionar",
@@ -2202,6 +2238,92 @@
    "revoked": "Revocado",
    "revoke": "Revocar",
    "revokeConfirm": "Confirmo: el token se rechazará de inmediato."
+  }
+ },
+ "anonymity": {
+  "labels": {
+   "name": "[nombre oculto]",
+   "email": "[correo oculto]",
+   "phone": "[teléfono oculto]",
+   "link": "[enlace oculto]",
+   "address": "[dirección oculta]",
+   "birth": "[fecha de nacimiento oculta]",
+   "age": "[edad oculta]",
+   "personal": "[dato personal oculto]"
+  },
+  "alias": "Candidato #{alias}",
+  "anonymousBadge": "Anónimo",
+  "revealedBadge": "Identidad compartida",
+  "pendingBadge": "Solicitud pendiente",
+  "recruiter": {
+   "listNotice": "Las candidaturas son anónimas: primero evalúas las competencias. El nombre y los datos de contacto solo se comparten si la persona candidata acepta tu solicitud.",
+   "identityTitle": "Identidad y datos de contacto",
+   "identityHidden": "Ocultos durante la preselección. Para contactar con esta persona, pídele que levante el anonimato: puede aceptar o rechazar, sin consecuencias para su candidatura.",
+   "request": "Solicitar levantar el anonimato",
+   "requested": "Solicitud enviada. La persona candidata tiene {days} días para responder.",
+   "alreadyPending": "Ya hay una solicitud pendiente de respuesta.",
+   "alreadyGranted": "La persona candidata ya aceptó: su identidad se muestra.",
+   "pending": "Solicitud enviada el {date}, a la espera de la respuesta (hasta el {until}).",
+   "refused": "La persona candidata prefiere seguir en el anonimato por ahora (respuesta del {date}). Su candidatura sigue abierta: puedes seguir evaluándola.",
+   "revoked": "La persona candidata retiró el acceso a su identidad el {date}.",
+   "expired": "La solicitud del {date} caducó sin respuesta.",
+   "nextRequest": "Podrás enviar una nueva solicitud a partir del {date}.",
+   "accepted": "Identidad compartida con el acuerdo de la persona candidata el {date}.",
+   "legacy": "Candidatura recibida antes de la anonimización: identidad transmitida con el consentimiento dado en su momento.",
+   "rejectedNoAccess": "Candidatura rechazada: la identidad no está accesible.",
+   "contactNotice": "Datos de contacto compartidos solo para esta candidatura. Contacta directamente con la persona candidata; Tamurt Jobs no incluye mensajería.",
+   "cvTitle": "CV anonimizado",
+   "cvApproved": "Versión revisada por la persona candidata. Se retiraron los datos personales detectados; aun así, el anonimato no puede garantizarse al 100 %.",
+   "cvNotApproved": "La persona candidata aún no ha validado la versión anónima de su CV. Evalúa el perfil anterior; el CV completo estará disponible cuando se levante el anonimato.",
+   "cvLocked": "El CV original solo está disponible con el acuerdo de la persona candidata.",
+   "downloadCv": "Descargar el CV original",
+   "zone": "Zona deseada",
+   "city": "Ciudad",
+   "relocate": "Dispuesto/a a mudarse"
+  },
+  "candidate": {
+   "aliasNotice": "La empresa ve esta candidatura con el alias #{alias}, sin tu nombre ni tus datos de contacto.",
+   "requestTitle": "{company} quiere conocer tu identidad",
+   "requestText": "Si aceptas, la empresa verá tu nombre, apellidos, correo, teléfono y ciudad, y podrá descargar tu CV original. Rechazar no descarta tu candidatura. Responde antes del {until}.",
+   "accept": "Aceptar",
+   "refuse": "Seguir en el anonimato",
+   "acceptedOn": "Identidad compartida con esta empresa el {date}.",
+   "legacyShared": "Candidatura enviada antes de la anonimización: tus datos de contacto se transmitieron con tu consentimiento de entonces.",
+   "revoke": "Retirar el acceso",
+   "revokeTitle": "¿Retirar el acceso a tu identidad?",
+   "revokeText": "La empresa dejará de ver tu nombre, tus datos de contacto y tu CV original en Tamurt Jobs. Lo que ya haya anotado o descargado no puede borrarlo Tamurt Jobs.",
+   "refusedOn": "Seguiste en el anonimato (respuesta del {date}).",
+   "revokedOn": "Acceso retirado el {date}.",
+   "expired": "Solicitud caducada sin respuesta: sigues en el anonimato.",
+   "acceptDone": "Tu identidad ahora es visible para esta empresa.",
+   "refuseDone": "Sigues en el anonimato. Tu candidatura continúa.",
+   "revokeDone": "La empresa ya no tiene acceso a tu identidad."
+  },
+  "cv": {
+   "status": {
+    "pending": "Versión anónima por generar",
+    "to_review": "Versión anónima por revisar",
+    "approved": "Versión anónima validada",
+    "unavailable": "Versión anónima por redactar"
+   },
+   "review": "Revisar la versión anónima",
+   "open": "Ver la versión anónima",
+   "title": "Versión anónima de tu CV",
+   "intro": "Durante la preselección, las empresas nunca ven tu archivo. Leen este texto, sin foto, sin nombre de archivo ni metadatos. Léelo, elimina todo lo que pueda identificarte y valídalo.",
+   "warning": "El enmascarado automático elimina los nombres, datos de contacto, enlaces, dirección, fecha de nacimiento, edad, sexo, nacionalidad y situación familiar que detecta. Puede pasar algo por alto: tú eres quien mejor puede comprobarlo.",
+   "summary": "{count, plural, =0 {No se ha detectado automáticamente ningún dato personal.} one {# dato personal ocultado automáticamente.} other {# datos personales ocultados automáticamente.}}",
+   "textLabel": "Texto que verán las empresas",
+   "textHint": "30 000 caracteres como máximo. Las menciones entre corchetes indican lo que se ha ocultado.",
+   "approve": "Validar esta versión",
+   "regenerate": "Volver a crear a partir del archivo",
+   "regenerated": "Nueva versión anónima creada a partir de tu archivo: léela y valídala.",
+   "approved": "Versión anónima validada: se mostrará a las empresas durante la preselección.",
+   "stillPersonal": "Se han vuelto a detectar y ocultar datos personales. Vuelve a leer el texto y valídalo de nuevo.",
+   "unreadable": "No se ha podido leer el texto de tu archivo (CV escaneado o imagen). Redacta aquí un resumen de tu trayectoria sin datos personales, o déjalo vacío: las empresas solo verán tu perfil.",
+   "notShared": "Mientras no la valides, esta versión no se muestra a las empresas: solo ven tu perfil profesional.",
+   "uploadedReview": "CV importado. Revisa ahora su versión anónima.",
+   "back": "Volver a mis CV",
+   "failed": "No se ha podido crear la versión anónima. Vuelve a intentarlo en un momento."
   }
  }
 }

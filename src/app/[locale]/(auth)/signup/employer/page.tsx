@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { redirectIfSignedIn } from "@/lib/auth/session";
 import { Link } from "@/i18n/navigation";
 import { AuthCard } from "../../auth-card";
 import { SignupForm } from "../signup-form";
@@ -13,6 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function EmployerSignupPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  await redirectIfSignedIn(locale);
   const t = await getTranslations("auth");
   return (
     <AuthCard

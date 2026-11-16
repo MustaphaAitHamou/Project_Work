@@ -1,4 +1,4 @@
-# État du projet — 6 novembre 2026
+# État du projet — 16 novembre 2026
 
 Ce document distingue strictement ce qui est **implémenté et vérifié par des tests**, ce qui est **implémenté mais non validé contre le service réel** (faute d'accès ou de clés depuis l'environnement de développement), et ce qui **reste à faire ou à décider**.
 
@@ -6,9 +6,9 @@ Ce document distingue strictement ce qui est **implémenté et vérifié par des
 
 | Suite | Résultat | Portée |
 |---|---|---|
-| Unitaires (`npm run test:unit`) | 57/57 | validation des identifiants d'entreprise (formats, clés de contrôle), moteur de vérification, analyse des fichiers (PDF/DOCX malveillants), paramètres de recherche, données structurées d'offre, rendu des e-mails, parité des permissions SQL/TypeScript, traductions (clés et structure ICU identiques dans les 4 langues) |
-| Intégration SQL (`npm run test:integration`) | 33/33 | RLS et droits (accès croisés, base de CV inaccessible, élévation de privilèges, fonctions réservées), candidature en un clic (atomicité, doublons concurrents, quotas, accord préalable, statut « consultée »), cycle de vie annonce/abonnement/paiement, décisions d'administration et notifications |
-| Bout en bout (`npm run test:e2e`) | 25/25 | parcours candidat complet, parcours recruteur complet, sécurité et idempotence du webhook Stripe, back-office (8 scénarios), tâches planifiées, accessibilité (axe, WCAG 2.2 A/AA, FR/AR, thème sombre) |
+| Unitaires (`npm run test:unit`) | 112/112 | validation des identifiants d'entreprise (formats, clés de contrôle), moteur de vérification, analyse des fichiers (PDF/DOCX malveillants), extraction du texte des CV, masquage des données personnelles (FR, EN, ES), validation et erreurs d'inscription, paramètres de recherche, données structurées d'offre, rendu des e-mails, parité des permissions SQL/TypeScript, traductions (clés et structure ICU identiques dans les 4 langues) |
+| Intégration SQL (`npm run test:integration`) | 45/45 | RLS et droits (accès croisés, base de CV inaccessible, élévation de privilèges, fonctions réservées), candidature en un clic (atomicité, doublons concurrents, quotas, accord préalable, statut « consultée »), **candidatures anonymes** (profil chargé de données personnelles, vue recruteur avant accord, contournements par table, historique, fichier et identifiant, demande, acceptation, refus, expiration, retrait, changements de statut, rétention, export), cycle de vie annonce/abonnement/paiement, décisions d'administration et notifications |
+| Bout en bout (`npm run test:e2e`) | 37/37 | parcours candidat complet (dont vérification du CV anonymisé, réponse à une demande d'identité, retrait de l'accès), parcours recruteur complet (profil anonyme, CV original verrouillé, demande puis levée de l'anonymat), inscription (champs manquants, e-mail invalide, mot de passe faible, adresse déjà inscrite, trop de tentatives, hors ligne, erreur serveur, confirmation par e-mail, utilisateur déjà connecté), webhook Stripe, back-office (8 scénarios), tâches planifiées, accessibilité (axe, WCAG 2.2 A/AA, FR/AR, thème sombre, nouveaux écrans compris) |
 | Qualité | OK | `tsc` strict, ESLint sans erreur, `supabase db lint` sans erreur, `npm audit` (production) sans vulnérabilité, `next build` réussi |
 
 Les tests d'intégration et E2E s'exécutent contre une pile Supabase locale réelle (PostgreSQL, Auth, Storage, Mailpit) et le vrai serveur Next.js (en CI : build de production). La **CI GitHub Actions est verte** sur `main` : audit des dépendances, typage, lint, tests unitaires, migrations appliquées sur une base vierge, lint SQL, cohérence des types générés, tests d'intégration, build de production et tests E2E. Les tests E2E n'interrogent pas les registres d'entreprises (services tiers), pour rester déterministes.
@@ -22,6 +22,12 @@ Les tests d'intégration et E2E s'exécutent contre une pile Supabase locale ré
 **Back-office** — six rôles, tableau de bord (indicateurs et graphiques accessibles, revenus réservés à la finance), vérification des entreprises, suspension (désormais notifiée par e-mail), modération des annonces, signalements, utilisateurs et rôles, pays et checklist de conformité (publication payante bloquée sans checklist ou dérogation motivée), tarifs versionnés par pays et devise, paiements et remboursements, demandes RGPD et effacement, règles de modération, modèles d'e-mails par langue, journal d'audit et d'accès, paramètres, clients de l'API Tamurt HQ.
 
 **Transversal** — 4 langues (arabe en RTL), 9 marchés, 6 devises, recherche plein texte et par distance, sitemap et robots, en-têtes de sécurité, limitation de débit, file d'e-mails transactionnelle, tâches planifiées protégées, API Tamurt HQ (agrégats uniquement).
+
+**Inscription et candidatures anonymes (16 novembre 2026)**
+- Inscription : messages explicites par cas (champs manquants, e-mail invalide, mot de passe trop faible, adresse peut-être déjà inscrite avec liens vers la connexion et la réinitialisation, trop de tentatives, réseau, erreur technique), affichés sous les champs, annoncés aux lecteurs d'écran, saisie conservée, focus sur le premier champ à corriger ; limite par adresse en plus de la limite par IP ; un utilisateur connecté n'est plus jamais envoyé vers l'inscription (accueil et pages d'inscription). Affichage contrôlé sur ordinateur, tablette et mobile.
+- Candidatures anonymes en deux phases (voir [SECURITY.md](SECURITY.md)) : alias par candidature, identité stockée à part, lectures recruteur uniquement par fonctions SQL, CV original verrouillé avant accord, CV anonymisé vérifié et validé par le candidat, demande de levée de l'anonymat en un clic (acceptation, refus sans rejet, expiration à 14 jours, retrait), journalisation et export. Nouvelle version de l'information préalable (`2026-11-16`) : chaque candidat la confirme une fois.
+- Candidatures antérieures à la migration : l'identité est déplacée dans la table protégée (rien n'est supprimé) et reste visible du recruteur au titre du consentement donné à l'époque (demande d'origine « legacy_consent »), révocable par le candidat.
+- Correctif d'affichage : sur mobile, la barre d'onglets des espaces candidat, recruteur et back-office élargissait la page ; elle défile désormais dans sa propre zone.
 
 ## Implémenté mais non validé contre le service réel
 
@@ -43,8 +49,14 @@ Les tests d'intégration et E2E s'exécutent contre une pile Supabase locale ré
 
 **Identité visuelle (DA Tamurt Services, novembre 2026)**
 - Couleurs, police Bitter, coins, logos, favicons et bouton yaz appliqués. Accueil refait avec un bandeau de marque illustré et des drapeaux en SVG. Chaque section a ses illustrations : engagements, état vide des offres, étapes, tableau de bord recruteur. Les textes sont agrandis pour la lecture. La frise « peigne » a été retirée : en pleine largeur, elle ressemblait à un défaut d'affichage. Vérifié : typecheck, lint, tests unitaires (64/64) et build. Rendu contrôlé en français et en arabe, en clair et en sombre.
-- Tests d'intégration et E2E non relancés après ce changement : ils exigent la pile Supabase locale (Docker), indisponible dans l'environnement de travail. À relancer avant fusion.
+- Tests d'intégration et E2E relancés le 16 novembre 2026 avec la pile Supabase locale : verts (voir ci-dessus).
 - Bouton yaz masqué tant que `TAMURT_SERVICES_URL` est vide, puisque le site Tamurt Services n'est pas encore en ligne.
+
+**Avant mise en production de l'anonymisation**
+- Appliquer la migration `20261116090000_anonymous_applications.sql` sur le projet Supabase hébergé **avant** de déployer le code (les pages recruteur appellent les nouvelles fonctions).
+- Activer l'anti-robot dans Supabase Auth (Turnstile), pour protéger aussi les appels directs au point d'inscription.
+- Configurer un fournisseur SMTP dans Supabase Auth : sans lui, le service par défaut de Supabase refuse d'envoyer l'e-mail de confirmation aux adresses extérieures à l'équipe (`email_address_not_authorized`), ce qui fait échouer l'inscription.
+- Faire valider juridiquement les textes mis à jour (confidentialité, conditions recruteurs).
 
 **Recommandé**
 - Double authentification obligatoire pour les comptes du back-office (non implémentée).

@@ -23,16 +23,17 @@ export default async function EmployerJobPage({ params, searchParams }: { params
   if (!mine) redirect(`/${locale}/employer/onboarding`);
   const sp = await searchParams;
   const supabase = await createClient();
-  const [{ data: job }, { data: loc }, { data: subs }, { count }, ref, t, te] = await Promise.all([
+  const [{ data: job }, { data: loc }, { data: subs }, { data: appCounts }, ref, t, te] = await Promise.all([
     supabase.from("jobs").select("*").eq("id", id).maybeSingle(),
     supabase.from("job_locations").select("*").eq("job_id", id).eq("is_primary", true).maybeSingle(),
     supabase.from("subscriptions").select("status, current_period_end, cancel_at_period_end, cancel_requested_at").eq("job_id", id).order("created_at", { ascending: false }).limit(1),
-    supabase.from("applications").select("id", { count: "exact", head: true }).eq("job_id", id),
+    supabase.rpc("recruiter_application_counts"),
     jobFormReference(),
     getTranslations("employer.jobs"),
     getTranslations("enums"),
   ]);
   if (!job) notFound();
+  const count = (appCounts ?? []).find((c) => c.job_id === id)?.total ?? 0;
   const sub = subs?.[0];
   const editable = ["draft", "pending_payment", "in_review", "rejected", "active"].includes(job.status);
   const canReopen = Boolean(sub && ["active", "trialing"].includes(sub.status) && sub.current_period_end && new Date(sub.current_period_end) > new Date());

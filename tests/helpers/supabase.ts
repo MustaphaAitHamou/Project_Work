@@ -84,6 +84,12 @@ export async function createTestUser(
   return { id: data.user.id, email, password, client };
 }
 
+/** Version of the data-transmission notice in force (platform setting). */
+export async function currentConsentVersion(): Promise<string> {
+  const [row] = await sql<{ v: string }>(`select value #>> '{}' as v from public.platform_settings where key = 'consent.transmission_version'`);
+  return row.v;
+}
+
 /** Candidate with a complete profile, a clean primary CV version and the transmission consent. */
 export async function createReadyCandidate(): Promise<TestUser & { versionId: string; resumeId: string }> {
   const user = await createTestUser("candidate", { firstName: "Amel", lastName: "Durand" });
@@ -110,7 +116,7 @@ export async function createReadyCandidate(): Promise<TestUser & { versionId: st
   });
   if (reg.error) throw reg.error;
   const resumeId = (reg.data as { resume_id: string }).resume_id;
-  const consent = await user.client.rpc("give_transmission_consent", { p_version: "2026-11-01" });
+  const consent = await user.client.rpc("give_transmission_consent", { p_version: await currentConsentVersion() });
   if (consent.error) throw consent.error;
   return { ...user, versionId, resumeId };
 }

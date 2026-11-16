@@ -21,11 +21,12 @@ export default async function EmployerHome({ params }: { params: Promise<{ local
   if (!mine) redirect(`/${locale}/employer/onboarding`);
   const [t, te] = await Promise.all([getTranslations("employer.home"), getTranslations("enums")]);
   const supabase = await createClient();
-  const [{ data: jobs }, { count: newApps }, { count: totalApps }] = await Promise.all([
+  const [{ data: jobs }, { data: counts }] = await Promise.all([
     supabase.from("jobs").select("id, title, status, published_at, updated_at").eq("company_id", mine.company.id).order("updated_at", { ascending: false }).limit(100),
-    supabase.from("applications").select("id", { count: "exact", head: true }).eq("company_id", mine.company.id).eq("status", "submitted"),
-    supabase.from("applications").select("id", { count: "exact", head: true }).eq("company_id", mine.company.id),
+    supabase.rpc("recruiter_application_counts"),
   ]);
+  const newApps = (counts ?? []).reduce((n, c) => n + c.fresh, 0);
+  const totalApps = (counts ?? []).reduce((n, c) => n + c.total, 0);
   const byStatus = (s: JobStatus) => (jobs ?? []).filter((j) => j.status === s).length;
   return (
     <div className="space-y-6">

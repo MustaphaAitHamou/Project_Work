@@ -17,7 +17,7 @@ Pour les candidatures qu'elles reçoivent, les **entreprises recruteuses** sont 
 | Compte | e-mail, prénom, nom, langue, préférences de notification, dates de création et de connexion ; mot de passe stocké sous forme hachée par le service d'authentification | tous les utilisateurs |
 | Profil candidat | titre, résumé, compétences, langues, années d'expérience, expériences, formations, ville et pays, mobilité, préférences de contrat et de télétravail, téléphone (facultatif) | candidats |
 | CV | fichiers PDF ou DOCX, nom du fichier, taille, empreinte SHA-256, historique des versions | candidats |
-| Candidatures | copie des informations du profil transmises, version du CV transmise, historique des statuts, version de l'information acceptée avant transmission | candidats, recruteurs |
+| Candidatures | alias de la candidature, copie du profil professionnel transmis (textes libres masqués), version anonymisée du CV validée par le candidat ; conservées à part : identité (prénom, nom, e-mail, téléphone, ville) et version du CV d'origine ; historique des statuts et des demandes de levée de l'anonymat, version de l'information acceptée avant transmission | candidats, recruteurs |
 | Recherche | offres sauvegardées, alertes (critères de recherche) | candidats |
 | Entreprise et recruteur | fonction, téléphone professionnel, qualité de représentant légal ; raison sociale, identifiants officiels, adresse du siège, site web, secteur, logo | recruteurs |
 | Vérification | résultats des registres consultés, justificatifs déposés, décision et motif | recruteurs |
@@ -44,7 +44,7 @@ Vos données ne sont **jamais vendues** et ne sont pas utilisées à des fins pu
 
 ## 4. Qui reçoit vos données ?
 
-- **Les entreprises auxquelles vous postulez**, et elles seules, reçoivent votre candidature (profil et CV choisi). Aucune entreprise ne peut consulter l'ensemble des profils ou des CV.
+- **Les entreprises auxquelles vous postulez**, et elles seules, reçoivent votre candidature, en deux temps. D'abord **anonymement** : votre profil professionnel et la version anonymisée de votre CV que vous avez validée, sous un alias propre à chaque candidature. Ensuite, **seulement si vous acceptez** la demande du recruteur : vos prénom, nom, e-mail, téléphone, ville et votre CV d'origine. Refuser ne rejette pas votre candidature, et vous pouvez retirer cet accès plus tard (Tamurt Jobs ne peut pas effacer ce que l'entreprise a déjà enregistré de son côté). Le masquage automatique des données personnelles ne peut pas garantir un anonymat absolu : c'est pourquoi vous relisez et validez la version transmise. Aucune entreprise ne peut consulter l'ensemble des profils ou des CV.
 - **Le personnel habilité de Tamurt Jobs**, selon son rôle (vérification, modération, support, finances, confidentialité). Les accès aux CV et aux justificatifs sont journalisés.
 - **Nos sous-traitants techniques** : Supabase (base de données, authentification, stockage des fichiers) [À COMPLÉTER : région d'hébergement], Vercel (hébergement de l'application), Stripe (paiement ; Stripe agit aussi en tant que responsable de traitement pour ses propres obligations), [À COMPLÉTER : prestataire d'e-mail, par exemple Resend], Cloudflare (contrôle anti-robot Turnstile, s'il est activé).
 - **Les registres publics** consultés pour vérifier les entreprises (par exemple : API Recherche d'entreprises en France, Companies House au Royaume-Uni, VIES de la Commission européenne, Zefix en Suisse, OpenCorporates) : seuls les identifiants et le nom de l'entreprise leur sont communiqués.
@@ -61,7 +61,7 @@ Tamurt Services LLC est établie aux États-Unis et plusieurs prestataires y son
 |---|---|
 | Compte et profil | jusqu'à la suppression du compte [À VALIDER : suppression des comptes inactifs, non implémentée à ce jour] |
 | CV | jusqu'à leur suppression par le candidat ou la suppression du compte ; les versions remplacées ou supprimées sont effacées automatiquement dès qu'aucune candidature en cours ne les utilise |
-| Candidatures | anonymisées 24 mois après la clôture de l'offre, et au plus tard 36 mois après leur envoi ; retirées ou supprimées : l'entreprise n'y a plus accès immédiatement |
+| Candidatures | anonymisées 24 mois après la clôture de l'offre, et au plus tard 36 mois après leur envoi (l'identité conservée à part est alors effacée) ; retirées ou supprimées : l'entreprise n'y a plus accès immédiatement ; demandes de levée de l'anonymat sans réponse : expirées après 14 jours |
 | Justificatifs de vérification | supprimés 90 jours après leur dépôt |
 | Rapports de vérification | supprimés 365 jours après leur création |
 | Facturation | durée imposée par les obligations comptables et fiscales [À VALIDER par pays, par exemple 10 ans en France] |

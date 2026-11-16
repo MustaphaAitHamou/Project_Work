@@ -8,6 +8,7 @@ import { purgeResumeFiles, RESUME_BUCKET } from "@/lib/files/resume-storage";
 import { rateLimit } from "@/lib/security/rate-limit";
 import { UPLOAD_HARD_LIMIT_BYTES } from "@/lib/domain";
 import { errorKey } from "@/lib/errors";
+import { storeAnonymizedDraft } from "@/lib/privacy/anonymized-cv-server";
 
 export const maxDuration = 30;
 
@@ -73,5 +74,14 @@ export async function POST(request: NextRequest) {
   }
   const result = data as { resume_id: string; version_id: string; purge: { version_id: string; storage_path: string }[] };
   await purgeResumeFiles(result.purge);
-  return NextResponse.json({ resumeId: result.resume_id, versionId: result.version_id }, { status: 201 });
+  // Anonymised version for the preselection phase (text only, personal data removed),
+  // to be checked by the candidate. A failure here never loses the upload: the
+  // candidate can regenerate it from the CV page.
+  let anonymized: "pending" | "to_review" | "unavailable" = "pending";
+  try {
+    anonymized = await storeAnonymizedDraft(user, versionId, buf, check.type === "pdf" ? "pdf" : "docx");
+  } catch (e) {
+    console.error("resume anonymisation failed", versionId, e instanceof Error ? e.message : e);
+  }
+  return NextResponse.json({ resumeId: result.resume_id, versionId: result.version_id, anonymized }, { status: 201 });
 }

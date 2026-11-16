@@ -23,7 +23,11 @@ import { CompanyAvatar } from "@/components/companies/company-avatar";
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
-const TRANSMITTED = ["identity", "contact", "location", "headline", "skills", "experience", "education", "languages", "preferences", "resume"];
+// What the recruiter sees, in two phases: anonymous profile first, identity only on acceptance.
+const TRANSMITTED = {
+  anonymous: ["headline", "skills", "experience", "education", "languages", "preferences", "location", "anonymizedCv"],
+  onReveal: ["identity", "contact", "city", "resume"],
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;

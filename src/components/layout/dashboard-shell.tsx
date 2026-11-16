@@ -3,8 +3,9 @@ import { DashboardNav, type DashboardNavItem } from "./dashboard-nav";
 export function DashboardShell({ title, items, children }: { title: string; items: DashboardNavItem[]; children: React.ReactNode }) {
   return (
     <div className="container-page py-6 lg:py-10">
-      <div className="grid gap-6 lg:grid-cols-[230px_1fr] lg:gap-10">
-        <aside>
+      {/* grid-cols-1 + min-w-0: on phones the tab bar scrolls inside itself instead of widening the page. */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[230px_1fr] lg:gap-10">
+        <aside className="min-w-0">
           <p className="mb-3 hidden text-xs font-semibold uppercase tracking-wide text-muted-foreground lg:block">{title}</p>
           <DashboardNav items={items} label={title} />
         </aside>

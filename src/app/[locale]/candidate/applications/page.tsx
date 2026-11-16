@@ -3,7 +3,14 @@ import { requireCandidate } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import type { ApplicationStatus } from "@/lib/domain";
 import { PageHeader } from "@/components/layout/dashboard-shell";
-import { ApplicationsList, type CandidateApplication } from "@/components/candidate/applications-list";
+import { ApplicationsList, type CandidateApplication, type RevealRow } from "@/components/candidate/applications-list";
+
+/** Most recent disclosure request; a pending one past its deadline counts as expired. */
+function latestReveal(rows: RevealRow[]): RevealRow | null {
+  const last = [...rows].sort((x, y) => y.requested_at.localeCompare(x.requested_at))[0];
+  if (!last) return null;
+  return last.status === "pending" && new Date(last.expires_at) < new Date() ? { ...last, status: "expired" } : last;
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -19,7 +26,9 @@ export default async function ApplicationsPage({ params }: { params: Promise<{ l
   const supabase = await createClient();
   const { data } = await supabase
     .from("applications")
-    .select("id, status, created_at, status_changed_at, job_id, job_title, company_name, application_status_history(to_status, created_at)")
+    .select(
+      "id, status, created_at, status_changed_at, job_id, job_title, company_name, public_alias, application_status_history(to_status, created_at), application_identity_reveals(status, origin, requested_at, expires_at, responded_at, revoked_at)",
+    )
     .eq("candidate_id", user.id)
     .order("created_at", { ascending: false })
     .limit(200);
@@ -41,6 +50,8 @@ export default async function ApplicationsPage({ params }: { params: Promise<{ l
       jobTitle: a.job_title,
       company: a.company_name || j?.company_name || "—",
       history,
+      alias: a.public_alias,
+      reveal: latestReveal((a.application_identity_reveals ?? []) as RevealRow[]),
     };
   });
   return (

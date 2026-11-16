@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { Download, Mail, MapPin, Phone } from "lucide-react";
+import { Download, EyeOff, FileText, Lock, Mail, MapPin, Phone, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 import { Link } from "@/i18n/navigation";
 import { requireEmployer } from "@/lib/auth/session";
@@ -13,16 +13,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ApplicationControls } from "@/components/employer/application-controls";
+import { IdentityRequestButton } from "@/components/employer/identity-request-button";
+import { getRegionNames } from "@/lib/jobs/queries";
 
-interface Snapshot {
-  first_name?: string;
-  last_name?: string;
-  email?: string;
-  phone?: string | null;
+/** Professional profile transmitted with the application (no identity, see recruiter_get_application). */
+interface Profile {
   headline?: string | null;
   summary?: string | null;
   country_code?: string | null;
-  city?: string | null;
+  region_code?: string | null;
   skills?: string[];
   languages?: { code: string; level: string }[];
   years_of_experience?: number | null;
@@ -31,7 +30,33 @@ interface Snapshot {
   willing_to_relocate?: boolean;
   mobility_countries?: string[];
   experiences?: { title: string; company_name: string | null; location: string | null; start_date: string; end_date: string | null; is_current: boolean; description: string | null }[];
-  educations?: { degree: string; school: string | null; field_of_study: string | null; start_date: string | null; end_date: string | null }[];
+  educations?: { degree: string; school: string | null; field_of_study: string | null }[];
+}
+
+type RevealStatus = "none" | "pending" | "accepted" | "refused" | "revoked" | "expired";
+
+interface RecruiterApplication {
+  id: string;
+  alias: string;
+  status: ApplicationStatus;
+  created_at: string;
+  recruiter_rating: number | null;
+  is_archived: boolean;
+  job: { id: string; title: string };
+  profile: Profile;
+  history: { to_status: ApplicationStatus; actor: string; created_at: string }[];
+  reveal: {
+    status: RevealStatus;
+    origin: "recruiter_request" | "legacy_consent" | null;
+    requested_at: string | null;
+    expires_at: string | null;
+    responded_at: string | null;
+    revoked_at: string | null;
+    can_request: boolean;
+    next_request_at: string | null;
+  };
+  identity: { first_name?: string; last_name?: string; email?: string; phone?: string; city?: string } | null;
+  resume: { available: boolean; downloadable: boolean; anonymized_status: string | null; anonymized_text: string | null };
 }
 
 export default async function ApplicationPage({ params }: { params: Promise<{ locale: string; id: string }> }) {
@@ -43,22 +68,30 @@ export default async function ApplicationPage({ params }: { params: Promise<{ lo
   // Opening the application is the real "viewed" event (status + access log), done in SQL.
   const mark = await supabase.rpc("recruiter_mark_viewed", { p_application_id: id });
   if (mark.error) notFound();
-  const [{ data: app }, { data: history }, t, te, countryName, languageName] = await Promise.all([
-    supabase.from("applications").select("*, jobs(id, title)").eq("id", id).maybeSingle(),
-    supabase.from("application_status_history").select("to_status, actor, created_at").eq("application_id", id).order("created_at"),
+  // Everything the recruiter may see is decided in SQL (identity only after the candidate agreed).
+  const [{ data, error }, t, ta, te, countryName, languageName, regionNames] = await Promise.all([
+    supabase.rpc("recruiter_get_application", { p_application_id: id }),
     getTranslations("employer.applications"),
+    getTranslations("anonymity"),
     getTranslations("enums"),
     getCountryNamer(),
     getLanguageNamer(),
+    getRegionNames(),
   ]);
-  if (!app) notFound();
-  const s = app.candidate_snapshot as Snapshot;
-  const job = app.jobs as unknown as { id: string; title: string } | null;
-  const name = `${s.first_name ?? ""} ${s.last_name ?? ""}`.trim();
+  if (error || !data) notFound();
+  const app = data as unknown as RecruiterApplication;
+  const s = app.profile;
+  const job = app.job;
+  const history = app.history;
+  const identity = app.identity;
+  const alias = ta("alias", { alias: app.alias });
+  const name = identity ? `${identity.first_name ?? ""} ${identity.last_name ?? ""}`.trim() : "";
+  const date = (v: string | null) => (v ? formatDate(v, locale) : "");
+  const region = s.region_code ? regionNames.get(`${s.country_code}.${s.region_code}`) : null;
   return (
     <div className="space-y-6">
       <PageHeader
-        title={name || "—"}
+        title={name || alias}
         description={
           <span>
             {t("appliedTo")}{" "}
@@ -68,6 +101,7 @@ export default async function ApplicationPage({ params }: { params: Promise<{ lo
               </Link>
             )}{" "}
             · {formatDate(app.created_at, locale)}
+            {name && <span className="block text-xs">{alias}</span>}
           </span>
         }
         actions={<Badge variant={APPLICATION_STATUS_VARIANT[app.status as ApplicationStatus]}>{te(`applicationStatus.${app.status}`)}</Badge>}
@@ -117,6 +151,18 @@ export default async function ApplicationPage({ params }: { params: Promise<{ lo
                     <dd>{s.desired_contract_types.map((c) => te(`contractType.${c}` as never)).join(", ")}</dd>
                   </div>
                 )}
+                {(region || s.country_code) && (
+                  <div>
+                    <dt className="text-muted-foreground">{ta("recruiter.zone")}</dt>
+                    <dd>{[region, countryName(s.country_code)].filter(Boolean).join(", ")}</dd>
+                  </div>
+                )}
+                {s.willing_to_relocate && (
+                  <div>
+                    <dt className="text-muted-foreground">{ta("recruiter.relocate")}</dt>
+                    <dd>✓</dd>
+                  </div>
+                )}
                 {s.mobility_countries && s.mobility_countries.length > 0 && (
                   <div>
                     <dt className="text-muted-foreground">{t("mobility")}</dt>
@@ -164,41 +210,94 @@ export default async function ApplicationPage({ params }: { params: Promise<{ lo
               </CardContent>
             </Card>
           )}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="size-5 text-primary" aria-hidden />
+                {ta("recruiter.cvTitle")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              {app.resume.anonymized_text ? (
+                <>
+                  <p className="text-xs text-muted-foreground">{ta("recruiter.cvApproved")}</p>
+                  {/* Long CVs scroll inside the card; focusable so that keyboard users can scroll it. */}
+                  <div
+                    tabIndex={0}
+                    role="region"
+                    aria-label={ta("recruiter.cvTitle")}
+                    className="max-h-[32rem] overflow-y-auto rounded-md border bg-muted/30 p-4 leading-relaxed whitespace-pre-line focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  >
+                    {app.resume.anonymized_text}
+                  </div>
+                </>
+              ) : (
+                <p className="text-muted-foreground">{ta("recruiter.cvNotApproved")}</p>
+              )}
+            </CardContent>
+          </Card>
         </div>
         <aside className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>{t("contact")}</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                {identity ? <ShieldCheck className="size-5 text-success" aria-hidden /> : <EyeOff className="size-5 text-primary" aria-hidden />}
+                {ta("recruiter.identityTitle")}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              {s.email && (
-                <a href={`mailto:${s.email}`} className="flex items-center gap-2 hover:underline">
-                  <Mail className="size-4 text-muted-foreground" aria-hidden />
-                  {s.email}
-                </a>
-              )}
-              {s.phone && (
-                <a href={`tel:${s.phone.replace(/[^+0-9]/g, "")}`} className="flex items-center gap-2 hover:underline">
-                  <Phone className="size-4 text-muted-foreground" aria-hidden />
-                  {s.phone}
-                </a>
-              )}
-              {(s.city || s.country_code) && (
-                <p className="flex items-center gap-2">
-                  <MapPin className="size-4 text-muted-foreground" aria-hidden />
-                  {[s.city, countryName(s.country_code)].filter(Boolean).join(", ")}
-                </p>
-              )}
-              <p className="pt-2 text-xs text-muted-foreground">{t("contactNotice")}</p>
-              {app.resume_version_id ? (
-                <Button asChild className="mt-2 w-full">
-                  <a href={`/api/resumes/versions/${app.resume_version_id}/download`}>
-                    <Download aria-hidden />
-                    {t("downloadCv")}
-                  </a>
-                </Button>
+              {identity ? (
+                <>
+                  {name && <p className="font-semibold">{name}</p>}
+                  {identity.email && (
+                    <a href={`mailto:${identity.email}`} className="flex items-center gap-2 break-all hover:underline">
+                      <Mail className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                      {identity.email}
+                    </a>
+                  )}
+                  {identity.phone && (
+                    <a href={`tel:${identity.phone.replace(/[^+0-9]/g, "")}`} className="flex items-center gap-2 hover:underline">
+                      <Phone className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                      {identity.phone}
+                    </a>
+                  )}
+                  {identity.city && (
+                    <p className="flex items-center gap-2">
+                      <MapPin className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                      {[identity.city, countryName(s.country_code)].filter(Boolean).join(", ")}
+                    </p>
+                  )}
+                  <p className="pt-2 text-xs text-muted-foreground">
+                    {app.reveal.origin === "legacy_consent" ? ta("recruiter.legacy") : ta("recruiter.accepted", { date: date(app.reveal.responded_at) })}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{t("contactNotice")}</p>
+                  {app.resume.downloadable ? (
+                    <Button asChild className="mt-2 w-full">
+                      <a href={`/api/applications/${app.id}/resume`}>
+                        <Download aria-hidden />
+                        {ta("recruiter.downloadCv")}
+                      </a>
+                    </Button>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">{t("cvUnavailable")}</p>
+                  )}
+                </>
               ) : (
-                <p className="text-xs text-muted-foreground">{t("cvUnavailable")}</p>
+                <>
+                  <p>{app.status === "rejected" ? ta("recruiter.rejectedNoAccess") : ta("recruiter.identityHidden")}</p>
+                  {app.reveal.status === "pending" && (
+                    <p className="rounded-md bg-warning/10 p-2">{ta("recruiter.pending", { date: date(app.reveal.requested_at), until: date(app.reveal.expires_at) })}</p>
+                  )}
+                  {app.reveal.status === "refused" && <p className="rounded-md bg-muted p-2">{ta("recruiter.refused", { date: date(app.reveal.responded_at) })}</p>}
+                  {app.reveal.status === "revoked" && <p className="rounded-md bg-muted p-2">{ta("recruiter.revoked", { date: date(app.reveal.revoked_at) })}</p>}
+                  {app.reveal.status === "expired" && <p className="rounded-md bg-muted p-2">{ta("recruiter.expired", { date: date(app.reveal.requested_at) })}</p>}
+                  {app.reveal.next_request_at && <p className="text-xs text-muted-foreground">{ta("recruiter.nextRequest", { date: date(app.reveal.next_request_at) })}</p>}
+                  {app.reveal.can_request && <IdentityRequestButton applicationId={app.id} />}
+                  <p className="flex items-center gap-2 pt-2 text-xs text-muted-foreground">
+                    <Lock className="size-3.5 shrink-0" aria-hidden />
+                    {ta("recruiter.cvLocked")}
+                  </p>
+                </>
               )}
             </CardContent>
           </Card>
@@ -216,7 +315,7 @@ export default async function ApplicationPage({ params }: { params: Promise<{ lo
             </CardHeader>
             <CardContent>
               <ol className="space-y-1 border-s ps-4 text-sm">
-                {(history ?? []).map((h, i) => (
+                {history.map((h, i) => (
                   <li key={i}>
                     {te(`applicationStatus.${h.to_status}`)} <span className="text-muted-foreground">· {formatDateTime(h.created_at, locale)}</span>
                   </li>

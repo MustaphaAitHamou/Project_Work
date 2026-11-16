@@ -1,6 +1,16 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { activateJob, createCompany, createDraftJob, createReadyCandidate, createTestUser, grantAdminRole, resetRateLimits, type TestUser } from "../helpers/supabase";
+import {
+  activateJob,
+  createCompany,
+  createDraftJob,
+  createReadyCandidate,
+  createTestUser,
+  grantAdminRole,
+  resetRateLimits,
+  type TestCompany,
+  type TestUser,
+} from "../helpers/supabase";
 
 /**
  * Automated accessibility checks (axe-core, WCAG 2.0/2.1/2.2 levels A and AA).
@@ -26,12 +36,15 @@ async function login(page: Page, user: TestUser) {
 }
 
 let jobPath = "";
+let jobId = "";
+let hiringCompany: TestCompany;
 
 test.beforeAll(async () => {
   await resetRateLimits();
-  const company = await createCompany();
-  const job = await createDraftJob(company, { title: "Technicienne de maintenance" });
+  hiringCompany = await createCompany();
+  const job = await createDraftJob(hiringCompany, { title: "Technicienne de maintenance" });
   await activateJob(job.id);
+  jobId = job.id;
   jobPath = `/jobs/${job.slug}-${job.public_id}`;
 });
 
@@ -78,8 +91,28 @@ test("skip link moves keyboard focus to the main content", async ({ page }) => {
 
 test("candidate, employer and back-office pages have no detectable violation", async ({ page }) => {
   const candidate = await createReadyCandidate();
+  // An application with a pending identity request, so that the anonymity screens are rendered.
+  const applied = await candidate.client.rpc("apply_to_job", { p_job_id: jobId });
+  const applicationId = (applied.data as { application_id: string }).application_id;
+  await hiringCompany.owner.client.rpc("recruiter_request_identity", { p_application_id: applicationId });
   await login(page, candidate);
-  for (const path of ["/fr/candidate", "/fr/candidate/profile", "/fr/candidate/resumes", "/fr/candidate/applications", "/fr/candidate/alerts", "/fr/candidate/privacy", `/fr${jobPath}`]) {
+  for (const path of [
+    "/fr/candidate",
+    "/fr/candidate/profile",
+    "/fr/candidate/resumes",
+    `/fr/candidate/resumes/${candidate.versionId}/anonymized`,
+    "/fr/candidate/applications",
+    "/fr/candidate/alerts",
+    "/fr/candidate/privacy",
+    `/fr${jobPath}`,
+  ]) {
+    await page.goto(path);
+    await expectAccessible(page, path);
+  }
+
+  await page.context().clearCookies();
+  await login(page, hiringCompany.owner);
+  for (const path of [`/fr/employer/jobs/${jobId}/applications`, `/fr/employer/applications/${applicationId}`]) {
     await page.goto(path);
     await expectAccessible(page, path);
   }

@@ -5,6 +5,7 @@ import { getJobPrice, getLatestJobs, getRegionNames } from "@/lib/jobs/queries";
 import { MARKETS } from "@/lib/domain";
 import { formatMoneyMinor } from "@/lib/format";
 import { getCountryNamer } from "@/lib/i18n/names-server";
+import { getSessionUser } from "@/lib/auth/session";
 import { SearchBar } from "@/components/jobs/search-bar";
 import { JobCard } from "@/components/jobs/job-card";
 import { Button } from "@/components/ui/button";
@@ -41,14 +42,22 @@ export default async function HomePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const [t, jobs, price, regionNames, countryName] = await Promise.all([
+  const [t, tNav, user, jobs, price, regionNames, countryName] = await Promise.all([
     getTranslations("home"),
+    getTranslations("nav"),
+    getSessionUser(),
     getLatestJobs(6),
     getJobPrice(null),
     getRegionNames(),
     getCountryNamer(),
   ]);
   const now = new Date();
+  // Signed-in users are never sent to the sign-up page: they go to their own space.
+  const candidateCta = !user
+    ? { href: "/signup", label: t("ctaCandidate") }
+    : user.accountType === "candidate"
+      ? { href: "/candidate/profile", label: tNav("myProfile") }
+      : { href: "/employer", label: tNav("dashboard") };
   const spot = "w-full max-w-[176px]";
   const promises = [
     {
@@ -189,7 +198,7 @@ export default async function HomePage({
               <p className="text-xl font-bold">{t("noJobsYet")}</p>
               <div className="mt-5 flex flex-wrap justify-center gap-3 sm:justify-start">
                 <Button asChild>
-                  <Link href="/signup">{t("ctaCandidate")}</Link>
+                  <Link href={candidateCta.href}>{candidateCta.label}</Link>
                 </Button>
                 <Button asChild variant="secondary">
                   <Link href="/recruiters">{t("ctaRecruiter")}</Link>
@@ -249,7 +258,7 @@ export default async function HomePage({
           </ol>
           <div className="mt-12 flex justify-center">
             <Button asChild size="lg">
-              <Link href="/signup">{t("ctaCandidate")}</Link>
+              <Link href={candidateCta.href}>{candidateCta.label}</Link>
             </Button>
           </div>
         </div>

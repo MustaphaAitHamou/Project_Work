@@ -22,15 +22,10 @@ export default async function EmployerJobsPage({ params }: { params: Promise<{ l
   const supabase = await createClient();
   const [{ data: jobs }, { data: apps }] = await Promise.all([
     supabase.from("jobs").select("id, title, status, published_at, updated_at, job_locations(city, country_code)").eq("company_id", mine.company.id).order("updated_at", { ascending: false }),
-    supabase.from("applications").select("job_id, status").eq("company_id", mine.company.id),
+    // Recruiters do not read the applications table: counts come from a dedicated function.
+    supabase.rpc("recruiter_application_counts"),
   ]);
-  const counts = new Map<string, { total: number; fresh: number }>();
-  for (const a of apps ?? []) {
-    const c = counts.get(a.job_id) ?? { total: 0, fresh: 0 };
-    c.total += 1;
-    if (a.status === "submitted") c.fresh += 1;
-    counts.set(a.job_id, c);
-  }
+  const counts = new Map<string, { total: number; fresh: number }>((apps ?? []).map((a) => [a.job_id, { total: a.total, fresh: a.fresh }]));
   return (
     <div>
       <PageHeader

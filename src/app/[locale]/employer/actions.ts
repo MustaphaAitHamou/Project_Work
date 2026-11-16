@@ -392,3 +392,19 @@ export async function updateApplicationMetaAction(
   revalidatePath(`/${L(locale)}/employer`, "layout");
   return success(t("saved"));
 }
+
+// --- Identity disclosure (anonymous applications) -------------------------------
+export async function requestIdentityAction(locale: string, applicationId: string): Promise<ActionState> {
+  const { user, te } = await employerContext(L(locale));
+  if (!user || !z.uuid().safeParse(applicationId).success) return failure(te("forbidden"));
+  const ta = await getTranslations({ locale: L(locale), namespace: "anonymity" });
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("recruiter_request_identity", { p_application_id: applicationId });
+  if (error) return failure(te(errorKey(error)));
+  after(flushOutboxQuietly);
+  revalidatePath(`/${L(locale)}/employer`, "layout");
+  if (data === "already_pending") return failure(ta("recruiter.alreadyPending"));
+  if (data === "already_granted") return success(ta("recruiter.alreadyGranted"));
+  const { data: ttl } = await supabase.from("platform_settings").select("value").eq("key", "anonymity.request_ttl_days").maybeSingle();
+  return success(ta("recruiter.requested", { days: Number(ttl?.value ?? 14) }));
+}

@@ -51,10 +51,17 @@ describe("RLS isolation and privilege escalation", () => {
   });
 
   it("a company cannot access applications or private jobs of another company", async () => {
-    const own = await companyX.owner.client.from("applications").select("id, candidate_snapshot").eq("id", appId);
-    expect(own.data).toHaveLength(1);
-    const other = await companyY.owner.client.from("applications").select("*").eq("id", appId);
-    expect(other.data).toEqual([]);
+    // Recruiters read applications only through functions applying the anonymity rules.
+    const own = await companyX.owner.client.rpc("recruiter_get_application", { p_application_id: appId });
+    expect(own.error).toBeNull();
+    const other = await companyY.owner.client.rpc("recruiter_get_application", { p_application_id: appId });
+    expect(other.error?.code).toBe("42501");
+    const otherList = await companyY.owner.client.rpc("recruiter_list_applications", { p_job_id: jobX.id });
+    expect(otherList.error?.code).toBe("42501");
+    for (const client of [companyX.owner.client, companyY.owner.client]) {
+      const direct = await client.from("applications").select("*").eq("id", appId);
+      expect(direct.data).toEqual([]);
+    }
     const draft = await createDraftJob(companyX, { title: "Poste confidentiel en préparation" });
     const leak = await companyY.owner.client.from("jobs").select("*").eq("id", draft.id);
     expect(leak.data).toEqual([]);
@@ -72,8 +79,15 @@ describe("RLS isolation and privilege escalation", () => {
   it("a recruiter of another company cannot download a candidate CV", async () => {
     const denied = await companyY.owner.client.rpc("authorize_resume_download", { p_version_id: candA.versionId });
     expect(denied.error?.code).toBe("42501");
+    // The receiving company itself only gets the original CV once the candidate agreed.
+    const beforeReveal = await companyX.owner.client.rpc("authorize_resume_download", { p_version_id: candA.versionId });
+    expect(beforeReveal.error?.code).toBe("42501");
+    expect((await companyX.owner.client.rpc("recruiter_request_identity", { p_application_id: appId })).data).toBe("requested");
+    expect((await candA.client.rpc("candidate_answer_identity_request", { p_application_id: appId, p_accept: true })).error).toBeNull();
     const allowed = await companyX.owner.client.rpc("authorize_resume_download", { p_version_id: candA.versionId });
     expect(allowed.error).toBeNull();
+    const deniedOther = await companyY.owner.client.rpc("authorize_application_resume_download", { p_application_id: appId });
+    expect(deniedOther.error?.code).toBe("42501");
     const deniedCandidate = await candB.client.rpc("authorize_resume_download", { p_version_id: candA.versionId });
     expect(deniedCandidate.error?.code).toBe("42501");
     const logs = await sql(

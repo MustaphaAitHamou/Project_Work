@@ -17,7 +17,7 @@ For the applications they receive, **recruiting companies** are responsible for 
 | Account | e-mail, first name, last name, language, notification preferences, sign-up and login dates; password stored in hashed form by the authentication service | all users |
 | Candidate profile | headline, summary, skills, languages, years of experience, experience, education, city and country, mobility, contract and remote-work preferences, telephone (optional) | candidates |
 | CV | PDF or DOCX files, file name, size, SHA-256 fingerprint, version history | candidates |
-| Applications | copy of the profile information transmitted, CV version transmitted, status history, version of the notice accepted before transmission | candidates, recruiters |
+| Applications | application alias, copy of the professional profile transmitted (free text masked), anonymised version of the CV approved by the candidate; kept separately: identity (first name, last name, e-mail, phone, city) and original CV version; history of statuses and of requests to lift anonymity, version of the notice accepted before transmission | candidates, recruiters |
 | Search | saved offers, alerts (search criteria) | candidates |
 | Company and recruiter | position, business telephone, legal representative status; legal name, official identifiers, head office address, website, industry, logo | recruiters |
 | Verification | results of the registries consulted, documents uploaded, decision and reason | recruiters |
@@ -44,7 +44,7 @@ Your data is **never sold** and is not used for advertising.
 
 ## 4. Who receives your data?
 
-- **The companies you apply to**, and only them, receive your application (profile and chosen CV). No company can browse all profiles or CVs.
+- **The companies you apply to**, and only them, receive your application, in two stages. First **anonymously**: your professional profile and the anonymised version of your CV that you approved, under an alias specific to each application. Then, **only if you accept** the recruiter's request: your first name, last name, e-mail, phone, city and original CV. Declining does not reject your application, and you can withdraw this access later (Tamurt Jobs cannot erase what the company has already recorded on its side). Automatic masking of personal data cannot guarantee absolute anonymity: this is why you read and approve the version transmitted. No company can browse all profiles or CVs.
 - **Authorised Tamurt Jobs staff**, according to their role (verification, moderation, support, finance, privacy). Accesses to CVs and documents are logged.
 - **Our technical processors**: Supabase (database, authentication, file storage) [TO COMPLETE: hosting region], Vercel (application hosting), Stripe (payment; Stripe also acts as a controller for its own obligations), [TO COMPLETE: e-mail provider, for example Resend], Cloudflare (Turnstile anti-bot check, if enabled).
 - **The public registries** consulted to verify companies (for example: Recherche d'entreprises API in France, Companies House in the United Kingdom, the European Commission's VIES, Zefix in Switzerland, OpenCorporates): only the company's identifiers and name are sent to them.
@@ -61,7 +61,7 @@ Tamurt Services LLC is established in the United States and several providers ar
 |---|---|
 | Account and profile | until the account is deleted [TO VALIDATE: deletion of inactive accounts, not implemented at this stage] |
 | CVs | until deleted by the candidate or until the account is deleted; replaced or deleted versions are erased automatically once no ongoing application uses them |
-| Applications | anonymised 24 months after the offer is closed, and at the latest 36 months after they were sent; withdrawn or deleted: the company loses access immediately |
+| Applications | anonymised 24 months after the offer is closed, and at the latest 36 months after they were sent (the identity kept separately is then erased); withdrawn or deleted: the company loses access immediately; unanswered requests to lift anonymity: expire after 14 days |
 | Verification documents | deleted 90 days after upload |
 | Verification reports | deleted 365 days after creation |
 | Billing | period required by accounting and tax obligations [TO VALIDATE per country, for example 10 years in France] |

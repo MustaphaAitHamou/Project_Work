@@ -71,18 +71,37 @@ test.describe("Employer journey", () => {
     const applied = await candidate.client.rpc("apply_to_job", { p_job_id: jobId });
     expect(applied.data).toMatchObject({ result: "created" });
 
-    // Recruiter reviews the application
+    // Recruiter reviews the application: anonymous first (alias, skills, no name or contact details)
+    const appId = (applied.data as { application_id: string }).application_id;
+    const [{ public_alias: alias }] = await sql(`select public_alias from public.applications where id = $1`, [appId]);
     await page.goto(`/fr/employer/jobs/${jobId}/applications`);
-    await expect(page.getByRole("link", { name: "Amel Durand" })).toBeVisible();
+    await expect(page.getByText("Les candidatures sont anonymes")).toBeVisible();
+    await expect(page.getByRole("link", { name: `Candidat #${alias}` })).toBeVisible();
     await expect(page.getByRole("cell", { name: "Envoyée" })).toBeVisible();
-    await page.getByRole("link", { name: "Amel Durand" }).click();
-    await expect(page.getByRole("heading", { name: "Amel Durand" })).toBeVisible();
-    await expect(page.getByText(candidate.email)).toBeVisible();
+    await expect(page.getByText("Amel Durand")).toHaveCount(0);
+    await page.getByRole("link", { name: `Candidat #${alias}` }).click();
+    await expect(page.getByRole("heading", { name: `Candidat #${alias}` })).toBeVisible();
+    await expect(page.getByText("Développeuse React").first()).toBeVisible();
+    await expect(page.getByText(candidate.email)).toHaveCount(0);
+    expect(await page.content()).not.toContain(candidate.email); // not even in the page payload
     const [viewed] = await sql(`select status, first_viewed_at from public.applications where job_id = $1`, [jobId]);
     expect(viewed.status).toBe("viewed");
 
+    // The original CV is locked during the anonymous phase, whatever the URL
+    expect((await page.request.get(`/api/applications/${appId}/resume`, { maxRedirects: 0 })).status()).toBe(403);
+    expect((await page.request.get(`/api/resumes/versions/${candidate.versionId}/download`, { maxRedirects: 0 })).status()).toBe(403);
+
+    // Ask to lift the anonymity; the candidate accepts; identity and CV become available
+    await page.getByRole("button", { name: "Demander la levée de l'anonymat" }).click();
+    await expect(page.getByText("Demande envoyée. Le candidat a 14 jours pour répondre.")).toBeVisible();
+    await expect(page.getByText(/en attente de la réponse du candidat/)).toBeVisible();
+    expect((await candidate.client.rpc("candidate_answer_identity_request", { p_application_id: appId, p_accept: true })).data).toBe("accepted");
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Amel Durand" })).toBeVisible();
+    await expect(page.getByText(candidate.email)).toBeVisible();
+
     // CV download goes through authorisation + short-lived signed URL
-    const download = await page.request.get(`/api/resumes/versions/${candidate.versionId}/download`, { maxRedirects: 0 });
+    const download = await page.request.get(`/api/applications/${appId}/resume`, { maxRedirects: 0 });
     expect(download.status()).toBe(303);
     expect(download.headers()["location"]).toContain("/storage/v1/object/sign/resumes/");
 

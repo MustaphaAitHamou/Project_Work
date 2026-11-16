@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getPublicSetting } from "@/lib/jobs/queries";
 import { UPLOAD_HARD_LIMIT_BYTES } from "@/lib/domain";
 import { PageHeader } from "@/components/layout/dashboard-shell";
-import { ResumeManager, type ResumeItem } from "@/components/candidate/resume-manager";
+import { ResumeManager, type AnonymizedStatus, type ResumeItem } from "@/components/candidate/resume-manager";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
@@ -22,14 +22,15 @@ export default async function ResumesPage({ params }: { params: Promise<{ locale
   const supabase = await createClient();
   const [{ data: resumes }, { data: versions }, { data: apps }, maxSetting, retention] = await Promise.all([
     supabase.from("candidate_resumes").select("id, label, is_primary, updated_at, current_version_id").eq("user_id", user.id).is("deleted_at", null).order("created_at"),
-    supabase.from("candidate_resume_versions").select("id, resume_id, original_filename, size_bytes, created_at, mime_type").eq("user_id", user.id),
+    supabase.from("candidate_resume_versions").select("id, resume_id, original_filename, size_bytes, created_at, mime_type, anonymized_status").eq("user_id", user.id),
     supabase.from("applications").select("resume_version_id").eq("candidate_id", user.id).neq("status", "withdrawn"),
     getPublicSetting<number>("uploads.resume_max_bytes", UPLOAD_HARD_LIMIT_BYTES),
     getPublicSetting<number>("retention.applications_months", 24),
   ]);
   const sent = new Set((apps ?? []).map((a) => a.resume_version_id));
   const items: ResumeItem[] = (resumes ?? []).map((r) => {
-    const v = (versions ?? []).find((x) => x.id === r.current_version_id) ?? null;
+    const found = (versions ?? []).find((x) => x.id === r.current_version_id);
+    const v = found ? { ...found, anonymized_status: found.anonymized_status as AnonymizedStatus } : null;
     return {
       id: r.id,
       label: r.label,

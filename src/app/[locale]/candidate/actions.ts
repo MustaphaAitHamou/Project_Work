@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -12,6 +13,11 @@ import { failure, success, type ActionState } from "@/lib/action-state";
 import { educationSchema, experienceSchema, notificationSettingsSchema, profileSchema } from "@/lib/validation/candidate";
 import { deleteAccount } from "@/lib/privacy/delete-account";
 import { purgeResumeFiles } from "@/lib/files/resume-storage";
+import { flushOutboxQuietly } from "@/lib/email/outbox";
+import { anonymizeCvText } from "@/lib/privacy/anonymized-cv";
+import { regenerateAnonymizedDraft } from "@/lib/privacy/anonymized-cv-server";
+import { redactionLabels } from "@/lib/privacy/labels";
+import { redactionTotal } from "@/lib/privacy/redact";
 import { routing } from "@/i18n/routing";
 
 const loc = (formData: FormData) => {
@@ -203,6 +209,74 @@ export async function deleteResumeAction(locale: string, resumeId: string): Prom
   await purgeResumeFiles((data as { purge: { version_id: string; storage_path: string }[] }).purge);
   revalidatePath(`/${locale}/candidate`, "layout");
   return success(ctx.t("resumes.deleted"));
+}
+
+// --- Anonymised CV (what recruiters read during preselection) ---------------------
+export async function regenerateAnonymizedCvAction(locale: string, versionId: string): Promise<ActionState> {
+  const ctx = await candidateContext(locale);
+  if (!ctx.user || !z.uuid().safeParse(versionId).success) return failure(ctx.te("forbidden"));
+  const ta = await getTranslations({ locale, namespace: "anonymity" });
+  try {
+    const status = await regenerateAnonymizedDraft(ctx.user, versionId);
+    revalidatePath(`/${locale}/candidate/resumes`, "layout");
+    return success(status === "unavailable" ? ta("cv.unreadable") : ta("cv.regenerated"));
+  } catch (e) {
+    console.error("anonymized cv regeneration failed", versionId, e instanceof Error ? e.message : e);
+    return failure(ta("cv.failed"));
+  }
+}
+
+export async function saveAnonymizedCvAction(_prev: ActionState, formData: FormData): Promise<ActionState<{ text: string }>> {
+  const locale = loc(formData);
+  const ctx = await candidateContext(locale);
+  const parsed = z
+    .object({ versionId: z.uuid(), text: z.string().max(30000) })
+    .safeParse({ versionId: formData.get("versionId"), text: String(formData.get("text") ?? "") });
+  if (!ctx.user || !parsed.success) return failure(ctx.te("invalid_input"));
+  const ta = await getTranslations({ locale, namespace: "anonymity" });
+  const { data: profile } = await ctx.supabase.from("candidate_profiles").select("phone").eq("user_id", ctx.user.id).maybeSingle();
+  // Same masking as for the automatic draft: what the candidate types back in is caught too.
+  const masked = anonymizeCvText(
+    parsed.data.text,
+    { firstName: ctx.user.firstName, lastName: ctx.user.lastName, email: ctx.user.email, phone: profile?.phone },
+    redactionLabels((key) => ta(key)),
+  );
+  const caught = redactionTotal(masked.counts) > 0;
+  const { data, error } = await ctx.supabase.rpc("resume_save_anonymized_text", {
+    p_version_id: parsed.data.versionId,
+    p_text: masked.text,
+    p_approve: !caught,
+  });
+  if (error) return failure(ctx.te(errorKey(error)));
+  revalidatePath(`/${locale}/candidate/resumes`, "layout");
+  const result = data as { status: string; changed: boolean };
+  if (result.status === "approved") return success(ta("cv.approved"), { text: masked.text });
+  if (result.status === "unavailable") return success(ta("cv.unreadable"), { text: "" });
+  // Personal data was found again (here or by the database): saved, not approved.
+  return { ...failure(ta("cv.stillPersonal")), data: { text: masked.text } };
+}
+
+// --- Identity disclosure requests ------------------------------------------------
+export async function answerIdentityRequestAction(locale: string, applicationId: string, accept: boolean): Promise<ActionState> {
+  const ctx = await candidateContext(locale);
+  if (!ctx.user || !z.uuid().safeParse(applicationId).success) return failure(ctx.te("forbidden"));
+  const ta = await getTranslations({ locale, namespace: "anonymity" });
+  const { error } = await ctx.supabase.rpc("candidate_answer_identity_request", { p_application_id: applicationId, p_accept: accept });
+  if (error) return failure(ctx.te(errorKey(error)));
+  after(flushOutboxQuietly);
+  revalidatePath(`/${locale}/candidate/applications`);
+  return success(accept ? ta("candidate.acceptDone") : ta("candidate.refuseDone"));
+}
+
+export async function revokeIdentityAccessAction(locale: string, applicationId: string): Promise<ActionState> {
+  const ctx = await candidateContext(locale);
+  if (!ctx.user || !z.uuid().safeParse(applicationId).success) return failure(ctx.te("forbidden"));
+  const ta = await getTranslations({ locale, namespace: "anonymity" });
+  const { error } = await ctx.supabase.rpc("candidate_revoke_identity_access", { p_application_id: applicationId });
+  if (error) return failure(ctx.te(errorKey(error)));
+  after(flushOutboxQuietly);
+  revalidatePath(`/${locale}/candidate/applications`);
+  return success(ta("candidate.revokeDone"));
 }
 
 // --- Applications --------------------------------------------------------------

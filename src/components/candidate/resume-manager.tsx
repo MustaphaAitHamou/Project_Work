@@ -1,9 +1,9 @@
 "use client";
 import { useRef, useState, useTransition } from "react";
-import { Download, FileText, Loader2, RefreshCw, Star, Trash2, Upload } from "lucide-react";
+import { Download, EyeOff, FileText, Loader2, RefreshCw, Star, Trash2, Upload } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { formatDateTime } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,12 +17,24 @@ export interface ResumeItem {
   label: string;
   is_primary: boolean;
   updated_at: string;
-  current: { id: string; original_filename: string; size_bytes: number; created_at: string; mime_type: string } | null;
+  current: {
+    id: string;
+    original_filename: string;
+    size_bytes: number;
+    created_at: string;
+    mime_type: string;
+    anonymized_status: AnonymizedStatus;
+  } | null;
   sentVersions: number;
 }
 
+export type AnonymizedStatus = "pending" | "to_review" | "approved" | "unavailable";
+const ANONYMIZED_VARIANT = { pending: "warning", to_review: "warning", approved: "success", unavailable: "warning" } as const;
+
 function UploadControl({ resumeId, label, maxBytes, onUploaded, variant = "default" }: { resumeId?: string; label: string; maxBytes: number; onUploaded: () => void; variant?: "default" | "outline" }) {
   const t = useTranslations("candidate.resumes");
+  const ta = useTranslations("anonymity");
+  const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const upload = async (file: File) => {
@@ -36,13 +48,15 @@ function UploadControl({ resumeId, label, maxBytes, onUploaded, variant = "defau
       fd.set("file", file);
       if (resumeId) fd.set("resumeId", resumeId);
       const res = await fetch("/api/resumes", { method: "POST", body: fd });
-      const json = (await res.json()) as { error?: string; reason?: string };
+      const json = (await res.json()) as { error?: string; reason?: string; versionId?: string; anonymized?: string };
       if (!res.ok) {
         toast.error(json.error === "file_invalid" ? t(`reasons.${json.reason ?? "type_not_allowed"}` as never) : t("uploadFailed"));
         return;
       }
-      toast.success(resumeId ? t("replaced") : t("uploaded"));
-      onUploaded();
+      // Next step: the candidate checks what recruiters will read during preselection.
+      toast.success(resumeId ? t("replaced") : t("uploaded"), { description: ta("cv.uploadedReview") });
+      if (json.versionId) router.push(`/candidate/resumes/${json.versionId}/anonymized`);
+      else onUploaded();
     } catch {
       toast.error(t("uploadFailed"));
     } finally {
@@ -73,6 +87,7 @@ function UploadControl({ resumeId, label, maxBytes, onUploaded, variant = "defau
 
 export function ResumeManager({ items, maxBytes }: { items: ResumeItem[]; maxBytes: number }) {
   const t = useTranslations("candidate.resumes");
+  const ta = useTranslations("anonymity");
   const tc = useTranslations("common");
   const locale = useLocale();
   const router = useRouter();
@@ -134,6 +149,17 @@ export function ResumeManager({ items, maxBytes }: { items: ResumeItem[]; maxByt
                       </p>
                     )}
                     {r.sentVersions > 0 && <p className="text-xs text-muted-foreground">{t("sentVersions", { count: r.sentVersions })}</p>}
+                    {r.current && (
+                      <p className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                        <Badge variant={ANONYMIZED_VARIANT[r.current.anonymized_status]}>
+                          <EyeOff aria-hidden />
+                          {ta(`cv.status.${r.current.anonymized_status}`)}
+                        </Badge>
+                        <Link href={`/candidate/resumes/${r.current.id}/anonymized`} className="font-medium text-primary underline underline-offset-2">
+                          {r.current.anonymized_status === "approved" ? ta("cv.open") : ta("cv.review")}
+                        </Link>
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {r.current && (

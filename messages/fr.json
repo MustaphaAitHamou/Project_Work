@@ -147,21 +147,32 @@
   "tooManyAttempts": "Trop de tentatives. Patientez quelques minutes avant de réessayer.",
   "rateLimited": "Trop de demandes. Réessayez dans quelques minutes.",
   "captchaFailed": "La vérification anti-robot a échoué. Réessayez.",
-  "signupFailed": "L'inscription n'a pas pu aboutir. Réessayez dans un instant.",
-  "emailAlreadyRegistered": "Un compte existe déjà avec cette adresse e-mail. Connectez-vous, ou utilisez « Mot de passe oublié ? » si vous ne vous en souvenez plus.",
-  "emailAlreadyRegisteredShort": "Un compte existe déjà avec cette adresse.",
   "suspendedTitle": "Compte suspendu",
   "suspendedText": "Votre compte a été suspendu. Si vous pensez qu'il s'agit d'une erreur, contactez le support en répondant à l'e-mail de notification.",
   "validation": {
    "fixErrors": "Veuillez corriger les champs indiqués.",
    "firstName": "Indiquez votre prénom.",
    "lastName": "Indiquez votre nom.",
-   "email": "Indiquez une adresse e-mail valide.",
+   "email": "Veuillez saisir une adresse e-mail valide.",
    "password": "10 caractères minimum, avec une majuscule, une minuscule et un chiffre.",
    "confirm": "Les deux mots de passe ne correspondent pas.",
    "terms": "Vous devez accepter les conditions pour continuer.",
    "accountType": "Type de compte invalide.",
    "emailDomain": "Ce domaine n'existe pas ou ne reçoit pas d'e-mails. Vérifiez l'adresse."
+  },
+  "resetMyPassword": "Réinitialiser mon mot de passe",
+  "errors": {
+   "required": "Ce champ est obligatoire.",
+   "missingFields": "Veuillez renseigner tous les champs obligatoires.",
+   "invalidEmail": "Veuillez saisir une adresse e-mail valide.",
+   "weakPassword": "Votre mot de passe ne respecte pas les critères de sécurité indiqués.",
+   "pwnedPassword": "Ce mot de passe figure dans des fuites de données connues : choisissez-en un autre.",
+   "emailTaken": "Cette adresse e-mail est peut-être déjà associée à un compte. Essayez de vous connecter ou de réinitialiser votre mot de passe.",
+   "emailTakenField": "Cette adresse est peut-être déjà associée à un compte.",
+   "network": "Impossible de contacter le serveur. Vérifiez votre connexion Internet.",
+   "tooManyAttempts": "Trop de tentatives ont été effectuées. Veuillez réessayer plus tard.",
+   "server": "Une erreur technique est survenue. Veuillez réessayer ultérieurement.",
+   "technicalDetail": "Détail technique (affiché seulement hors production) : {code}"
   }
  },
  "forms": {
@@ -216,7 +227,13 @@
   "billing_unavailable": "Le paiement n'est pas encore configuré sur cette plateforme.",
   "captcha_failed": "Vérification anti-robot échouée.",
   "file_invalid": "Fichier refusé.",
-  "generic": "Une erreur est survenue. Réessayez."
+  "generic": "Une erreur est survenue. Réessayez.",
+  "application_rejected": "Cette candidature a été refusée : l'anonymat ne peut plus être levé.",
+  "request_cooldown": "Le candidat a répondu récemment : une nouvelle demande sera possible plus tard.",
+  "no_pending_request": "Aucune demande n'est en attente pour cette candidature.",
+  "request_expired": "Cette demande a expiré.",
+  "application_closed": "Cette candidature n'est plus en cours.",
+  "nothing_to_revoke": "Votre identité n'est pas partagée pour cette candidature."
  },
  "enums": {
   "contractType": {
@@ -508,24 +525,29 @@
    "profile": "un profil candidat"
   },
   "consentTitle": "Informations transmises au recruteur",
-  "consentIntro": "Pour cette candidature et les suivantes, Tamurt Jobs transmettra au recruteur de l'offre concernée :",
+  "consentIntro": "Votre candidature est d'abord anonyme : le recruteur évalue vos compétences avant de savoir qui vous êtes.",
   "transmitted": {
    "identity": "Prénom et nom",
    "contact": "E-mail et téléphone (si renseigné)",
-   "location": "Pays, région et ville",
+   "location": "Pays et région",
    "headline": "Métier recherché et résumé",
    "skills": "Compétences",
    "experience": "Expériences professionnelles",
-   "education": "Formations",
+   "education": "Formations (sans les dates)",
    "languages": "Langues",
    "preferences": "Préférences (contrat, télétravail, mobilité)",
-   "resume": "Votre CV principal (version du jour)"
+   "resume": "Votre CV original (version du jour)",
+   "city": "Ville",
+   "anonymizedCv": "La version anonyme de votre CV, si vous l'avez validée"
   },
   "consentRecipients": "Seule l'entreprise qui publie l'offre y a accès. Aucune autre entreprise ne peut consulter votre profil.",
   "consentNoPhoto": "Aucune photo n'est demandée ni transmise. Votre nationalité et votre origine ne sont jamais collectées.",
   "consentRights": "Vous pouvez retirer une candidature, exporter ou supprimer vos données à tout moment.",
   "privacyPolicy": "Politique de confidentialité",
-  "consentConfirm": "J'ai compris, postuler"
+  "consentConfirm": "J'ai compris, postuler",
+  "anonymousGroup": "Visible dès l'envoi, sous un alias (par exemple « Candidat #TJ-7K4Q9M »)",
+  "revealGroup": "Communiqué uniquement si vous acceptez une demande du recruteur",
+  "consentRefusal": "Refuser une demande ne rejette jamais votre candidature, et vous pouvez retirer l'accès plus tard."
  },
  "report": {
   "trigger": "Signaler",
@@ -582,7 +604,7 @@
   },
   "profile": {
    "title": "Mon profil",
-   "description": "Ces informations sont transmises uniquement aux recruteurs des offres auxquelles vous postulez.",
+   "description": "Votre profil professionnel est transmis aux recruteurs des offres auxquelles vous postulez ; vos nom, coordonnées et ville ne le sont qu'avec votre accord.",
    "identityTitle": "Identité et contact",
    "identityHint": "Aucune photo n'est demandée : Tamurt Jobs met en avant vos compétences.",
    "firstName": "Prénom",
@@ -675,7 +697,7 @@
   },
   "resumes": {
    "title": "Mes CV",
-   "description": "Vos CV sont stockés dans un espace privé et ne sont transmis qu'aux recruteurs des offres auxquelles vous postulez.",
+   "description": "Vos CV sont stockés dans un espace privé. Pendant la présélection, les recruteurs ne lisent que la version anonyme que vous avez validée ; le fichier original n'est communiqué qu'avec votre accord.",
    "addTitle": "Ajouter un CV",
    "constraints": "PDF ou Word (.docx), {mb} Mo maximum. Les fichiers sont analysés avant enregistrement.",
    "upload": "Importer un CV",
@@ -825,7 +847,7 @@
   "step2Title": "Déposez votre CV",
   "step2Text": "PDF ou Word, stocké de manière privée et sécurisée.",
   "step3Title": "Postulez en 1 clic",
-  "step3Text": "Votre candidature est transmise directement au recruteur.",
+  "step3Text": "Votre candidature anonyme est transmise directement au recruteur : vos compétences d'abord.",
   "ctaCandidate": "Créer mon profil gratuitement",
   "recruitersTitle": "Vous recrutez ?",
   "recruitersText": "Publiez vos offres auprès de candidats de 9 pays et recevez les candidatures directement dans votre espace.",
@@ -915,7 +937,7 @@
    "q4": "Les candidats paient-ils ?",
    "q4a": "Jamais. La candidature est gratuite et se fait directement sur Tamurt Jobs.",
    "q5": "Puis-je contacter les candidats ?",
-   "q5a": "Oui, avec les coordonnées transmises dans la candidature. Tamurt Jobs n'intègre pas de messagerie.",
+   "q5a": "Oui, lorsque le candidat accepte votre demande de levée de l'anonymat : ses coordonnées s'affichent alors dans la candidature. Tamurt Jobs n'intègre pas de messagerie.",
    "q6": "Pourquoi certaines annonces passent-elles en modération ?",
    "q6a": "Un contrôle automatique repère les formulations potentiellement discriminatoires ou les demandes de candidature hors plateforme. Un modérateur humain décide ; aucune annonce n'est rejetée automatiquement."
   },
@@ -976,13 +998,13 @@
   },
   "new_application": {
    "subject": "Nouvelle candidature : {job}",
-   "body": "Vous avez reçu une nouvelle candidature pour l'annonce « {job} ». Consultez le profil et le CV depuis votre espace recruteur.",
+   "body": "Vous avez reçu une nouvelle candidature pour l'annonce « {job} ». Découvrez le profil anonyme depuis votre espace recruteur.",
    "cta": "Voir les candidatures"
   },
   "application_status_changed": {
    "subject": "Votre candidature « {job} » : {status}",
    "body_viewed": "Le recruteur de {company} a consulté votre candidature au poste « {job} ».",
-   "body_shortlisted": "Bonne nouvelle : votre candidature au poste « {job} » a été présélectionnée par {company}. Le recruteur pourra vous contacter avec les coordonnées de votre candidature.",
+   "body_shortlisted": "Bonne nouvelle : votre candidature au poste « {job} » a été présélectionnée par {company}. Pour vous contacter, le recruteur vous demandera d'abord de lever l'anonymat.",
    "body_rejected": "{company} n'a pas retenu votre candidature au poste « {job} ». Ne vous découragez pas : de nouvelles offres sont publiées chaque jour.",
    "body_hired": "Félicitations : {company} a indiqué avoir retenu votre candidature au poste « {job} ».",
    "body_job_closed": "L'offre « {job} » de {company} a été clôturée. Votre candidature n'est plus en cours.",
@@ -1053,6 +1075,20 @@
    "subject": "Votre demande relative à vos données",
    "body": "Votre demande ({type}) a été mise à jour : {status}.",
    "cta": "Voir mes demandes"
+  },
+  "identity_reveal_requested": {
+   "subject": "Un recruteur souhaite connaître votre identité : {job}",
+   "body": "Le recruteur de {company} s'intéresse à votre candidature au poste « {job} » et vous demande de lever l'anonymat. Si vous acceptez, il verra vos nom, coordonnées et CV original. Refuser ne rejette pas votre candidature. Vous avez {days} jours pour répondre.",
+   "cta": "Répondre à la demande"
+  },
+  "identity_reveal_answered": {
+   "subject_accepted": "Candidat #{alias} : anonymat levé",
+   "subject_refused": "Candidat #{alias} : préfère rester anonyme",
+   "subject_revoked": "Candidat #{alias} : accès à l'identité retiré",
+   "body_accepted": "Pour l'annonce « {job} », le candidat #{alias} a accepté votre demande : son identité et son CV original sont maintenant visibles dans votre espace recruteur.",
+   "body_refused": "Pour l'annonce « {job} », le candidat #{alias} préfère rester anonyme pour le moment. Sa candidature reste ouverte : vous pouvez continuer à l'évaluer sur ses compétences.",
+   "body_revoked": "Pour l'annonce « {job} », le candidat #{alias} a retiré l'accès à son identité et à son CV original.",
+   "cta": "Voir la candidature"
   }
  },
  "countries": {
@@ -1671,7 +1707,7 @@
   },
   "applications": {
    "title": "Candidatures — {job}",
-   "description": "Consultez les profils et CV reçus. Le statut « Consultée » est indiqué au candidat lorsque vous ouvrez sa candidature.",
+   "description": "Profils anonymes : vous découvrez les compétences avant l'identité. Le statut « Consultée » est indiqué au candidat lorsque vous ouvrez sa candidature.",
    "filterStatus": "Statut",
    "allStatuses": "Tous",
    "sort": "Trier par",
@@ -1706,8 +1742,8 @@
    "educations": "Formations",
    "present": "aujourd'hui",
    "contact": "Coordonnées",
-   "contactNotice": "Coordonnées transmises pour cette candidature uniquement. Contactez le candidat directement ; Tamurt Jobs n'intègre pas de messagerie.",
-   "downloadCv": "Télécharger le CV",
+   "contactNotice": "Coordonnées communiquées pour cette candidature uniquement. Contactez le candidat directement ; Tamurt Jobs n'intègre pas de messagerie.",
+   "downloadCv": "Télécharger le CV original",
    "cvUnavailable": "CV indisponible (retiré ou anonymisé).",
    "decision": "Décision",
    "shortlist": "Présélectionner",
@@ -2202,6 +2238,92 @@
    "revoked": "Révoqué",
    "revoke": "Révoquer",
    "revokeConfirm": "Je confirme : le jeton sera refusé immédiatement."
+  }
+ },
+ "anonymity": {
+  "labels": {
+   "name": "[nom masqué]",
+   "email": "[e-mail masqué]",
+   "phone": "[téléphone masqué]",
+   "link": "[lien masqué]",
+   "address": "[adresse masquée]",
+   "birth": "[date de naissance masquée]",
+   "age": "[âge masqué]",
+   "personal": "[information personnelle masquée]"
+  },
+  "alias": "Candidat #{alias}",
+  "anonymousBadge": "Anonyme",
+  "revealedBadge": "Identité partagée",
+  "pendingBadge": "Demande en attente",
+  "recruiter": {
+   "listNotice": "Les candidatures sont anonymes : vous évaluez d'abord les compétences. Le nom et les coordonnées ne sont communiqués que si le candidat accepte votre demande.",
+   "identityTitle": "Identité et coordonnées",
+   "identityHidden": "Masquées pendant la présélection. Pour contacter ce candidat, demandez-lui de lever l'anonymat : il peut accepter ou refuser, sans conséquence sur sa candidature.",
+   "request": "Demander la levée de l'anonymat",
+   "requested": "Demande envoyée. Le candidat a {days} jours pour répondre.",
+   "alreadyPending": "Une demande est déjà en attente de réponse.",
+   "alreadyGranted": "Le candidat a déjà accepté : son identité est affichée.",
+   "pending": "Demande envoyée le {date}, en attente de la réponse du candidat (jusqu'au {until}).",
+   "refused": "Le candidat préfère rester anonyme pour le moment (réponse du {date}). Sa candidature reste ouverte : vous pouvez continuer à l'évaluer.",
+   "revoked": "Le candidat a retiré l'accès à son identité le {date}.",
+   "expired": "La demande du {date} a expiré sans réponse.",
+   "nextRequest": "Nouvelle demande possible à partir du {date}.",
+   "accepted": "Identité communiquée avec l'accord du candidat le {date}.",
+   "legacy": "Candidature reçue avant l'anonymisation : identité transmise avec le consentement donné à l'époque.",
+   "rejectedNoAccess": "Candidature refusée : l'identité n'est pas accessible.",
+   "contactNotice": "Coordonnées communiquées pour cette candidature uniquement. Contactez le candidat directement ; Tamurt Jobs n'intègre pas de messagerie.",
+   "cvTitle": "CV anonymisé",
+   "cvApproved": "Version vérifiée par le candidat. Les données personnelles détectées ont été retirées ; l'anonymat ne peut toutefois pas être garanti à 100 %.",
+   "cvNotApproved": "Le candidat n'a pas encore validé la version anonyme de son CV. Évaluez le profil ci-dessus ; le CV complet sera accessible après la levée de l'anonymat.",
+   "cvLocked": "Le CV original n'est accessible qu'après l'accord du candidat.",
+   "downloadCv": "Télécharger le CV original",
+   "zone": "Zone souhaitée",
+   "city": "Ville",
+   "relocate": "Ouvert à un déménagement"
+  },
+  "candidate": {
+   "aliasNotice": "Le recruteur voit cette candidature sous l'alias #{alias}, sans votre nom ni vos coordonnées.",
+   "requestTitle": "{company} souhaite connaître votre identité",
+   "requestText": "Si vous acceptez, le recruteur verra vos prénom, nom, e-mail, téléphone et ville, et pourra télécharger votre CV original. Refuser ne rejette pas votre candidature. Réponse attendue avant le {until}.",
+   "accept": "Accepter",
+   "refuse": "Rester anonyme",
+   "acceptedOn": "Identité partagée avec ce recruteur le {date}.",
+   "legacyShared": "Candidature envoyée avant l'anonymisation : vos coordonnées ont été transmises avec votre consentement de l'époque.",
+   "revoke": "Retirer l'accès",
+   "revokeTitle": "Retirer l'accès à votre identité ?",
+   "revokeText": "Le recruteur ne verra plus votre nom, vos coordonnées ni votre CV original dans Tamurt Jobs. Ce qu'il a déjà noté ou téléchargé ne peut pas être effacé par Tamurt Jobs.",
+   "refusedOn": "Vous êtes resté anonyme (réponse du {date}).",
+   "revokedOn": "Accès retiré le {date}.",
+   "expired": "Demande expirée sans réponse : vous restez anonyme.",
+   "acceptDone": "Votre identité est maintenant visible par ce recruteur.",
+   "refuseDone": "Vous restez anonyme. Votre candidature continue.",
+   "revokeDone": "Le recruteur n'a plus accès à votre identité."
+  },
+  "cv": {
+   "status": {
+    "pending": "Version anonyme à générer",
+    "to_review": "Version anonyme à vérifier",
+    "approved": "Version anonyme validée",
+    "unavailable": "Version anonyme à rédiger"
+   },
+   "review": "Vérifier la version anonyme",
+   "open": "Voir la version anonyme",
+   "title": "Version anonyme de votre CV",
+   "intro": "Pendant la présélection, les recruteurs ne voient jamais votre fichier. Ils lisent ce texte, sans photo, sans nom de fichier ni métadonnées. Relisez-le, retirez tout ce qui permet de vous identifier, puis validez.",
+   "warning": "Le masquage automatique retire les noms, coordonnées, liens, adresse, date de naissance, âge, genre, nationalité et situation familiale qu'il détecte. Il peut en oublier : vous êtes la personne la mieux placée pour vérifier.",
+   "summary": "{count, plural, =0 {Aucune donnée personnelle détectée automatiquement.} one {# donnée personnelle masquée automatiquement.} other {# données personnelles masquées automatiquement.}}",
+   "textLabel": "Texte montré aux recruteurs",
+   "textHint": "30 000 caractères maximum. Les mentions entre crochets indiquent ce qui a été masqué.",
+   "approve": "Valider cette version",
+   "regenerate": "Recréer à partir du fichier",
+   "regenerated": "Nouvelle version anonyme créée à partir de votre fichier : relisez-la puis validez.",
+   "approved": "Version anonyme validée : elle sera montrée aux recruteurs pendant la présélection.",
+   "stillPersonal": "Des données personnelles ont encore été détectées et masquées. Relisez le texte puis validez à nouveau.",
+   "unreadable": "Le texte de votre fichier n'a pas pu être lu (CV scanné ou image). Rédigez ici un résumé de votre parcours sans données personnelles, ou laissez vide : les recruteurs verront alors uniquement votre profil.",
+   "notShared": "Tant que vous ne l'avez pas validée, cette version n'est pas montrée aux recruteurs : ils voient uniquement votre profil professionnel.",
+   "uploadedReview": "CV importé. Vérifiez maintenant sa version anonyme.",
+   "back": "Retour à mes CV",
+   "failed": "La version anonyme n'a pas pu être créée. Réessayez dans un instant."
   }
  }
 }
