@@ -42,7 +42,7 @@ Les tests d'intégration et E2E s'exécutent contre une pile Supabase locale ré
 - Choix de la région d'hébergement et encadrement des transferts de données.
 
 **Identité visuelle (DA Tamurt Services, novembre 2026)**
-- Couleurs, police Bitter, coins, logos, favicons, frise et bouton yaz appliqués. Vérifié : typecheck, lint, tests unitaires (64/64) et build. Rendu contrôlé en français et en arabe, en clair et en sombre.
+- Couleurs, police Bitter, coins, logos, favicons et bouton yaz appliqués. Accueil refait avec un bandeau de marque illustré, des drapeaux en SVG et des états vides illustrés. La frise « peigne » a été retirée : en pleine largeur, elle ressemblait à un défaut d'affichage. Vérifié : typecheck, lint, tests unitaires (64/64) et build. Rendu contrôlé en français et en arabe, en clair et en sombre.
 - Tests d'intégration et E2E non relancés après ce changement : ils exigent la pile Supabase locale (Docker), indisponible dans l'environnement de travail. À relancer avant fusion.
 - Bouton yaz masqué tant que `TAMURT_SERVICES_URL` est vide, puisque le site Tamurt Services n'est pas encore en ligne.
 
