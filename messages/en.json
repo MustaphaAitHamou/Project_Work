@@ -1092,6 +1092,12 @@
    "body_refused": "For the job \"{job}\", candidate #{alias} prefers to stay anonymous for now. The application remains open: you can keep assessing it on skills.",
    "body_revoked": "For the job \"{job}\", candidate #{alias} withdrew access to their identity and original CV.",
    "cta": "See the application"
+  },
+  "report_decision": {
+   "subject": "Your report has been reviewed",
+   "body_resolved": "Thank you for your report (reference {reference}) about the job ad \"{job}\". After review, we have acted on it: measures have been taken.",
+   "body_dismissed": "Thank you for your report (reference {reference}) about the job ad \"{job}\". After review, we found no breach of our rules or of the law: the job ad is not changed.",
+   "contest": "If you disagree with this decision, write to us at the contact address given in our legal notice, quoting the report reference."
   }
  },
  "countries": {

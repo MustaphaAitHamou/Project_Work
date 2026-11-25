@@ -1092,6 +1092,12 @@
    "body_refused": "Para la oferta «{job}», el candidato #{alias} prefiere seguir en el anonimato por ahora. La candidatura sigue abierta: puedes seguir evaluándola por sus competencias.",
    "body_revoked": "Para la oferta «{job}», el candidato #{alias} retiró el acceso a su identidad y a su CV original.",
    "cta": "Ver la candidatura"
+  },
+  "report_decision": {
+   "subject": "Su denuncia ha sido examinada",
+   "body_resolved": "Gracias por su denuncia (referencia {reference}) sobre la oferta «{job}». Tras examinarla, le hemos dado curso: se han tomado medidas.",
+   "body_dismissed": "Gracias por su denuncia (referencia {reference}) sobre la oferta «{job}». Tras examinarla, no hemos constatado ningún incumplimiento de nuestras normas ni de la ley: la oferta no se modifica.",
+   "contest": "Si no está de acuerdo con esta decisión, escríbanos a la dirección de contacto indicada en nuestro aviso legal, citando la referencia de la denuncia."
   }
  },
  "countries": {

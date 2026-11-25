@@ -78,7 +78,7 @@ Offers are subject to automated checks that **flag** potentially discriminatory 
 
 ### 5.3 Reports
 
-Any visitor may report an offer they consider unlawful or contrary to the Terms, with or without an account. Reports are reviewed by the moderation team, which records its decision. [TO VALIDATE: obligations under Regulation (EU) 2022/2065 (Digital Services Act) and local laws, in particular informing the reporter and the company concerned, time limits and means of redress. Automatic notification of the reporter is not implemented at this stage.]
+Any visitor may report an offer they consider unlawful or contrary to the Terms, with or without an account. Reports are reviewed by the moderation team, which records its decision. The reporter is told of the decision by e-mail, at their account address or at the address they gave in the form. [TO VALIDATE: obligations under Regulation (EU) 2022/2065 (Digital Services Act) and local laws, in particular informing the company concerned, time limits and means of redress.]
 
 ## 6. Ranking of offers
 

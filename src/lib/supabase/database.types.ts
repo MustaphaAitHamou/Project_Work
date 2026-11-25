@@ -2347,6 +2347,7 @@ export type Database = {
           reason: Database["public"]["Enums"]["report_reason"];
           reporter_email: string | null;
           reporter_id: string | null;
+          reporter_locale: string | null;
           resolution_note: string | null;
           status: Database["public"]["Enums"]["report_status"];
         };
@@ -2362,6 +2363,7 @@ export type Database = {
           reason: Database["public"]["Enums"]["report_reason"];
           reporter_email?: string | null;
           reporter_id?: string | null;
+          reporter_locale?: string | null;
           resolution_note?: string | null;
           status?: Database["public"]["Enums"]["report_status"];
         };
@@ -2376,6 +2378,7 @@ export type Database = {
           reason?: Database["public"]["Enums"]["report_reason"];
           reporter_email?: string | null;
           reporter_id?: string | null;
+          reporter_locale?: string | null;
           resolution_note?: string | null;
           status?: Database["public"]["Enums"]["report_status"];
         };

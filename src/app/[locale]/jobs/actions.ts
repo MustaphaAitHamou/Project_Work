@@ -112,6 +112,8 @@ export async function reportJobAction(_prev: ActionState, formData: FormData): P
     company_id: job.company_id,
     reporter_id: userId,
     reporter_email: userId ? null : parsed.data.email || null,
+    // Language of the decision e-mail for a report sent without an account (DSA, art. 16(5)).
+    reporter_locale: userId ? null : locale,
     reason: parsed.data.reason,
     details: parsed.data.details ?? null,
   });

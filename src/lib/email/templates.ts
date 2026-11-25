@@ -24,6 +24,7 @@ export const EMAIL_TEMPLATES = [
   "privacy_request_update",
   "identity_reveal_requested",
   "identity_reveal_answered",
+  "report_decision",
 ] as const;
 export type EmailTemplate = (typeof EMAIL_TEMPLATES)[number];
 
@@ -143,6 +144,13 @@ const DEFINITIONS: Record<EmailTemplate, (c: Ctx) => Omit<EmailContent, "locale"
       cta: { label: t("identity_reveal_answered.cta"), url: url(`/employer/applications/${s(p.application_id)}`) },
     };
   },
+  report_decision: ({ t, p }) => ({
+    subject: t("report_decision.subject"),
+    paragraphs: [
+      t(p.status === "resolved" ? "report_decision.body_resolved" : "report_decision.body_dismissed", { job: s(p.job_title), reference: s(p.reference) }),
+      t("report_decision.contest"),
+    ],
+  }),
   privacy_request_update: ({ t, te, p, url }) => ({
     subject: t("privacy_request_update.subject"),
     paragraphs: [

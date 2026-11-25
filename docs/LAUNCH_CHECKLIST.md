@@ -99,6 +99,7 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 | JUR-03 | Checklists de conformité des 9 pays (11 points bloquants chacune) | ⏳ En attente de toi | Bloquant | Jamais validées artificiellement. Proposition de lancement progressif à fournir. |
 | JUR-04 | Analyse pays par pays et liste des questions pour le juriste | ⬜ À faire | Bloquant | |
 | JUR-05 | Traduction des textes juridiques (anglais existant ; espagnol et arabe affichés avec avertissement) | ⬜ À faire | Non bloquant | |
+| JUR-06 | Information de l'auteur d'un signalement sur la décision (DSA, art. 16, § 5) | ✅ Terminé et testé | Bloquant | E-mail à l'auteur (compte ou adresse du formulaire, dans sa langue) quand le signalement est traité ou classé, sans la note interne. Test d'intégration (25/11). CGU mises à jour. |
 
 ## 6. Sécurité
 

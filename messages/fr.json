@@ -1092,6 +1092,12 @@
    "body_refused": "Pour l'annonce « {job} », le candidat #{alias} préfère rester anonyme pour le moment. Sa candidature reste ouverte : vous pouvez continuer à l'évaluer sur ses compétences.",
    "body_revoked": "Pour l'annonce « {job} », le candidat #{alias} a retiré l'accès à son identité et à son CV original.",
    "cta": "Voir la candidature"
+  },
+  "report_decision": {
+   "subject": "Votre signalement a été examiné",
+   "body_resolved": "Merci pour votre signalement (référence {reference}) concernant l'annonce « {job} ». Après examen, nous y avons donné suite : des mesures ont été prises.",
+   "body_dismissed": "Merci pour votre signalement (référence {reference}) concernant l'annonce « {job} ». Après examen, nous n'avons constaté de manquement ni à nos règles ni à la loi : l'annonce n'est pas modifiée.",
+   "contest": "Si vous n'êtes pas d'accord avec cette décision, écrivez-nous à l'adresse de contact indiquée dans nos mentions légales, en rappelant la référence du signalement."
   }
  },
  "countries": {

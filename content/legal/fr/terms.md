@@ -78,7 +78,7 @@ Les offres sont soumises à des contrôles automatiques qui **signalent** à un 
 
 ### 5.3 Signalements
 
-Tout visiteur peut signaler une offre qu'il estime illicite ou contraire aux CGU, avec ou sans compte. Les signalements sont examinés par l'équipe de modération, qui consigne sa décision. [À VALIDER : obligations au titre du règlement (UE) 2022/2065 sur les services numériques et des lois locales, notamment l'information de l'auteur du signalement et de l'entreprise concernée, les délais et les voies de recours. L'information automatique de l'auteur d'un signalement n'est pas implémentée à ce jour.]
+Tout visiteur peut signaler une offre qu'il estime illicite ou contraire aux CGU, avec ou sans compte. Les signalements sont examinés par l'équipe de modération, qui consigne sa décision. L'auteur du signalement est informé par e-mail de la décision prise, à l'adresse de son compte ou à celle qu'il a indiquée dans le formulaire. [À VALIDER : obligations au titre du règlement (UE) 2022/2065 sur les services numériques et des lois locales, notamment l'information de l'entreprise concernée, les délais et les voies de recours.]
 
 ## 6. Classement des offres
 

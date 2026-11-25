@@ -34,6 +34,7 @@ Modifications, tests exécutés et décisions, du plus récent au plus ancien. L
 - Double authentification du back-office : migration `20261125100000_admin_mfa.sql` (aal2 exigé par `app.has_permission` et `app.is_admin`, réglage `security.admin_mfa_required`), page `/[locale]/admin-security` (enrôlement par QR code ou clé, vérification à chaque connexion), garde `requirePermission`, textes en 4 langues ; TOTP activé dans `supabase/config.toml` ; `seed.sql` le désactive en local et en CI uniquement.
 - `scripts/preprod-seed.mjs` : comptes de recette et données de démonstration, avec garde-fous anti-production.
 - `docs/RUNBOOK.md` (sauvegardes, rollback, surveillance, incidents) ; `docs/DEPLOYMENT.md` mis à jour (deux projets Vercel, `APP_ENV`, `PREPROD_BASIC_AUTH`, `NEXT_PUBLIC_ADSENSE_CLIENT`, double authentification).
+- Signalements (DSA, art. 16, § 5) : l'auteur reçoit un e-mail de décision (traité ou classé), dans sa langue (migration `20261125110000_report_decision_notice.sql`, colonne `reporter_locale`, modèle `report_decision` en 4 langues). CGU FR et EN mises à jour.
 
 ### Tests exécutés
 - Appel `GET /v1/account` à l'API Stripe (mode test) : réussi.
@@ -45,6 +46,7 @@ Modifications, tests exécutés et décisions, du plus récent au plus ancien. L
 - E2E complets sur build de production (identifiant AdSense factice, publicité désactivée par défaut) : 39/39, dont publicité 2/2 et accessibilité 6/6 ; les 4 parcours Stripe réels sont lancés séparément (4/4).
 - Après la double authentification : intégration 48/48, E2E 40/40 (dont `admin-mfa`), générateur TOTP conforme aux vecteurs de la RFC 6238.
 - `scripts/preprod-seed.mjs` en local : 6 comptes et 6 offres de démonstration ; garde-fous vérifiés (mauvaise cible et `APP_ENV=production` refusés).
+- Après l'avis de décision des signalements : unitaires 119/119, intégration 49/49.
 
 ### Constat sur l'environnement de test
 - Le proxy de la session injecte la clé secrète Stripe dans toutes les requêtes vers `api.stripe.com`, y compris celles du navigateur. Stripe refuse alors la saisie de carte sur Checkout. La saisie de carte et le défi 3D Secure sur la page Stripe sont donc à vérifier à la main en préprod.
