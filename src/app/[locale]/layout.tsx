@@ -5,7 +5,7 @@ import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing, isRtl } from "@/i18n/routing";
 import { getSessionUser } from "@/lib/auth/session";
-import { siteUrl } from "@/lib/env";
+import { appEnv, siteUrl } from "@/lib/env";
 import { Providers } from "@/components/layout/providers";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -69,6 +69,11 @@ export default async function LocaleLayout({ children, params }: { children: Rea
             >
               {t("skipToContent")}
             </a>
+            {appEnv() === "preprod" ? (
+              <p role="note" className="bg-amber-200 px-4 py-1.5 text-center text-sm font-medium text-amber-950">
+                {t("preprodBanner")}
+              </p>
+            ) : null}
             <SiteHeader user={user} />
             <main id="main" className="flex-1">
               {children}

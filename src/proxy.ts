@@ -8,11 +8,42 @@ const handleI18nRouting = createIntlMiddleware(routing);
 const PROTECTED = /^\/(fr|en|es|ar)\/(candidate|employer|admin)(\/|$)/;
 
 /**
+ * Optional HTTP Basic protection of the pre-production site ("user:password",
+ * ASCII). Never set it in production. API routes (Stripe webhook, scheduled jobs)
+ * are outside this proxy and keep their own authentication.
+ */
+const PREPROD_BASIC_AUTH = process.env.PREPROD_BASIC_AUTH ?? "";
+
+function safeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+function basicAuthorized(request: NextRequest): boolean {
+  if (!PREPROD_BASIC_AUTH) return true;
+  const header = request.headers.get("authorization") ?? "";
+  if (!header.startsWith("Basic ")) return false;
+  try {
+    return safeEqual(atob(header.slice(6).trim()), PREPROD_BASIC_AUTH);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Proxy (formerly "middleware"): locale routing + Supabase session refresh.
  * Route protection here is a UX convenience only: every page, Server Action and
  * Route Handler re-checks authentication and authorisation server-side.
  */
 export default async function proxy(request: NextRequest) {
+  if (!basicAuthorized(request)) {
+    return new NextResponse("Authentification requise (préproduction).", {
+      status: 401,
+      headers: { "WWW-Authenticate": 'Basic realm="Tamurt Jobs preprod", charset="UTF-8"', "X-Robots-Tag": "noindex, nofollow" },
+    });
+  }
   const response = handleI18nRouting(request);
 
   const supabase = createServerClient(

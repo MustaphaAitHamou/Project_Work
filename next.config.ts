@@ -7,6 +7,11 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54
 const supabaseOrigin = new URL(supabaseUrl).origin;
 const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
 const isDev = process.env.NODE_ENV !== "production";
+// Same rule as appEnv() in src/lib/env.ts, evaluated at build time: only the real
+// production deployment may be indexed by search engines.
+const appEnvAtBuild =
+  process.env.APP_ENV ?? (process.env.VERCEL_ENV === "production" ? "production" : process.env.VERCEL_ENV === "preview" ? "preprod" : "development");
+const indexable = appEnvAtBuild === "production";
 
 // Content Security Policy. Next.js requires inline scripts for hydration unless a
 // nonce-based policy is used (which forces dynamic rendering of every page).
@@ -33,6 +38,7 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  ...(indexable ? [] : [{ key: "X-Robots-Tag", value: "noindex, nofollow" }]),
 ];
 
 const nextConfig: NextConfig = {

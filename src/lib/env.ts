@@ -14,6 +14,12 @@ const bool = z
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   VERCEL_ENV: z.enum(["development", "preview", "production"]).optional(),
+  /**
+   * Explicit application environment. Wins over VERCEL_ENV: the pre-production
+   * Vercel project is "production" for Vercel but must behave as pre-production
+   * (test payments, no indexing, demo data allowed).
+   */
+  APP_ENV: z.enum(["development", "preprod", "production"]).optional(),
   NEXT_PUBLIC_SITE_URL: z.url().default("http://localhost:3000"),
   NEXT_PUBLIC_SUPABASE_URL: z.url(),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(10),
@@ -66,9 +72,19 @@ export function env(): Env {
   return cached;
 }
 
-export function isProductionDeployment(): boolean {
+export type AppEnv = "development" | "preprod" | "production";
+
+/** Application environment: APP_ENV when set, otherwise derived from Vercel. */
+export function appEnv(): AppEnv {
   const e = env();
-  return e.VERCEL_ENV === "production" || (e.NODE_ENV === "production" && e.VERCEL_ENV === undefined && process.env.APP_ENV === "production");
+  if (e.APP_ENV) return e.APP_ENV;
+  if (e.VERCEL_ENV === "production") return "production";
+  if (e.VERCEL_ENV === "preview") return "preprod";
+  return "development";
+}
+
+export function isProductionDeployment(): boolean {
+  return appEnv() === "production";
 }
 
 export function siteUrl(path = ""): string {
@@ -87,6 +103,7 @@ export function integrationStatus() {
         : "missing";
   const problems: string[] = [];
   if (isProductionDeployment()) {
+    if (process.env.PREPROD_BASIC_AUTH) problems.push("preprod_basic_auth_in_production");
     if (stripeMode !== "live") problems.push("stripe_not_live");
     if (!e.STRIPE_WEBHOOK_SECRET) problems.push("stripe_webhook_secret_missing");
     if (e.EMAIL_PROVIDER === "none") problems.push("email_provider_missing");
@@ -95,6 +112,7 @@ export function integrationStatus() {
     if (!e.STRIPE_AUTOMATIC_TAX) problems.push("stripe_tax_disabled");
   }
   return {
+    appEnv: appEnv(),
     stripe: { mode: stripeMode, webhook: Boolean(e.STRIPE_WEBHOOK_SECRET), automaticTax: e.STRIPE_AUTOMATIC_TAX },
     email: { provider: e.EMAIL_PROVIDER },
     captcha: Boolean(e.TURNSTILE_SECRET_KEY && e.NEXT_PUBLIC_TURNSTILE_SITE_KEY),

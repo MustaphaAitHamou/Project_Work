@@ -5,6 +5,7 @@
  },
  "common": {
   "skipToContent": "Ir al contenido principal",
+  "preprodBanner": "Preproducción: datos ficticios y pagos en modo de prueba de Stripe. No introduzca datos reales.",
   "toggleTheme": "Cambiar de tema (claro/oscuro)",
   "changeLanguage": "Cambiar de idioma",
   "close": "Cerrar",

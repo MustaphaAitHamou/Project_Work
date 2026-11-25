@@ -5,6 +5,7 @@
  },
  "common": {
   "skipToContent": "Skip to main content",
+  "preprodBanner": "Pre-production: fictitious data and Stripe test-mode payments. Do not enter any real data.",
   "toggleTheme": "Toggle theme (light/dark)",
   "changeLanguage": "Change language",
   "close": "Close",
