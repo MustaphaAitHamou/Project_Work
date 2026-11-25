@@ -13,10 +13,13 @@ import { SiteFooter } from "@/components/layout/site-footer";
 
 // Bitter, the Tamurt Jobs typeface: square serifs, like a typed contract or a newspaper job ad.
 // No adjusted fallback, so that missing glyphs go to Noto Serif (ɛ, ɣ…) and Noto Naskh Arabic (ar), not to a system font.
-const bitter = Bitter({ subsets: ["latin", "latin-ext"], variable: "--font-bitter", display: "swap", adjustFontFallback: false });
+// display "optional" for the three fonts: on a slow first visit the page stays in its first font instead of
+// jumping when a web font arrives (layout shift measured at 0.23–0.24 on the home page with "swap"); the fonts
+// are cached for the next pages.
+const bitter = Bitter({ subsets: ["latin", "latin-ext"], variable: "--font-bitter", display: "optional", adjustFontFallback: false });
 // Downloaded only when a character needs them.
-const notoSerif = Noto_Serif({ subsets: ["latin-ext"], variable: "--font-noto-serif", display: "swap", preload: false, adjustFontFallback: false });
-const naskh = Noto_Naskh_Arabic({ subsets: ["arabic"], variable: "--font-naskh", display: "swap", preload: false, adjustFontFallback: false });
+const notoSerif = Noto_Serif({ subsets: ["latin-ext"], variable: "--font-noto-serif", display: "optional", preload: false, adjustFontFallback: false });
+const naskh = Noto_Naskh_Arabic({ subsets: ["arabic"], variable: "--font-naskh", display: "optional", preload: false, adjustFontFallback: false });
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));

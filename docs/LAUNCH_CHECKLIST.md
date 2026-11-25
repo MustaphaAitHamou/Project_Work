@@ -118,11 +118,11 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 
 | ID | Élément | Statut | Lancement | Notes |
 | --- | --- | --- | --- | --- |
-| SEO-01 | `robots.txt`, `sitemap.xml`, canonical, hreflang | 🔄 En cours | Bloquant | Existants ; à revérifier avec `APP_ENV`. |
-| SEO-02 | Données structurées `JobPosting` | 🔄 En cours | Non bloquant | Existantes ; à valider. |
+| SEO-01 | `robots.txt`, `sitemap.xml`, canonical, hreflang | ✅ Terminé et testé | Bloquant | Existants et liés à `APP_ENV` : indexation interdite hors production (robots + en-tête). Sitemap avec alternatives de langue. Vérifier en production après mise en ligne. |
+| SEO-02 | Données structurées `JobPosting` | ✅ Terminé et testé | Non bloquant | Champs exigés par Google présents (titre, description, date, employeur, lieu ou télétravail, validité, contrat, salaire, identifiant, candidature directe) ; test unitaire existant. Test « résultats enrichis » de Google à faire sur l'URL de production. |
 | SEO-03 | Prévisualisation réseaux sociaux (Open Graph) | 🔄 En cours | Non bloquant | Image 1200 × 630 aux couleurs de la marque (`opengraph-image.png`, `twitter-image.png`) ; vérification des balises au prochain build. |
 | SEO-04 | Pages d'erreur | 🔄 En cours | Non bloquant | Existantes. |
-| SEO-05 | Accessibilité et performances mobiles | ⬜ À faire | Non bloquant | Tests axe existants. |
+| SEO-05 | Accessibilité et performances mobiles | ✅ Terminé et testé | Non bloquant | Axe WCAG A/AA sans violation (E2E). Mesure mobile (Pixel 7, CPU ×4, 4G lente) : LCP < 1 s, CLS 0,000 sur accueil FR/AR, recherche, entreprises, fiche d'offre, après correction du décalage de l'accueil (0,24). `scripts/measure-web-vitals.mjs`. À refaire en préprod sur le réseau réel. |
 
 ## 8. Tests et recette
 

@@ -36,6 +36,7 @@ Modifications, tests exécutés et décisions, du plus récent au plus ancien. L
 - `docs/RUNBOOK.md` (sauvegardes, rollback, surveillance, incidents) ; `docs/DEPLOYMENT.md` mis à jour (deux projets Vercel, `APP_ENV`, `PREPROD_BASIC_AUTH`, `NEXT_PUBLIC_ADSENSE_CLIENT`, double authentification).
 - Signalements (DSA, art. 16, § 5) : l'auteur reçoit un e-mail de décision (traité ou classé), dans sa langue (migration `20261125110000_report_decision_notice.sql`, colonne `reporter_locale`, modèle `report_decision` en 4 langues). CGU FR et EN mises à jour.
 - Aperçu réseaux sociaux (image 1200 × 630), `docs/COMPLIANCE_LAUNCH.md` (lancement France seule proposé, questions pour le juriste, proposition de remboursement).
+- Stabilité visuelle : décalage de mise en page de l'accueil mesuré à 0,23–0,24 sur mobile lent, causé par l'arrivée tardive des polices (Bitter, puis Noto Serif en `swap`). Les trois polices passent en `display: optional` : CLS 0,000 sur toutes les pages mesurées ; Bitter s'affiche toujours dans les conditions normales (vérifié). `scripts/measure-web-vitals.mjs` garde la mesure.
 - Surveillance des erreurs : `@sentry/nextjs` 11.11.0 (version de plus de deux semaines), activée seulement avec `NEXT_PUBLIC_SENTRY_DSN`. Aucune identité, aucun cookie, en-tête, corps de requête ni paramètre d'URL n'est envoyé (`dataCollection`, `scrubEvent`). Tunnel `/monitoring` sur le domaine (CSP inchangée), exclu du proxy. Test d'envoi : `/api/health?monitoring=test` avec le secret des tâches planifiées. Politique de confidentialité mise à jour.
 
 ### Tests exécutés
@@ -49,6 +50,7 @@ Modifications, tests exécutés et décisions, du plus récent au plus ancien. L
 - Après la double authentification : intégration 48/48, E2E 40/40 (dont `admin-mfa`), générateur TOTP conforme aux vecteurs de la RFC 6238.
 - `scripts/preprod-seed.mjs` en local : 6 comptes et 6 offres de démonstration ; garde-fous vérifiés (mauvaise cible et `APP_ENV=production` refusés).
 - Après l'avis de décision des signalements : unitaires 119/119, intégration 49/49.
+- Mesures mobiles (Pixel 7, CPU ×4, 4G lente, build de production locale) : LCP 0,8–1,0 s ; CLS de l'accueil 0,225 → 0,000 après correction ; recherche, entreprises et fiche d'offre à 0,000. E2E 40/40 après la correction. (L'audit Lighthouse via `npx` a été refusé par le contrôle de sécurité de la session : mesures faites avec Playwright.)
 - Build avec DSN Sentry et identifiant AdSense factices : réussi ; `/api/health` indique la surveillance configurée ; réécriture du tunnel `/monitoring` présente (l'hôte factice est injoignable depuis la session, d'où une réponse 500 attendue) ; E2E 40/40.
 
 ### Constat sur l'environnement de test
