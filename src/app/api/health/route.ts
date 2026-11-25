@@ -31,5 +31,5 @@ export async function GET(request: NextRequest) {
   const init = { status: database === "ok" ? 200 : 503, headers: { "Cache-Control": "no-store" } };
   if (isProductionDeployment() && !isAuthorizedCron(request)) return NextResponse.json({ status: healthy ? "ok" : "degraded", database }, init);
   const ads = await getAdsConfig().catch(() => null);
-  return NextResponse.json({ status: healthy ? "ok" : "degraded", database, integrations: { ...integrations, ads: { configured: Boolean(ads?.client), enabled: Boolean(ads?.enabled) } } }, init);
+  return NextResponse.json({ status: healthy ? "ok" : "degraded", database, integrations: { ...integrations, ads: { mode: ads?.mode ?? "off", configured: Boolean(ads?.client), enabled: Boolean(ads?.enabled) } } }, init);
 }

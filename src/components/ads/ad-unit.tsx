@@ -15,7 +15,7 @@ declare global {
  * Consent is handled by Google's certified CMP (Privacy & messaging), loaded by the
  * AdSense tag: without consent, only non-personalised or limited ads are served.
  */
-export function AdUnit({ client, slot, label, placement }: { client: string; slot: string; label: string; placement: string }) {
+export function AdUnit({ client, slot, label, placement, test }: { client: string; slot: string; label: string; placement: string; test: boolean }) {
   const ref = useRef<HTMLModElement>(null);
   const requested = useRef(false);
 
@@ -40,7 +40,7 @@ export function AdUnit({ client, slot, label, placement }: { client: string; slo
   }, []);
 
   return (
-    <aside aria-label={label} className="ad-slot my-10" data-ad-placement={placement}>
+    <aside aria-label={label} className="ad-slot my-10" data-ad-placement={placement} data-ad-mode={test ? "test" : "live"}>
       <p className="mb-1 text-center text-[11px] tracking-wide text-muted-foreground uppercase">{label}</p>
       <div className="ad-slot-box overflow-hidden rounded-md">
         <ins
@@ -51,6 +51,8 @@ export function AdUnit({ client, slot, label, placement }: { client: string; slo
           data-ad-slot={slot}
           data-ad-format="auto"
           data-full-width-responsive="true"
+          // Test ads: neither impressions nor clicks are counted (pre-production, before approval).
+          data-adtest={test ? "on" : undefined}
         />
       </div>
       <Script

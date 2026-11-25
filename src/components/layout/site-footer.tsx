@@ -55,7 +55,7 @@ export async function SiteFooter() {
                   </Link>
                 </li>
               ))}
-              {col.title === t("about") && ads.enabled && (
+              {col.title === t("about") && ads.enabled && ads.mode !== "placeholder" && (
                 <li>
                   <CookieSettingsLink label={t("cookieSettings")} className="text-muted-foreground hover:text-foreground" />
                 </li>

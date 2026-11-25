@@ -1,16 +1,25 @@
 # Mise en production
 
-Ce guide décrit le déploiement sur **Supabase** (base de données, authentification, stockage) et **Vercel** (application), avec **Stripe** et un fournisseur d'e-mail. Chaque étape qui dépend d'un compte externe doit être réalisée par l'équipe : aucune n'a pu être validée en conditions réelles depuis l'environnement de développement (voir [STATUS.md](STATUS.md)).
+Ce guide décrit le déploiement de Tamurt Jobs :
+- **Supabase** : base de données, authentification, stockage ;
+- **Vercel** pour la **préproduction** uniquement ;
+- un **VPS Iglao** pour la **production** (procédure complète dans [deploy/iglao/README.md](../deploy/iglao/README.md)) ;
+- **Stripe** pour les paiements, **Resend** pour les e-mails ([EMAIL.md](EMAIL.md)).
+
+Chaque étape qui dépend d'un compte externe est réalisée par le propriétaire ou avec ses accès. Ce qui a été vérifié, et comment, est consigné dans [LAUNCH_LOG.md](LAUNCH_LOG.md).
 
 > Règles impératives : ne jamais déployer en production avec des clés Stripe de test ; ne jamais créer de compte administrateur de démonstration ; ne jamais exécuter `npm run seed:dev` ailleurs qu'en local (le script le refuse) ; n'ouvrir la publication payante d'un pays qu'après sa checklist de conformité.
 
 ## 1. Environnements
 
-Deux environnements strictement isolés, chacun avec **son projet Vercel et son projet Supabase** (les tâches planifiées de Vercel ne tournent que sur le déploiement de production d'un projet : la préproduction doit donc être un projet à part) :
+Deux environnements strictement isolés, chacun avec **son hébergement et son projet Supabase** :
 
 | | Préproduction | Production |
 |---|---|---|
-| Projet Vercel | `tamurt-jobs-preprod`, branche de production `claude/jobs-lancement` | `tamurt-jobs`, branche `main` |
+| Hébergement | Vercel, projet `tamurt-jobs-preprod` | VPS Linux chez Iglao : Nginx, Node.js 22, systemd ([deploy/iglao](../deploy/iglao/README.md)) |
+| Déploiement | automatique à chaque envoi sur `claude/jobs-lancement`, **après la CI complète** (`.github/workflows/preprod-vercel.yml`) | **manuel** depuis `main`, après la CI complète **et ton approbation** (`.github/workflows/deploy-iglao.yml`) |
+| Retour arrière | Vercel → Deployments → Instant Rollback | `bin/rollback.sh` sur le serveur (quelques secondes) |
+| Tâches planifiées | Vercel Cron (`vercel.json`) | cron du serveur (`deploy/iglao/cron/tamurt-jobs`) |
 | `APP_ENV` | `preprod` | `production` |
 | Projet Supabase | dédié (peut rester en offre gratuite) | dédié, offre Pro (sauvegardes quotidiennes, pas de mise en pause) |
 | Stripe | mode test (`sk_test_…`) | mode live (`sk_live_…` ou clé restreinte `rk_live_…`) |
@@ -28,6 +37,11 @@ L'application est en production lorsque `APP_ENV=production` (ou, sans `APP_ENV`
 | `PREPROD_BASIC_AUTH` | préprod uniquement | `identifiant:mot de passe` (ASCII) demandés par le navigateur ; **jamais en production** |
 | `NEXT_PUBLIC_ADSENSE_CLIENT` | prod (et préprod pour tester) | identifiant éditeur AdSense `ca-pub-…` ; à définir **avant** le build (CSP, `ads.txt`). Voir [ADSENSE.md](ADSENSE.md) |
 | `STRIPE_HTTP_CLIENT` | facultatif | `fetch` uniquement derrière un proxy HTTPS (tests locaux) ; inutile sur Vercel |
+| `CLIENT_IP_HEADER` | prod Iglao | `x-real-ip` : adresse du visiteur transmise par Nginx (limites de débit, anti-robot). Sans elle, le tableau de bord signale `client_ip_header_missing` |
+| `ADS_MODE` | facultatif | `placeholder` (défaut hors production : emplacements de test, aucune requête à Google), `test` (annonces de test AdSense), `live` (défaut en production), `off` |
+| `NEXT_OUTPUT` | construction pour Iglao | `standalone` : serveur autonome, posé par `scripts/package-standalone.sh` |
+
+La construction n'a besoin que des réglages publics (`NEXT_PUBLIC_*`, `APP_ENV`) : aucun secret n'est nécessaire dans GitHub Actions pour construire la production.
 
 ## 2. Supabase
 
@@ -52,16 +66,46 @@ npx supabase db push
 10. **Database → Backups** : offre Pro = sauvegarde quotidienne conservée 7 jours ; la restauration à un instant donné (PITR) est une option payante. Faire une sauvegarde manuelle avant le lancement (voir [RUNBOOK.md](RUNBOOK.md)).
 11. **Authentication → Multi-Factor** : l'application TOTP est activée par défaut sur les projets hébergés. Le back-office l'exige (`security.admin_mfa_required`, vrai par défaut) : chaque membre de l'équipe enregistre une application d'authentification à sa première connexion au back-office. Ne jamais exécuter `supabase/seed.sql` sur un projet hébergé (il désactive cette exigence pour le développement local).
 
-## 3. Vercel
+## 3. Vercel (préproduction uniquement)
 
-1. Importer le dépôt GitHub (framework Next.js, Node.js 22).
-2. Choisir une **région de fonctions** proche de la région Supabase.
-3. Renseigner les variables d'environnement de [`.env.example`](../.env.example), séparément pour *Production* et *Preview* :
-   - `NEXT_PUBLIC_SITE_URL` : URL publique canonique ;
-   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` (secrète, jamais préfixée `NEXT_PUBLIC_`) ;
-   - Stripe, e-mail, Turnstile, registres, `CRON_SECRET` (chaîne aléatoire de 32 caractères ou plus).
-4. **Tâches planifiées** (`vercel.json`) : maintenance horaire (délais de grâce, échéances, conservation), envoi des e-mails toutes les 10 minutes, alertes emploi quotidiennes. Vercel les appelle avec `Authorization: Bearer <CRON_SECRET>`. Ces fréquences nécessitent une offre Vercel autorisant les tâches infra-quotidiennes ; sur une offre limitée à une exécution par jour, adapter `vercel.json` (les e-mails partent de toute façon immédiatement après chaque action, la tâche ne sert qu'aux reprises) ou appeler ces routes depuis un ordonnanceur externe avec le même en-tête.
-5. Associer le domaine et forcer HTTPS (les en-têtes de sécurité, dont HSTS et la CSP, sont définis dans `next.config.ts`).
+**Offre.** Le plan Hobby est réservé à un usage personnel et non commercial. De plus, il fait échouer le déploiement de tâches planifiées plus fréquentes qu'une fois par jour. La préproduction d'un produit commercial relève donc de **Pro** (20 $ par mois, 20 $ d'usage inclus, un siège). C'est la décision du propriétaire.
+
+1. Créer le projet `tamurt-jobs-preprod` (framework Next.js, Node.js 22, région de fonctions proche de Supabase, par exemple Paris `cdg1`), lié au dépôt GitHub.
+   - `vercel.json` désactive les déploiements automatiques de Vercel (`git.deploymentEnabled: false`) : c'est GitHub Actions qui déploie, **après** la réussite des tests.
+2. Variables d'environnement du projet (cible *Production*, puisque la préproduction est le déploiement « production » de ce projet) :
+   - `APP_ENV=preprod`, `NEXT_PUBLIC_SITE_URL=https://preprod.<domaine>` ;
+   - Supabase de **préproduction** : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` (*Sensitive*) ;
+   - Stripe **test** : `STRIPE_SECRET_KEY` (`sk_test_…`, *Sensitive*), `STRIPE_WEBHOOK_SECRET` (*Sensitive*) ;
+   - e-mails : `EMAIL_PROVIDER=resend`, `RESEND_API_KEY` (*Sensitive*), `EMAIL_FROM` ;
+   - `CRON_SECRET` (32 caractères aléatoires ou plus, *Sensitive*) ;
+   - anti-robot : clés de test publiques de Cloudflare (`NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA`, `TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA`), ou de vraies clés ;
+   - protection : `PREPROD_BASIC_AUTH=identifiant:mot de passe` (*Sensitive*), choisis par toi.
+3. Domaine `preprod.<domaine>` (enregistrement CNAME indiqué par Vercel), HTTPS automatique.
+4. GitHub → Settings → Environments → `preprod` :
+   - variables `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` (Vercel → Settings → General) et `PREPROD_URL` ;
+   - secret `VERCEL_TOKEN` (jeton Vercel dédié au déploiement).
+5. Tâches planifiées (`vercel.json`) : maintenance horaire, e-mails toutes les 10 minutes, alertes quotidiennes, appelées avec `Authorization: Bearer <CRON_SECRET>`.
+6. Webhook Stripe **de test** vers `https://preprod.<domaine>/api/stripe/webhook` (voir section 4). La protection par mot de passe ne s'applique pas à `/api`, donc Stripe peut l'atteindre.
+
+## 3 bis. Iglao (production)
+
+Tout est décrit dans [deploy/iglao/README.md](../deploy/iglao/README.md) :
+- offre VPS ;
+- préparation du serveur ;
+- HTTPS ;
+- secrets ;
+- déploiement par GitHub Actions avec ton approbation ;
+- retour arrière ;
+- journaux ;
+- sauvegardes.
+
+Ce qui change par rapport à Vercel est déjà pris en charge dans le code et la configuration :
+- tâches planifiées par le cron du serveur ;
+- adresse du visiteur lue dans `X-Real-IP` ;
+- redirections relatives (sinon elles pointeraient vers le port interne de Node.js) ;
+- tampons Nginx assez grands pour les cookies de session Supabase ;
+- fichiers statiques servis par Nginx ;
+- construction sans secret.
 
 ## 4. Stripe
 
@@ -76,9 +120,11 @@ npx supabase db push
 
 ## 5. E-mails transactionnels
 
-1. Vérifier le domaine d'envoi chez le fournisseur (SPF, DKIM, DMARC).
-2. Resend : `EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, `EMAIL_FROM="Tamurt Jobs <no-reply@<domaine>>"`. Ou SMTP : `EMAIL_PROVIDER=smtp` et les variables `SMTP_*`.
-3. Les e-mails sont mis en file (`email_outbox`) dans la même transaction que l'action qui les déclenche, envoyés immédiatement après la réponse, puis repris par la tâche planifiée en cas d'échec.
+Voir [EMAIL.md](EMAIL.md) :
+- domaine Resend et enregistrements DNS (SPF, DKIM, DMARC) ;
+- clé à saisir dans Vercel, sur le serveur et dans le SMTP de Supabase ;
+- réglages d'authentification de Supabase ;
+- état des vérifications.
 
 ## 6. Vérification des entreprises
 
@@ -121,6 +167,15 @@ Dans `/admin/countries/<code>` : renseigner chaque point de la checklist avec un
 
 ## 10. Mises à jour
 
-1. Ouvrir une Pull Request : la CI (`.github/workflows/ci.yml`) exécute typage, lint, tests unitaires, tests d'intégration SQL, build et tests E2E sur une pile Supabase éphémère.
-2. Après fusion, Vercel déploie automatiquement ; appliquer les nouvelles migrations avec `npx supabase db push` **avant** de promouvoir le déploiement si elles sont nécessaires au nouveau code.
-3. Les migrations sont additives et ne doivent pas être modifiées une fois appliquées en production.
+1. La CI (`.github/workflows/ci.yml`) exécute, sur une pile Supabase éphémère :
+   - typage, lint ;
+   - tests unitaires, tests d'intégration SQL ;
+   - build et tests E2E.
+
+   Elle tourne sur chaque Pull Request et avant chaque déploiement.
+2. **Préproduction :** chaque envoi sur `claude/jobs-lancement` relance la CI, puis déploie sur Vercel si elle réussit.
+3. **Production :**
+   1. appliquer d'abord les nouvelles migrations sur la base de production, avec `npx supabase db push` depuis un poste de confiance ;
+   2. lancer **Production (Iglao)** depuis `main` ;
+   3. approuver.
+4. Les migrations sont additives et ne doivent pas être modifiées une fois appliquées en production. Ainsi, le code précédent reste compatible en cas de retour arrière.

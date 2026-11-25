@@ -1,13 +1,32 @@
 import "server-only";
 import { cache } from "react";
+import { isProductionDeployment } from "@/lib/env";
 import { createPublicClient } from "@/lib/supabase/public";
 
 /** Public pages that may carry one advertising slot. Never private spaces, auth, checkout or legal pages. */
 export const AD_PLACEMENTS = ["home", "jobs", "job", "companies", "company"] as const;
 export type AdPlacement = (typeof AD_PLACEMENTS)[number];
 
+/**
+ * How ads are shown on this deployment (ADS_MODE):
+ * - placeholder: labelled empty slots, no request to Google (default outside production);
+ * - test: real AdSense code with data-adtest="on" (test ads, not counted by Google);
+ * - live: real ads (default in production, never elsewhere);
+ * - off: nothing at all, whatever the back-office switch says.
+ */
+export type AdsMode = "off" | "placeholder" | "test" | "live";
+
+export function adsMode(raw = process.env.ADS_MODE, production = isProductionDeployment()): AdsMode {
+  const value = raw?.trim();
+  const requested: AdsMode =
+    value === "off" || value === "placeholder" || value === "test" || value === "live" ? value : production ? "live" : "placeholder";
+  // Real ads are served by the production site only.
+  return requested === "live" && !production ? "test" : requested;
+}
+
 export interface AdsConfig {
   enabled: boolean;
+  mode: AdsMode;
   client: string | null;
   slots: Partial<Record<AdPlacement, string>>;
 }
@@ -32,11 +51,13 @@ export function parseSlots(value: unknown): Partial<Record<AdPlacement, string>>
   return out;
 }
 
-/** Ads configuration for the current request (publisher id + back-office switch + slots). */
+/** Ads configuration for the current request (mode + publisher id + back-office switch + slots). */
 export const getAdsConfig = cache(async (): Promise<AdsConfig> => {
+  const mode = adsMode();
   const client = adsenseClient();
-  if (!client) return { enabled: false, client: null, slots: {} };
+  // Placeholders need no AdSense account: they show where ads will go, before Google's approval.
+  if (mode === "off" || (mode !== "placeholder" && !client)) return { enabled: false, mode, client, slots: {} };
   const { data } = await createPublicClient().from("platform_settings").select("key, value").in("key", ["ads.enabled", "ads.slots"]);
   const settings = new Map((data ?? []).map((row) => [row.key, row.value as unknown]));
-  return { enabled: settings.get("ads.enabled") === true, client, slots: parseSlots(settings.get("ads.slots")) };
+  return { enabled: settings.get("ads.enabled") === true, mode, client, slots: parseSlots(settings.get("ads.slots")) };
 });

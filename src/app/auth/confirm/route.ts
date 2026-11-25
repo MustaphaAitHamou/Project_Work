@@ -1,5 +1,6 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
-import { NextResponse, type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
+import { redirectToPath } from "@/lib/http/redirect";
 import { createClient } from "@/lib/supabase/server";
 import { routing } from "@/i18n/routing";
 
@@ -15,18 +16,13 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get("type") as EmailOtpType | null;
   const requestedLocale = searchParams.get("locale") ?? "";
   const locale = (routing.locales as readonly string[]).includes(requestedLocale) ? requestedLocale : routing.defaultLocale;
-  const base = request.nextUrl.clone();
-  base.search = "";
 
   if (tokenHash && type && ALLOWED_TYPES.includes(type)) {
     const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
     if (!error) {
-      base.pathname = type === "recovery" ? `/${locale}/reset-password` : `/${locale}/welcome`;
-      return NextResponse.redirect(base);
+      return redirectToPath(type === "recovery" ? `/${locale}/reset-password` : `/${locale}/welcome`);
     }
   }
-  base.pathname = `/${locale}/login`;
-  base.search = "?error=link_invalid";
-  return NextResponse.redirect(base);
+  return redirectToPath(`/${locale}/login?error=link_invalid`);
 }

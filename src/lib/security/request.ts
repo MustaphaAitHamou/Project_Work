@@ -2,9 +2,18 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { headers } from "next/headers";
 
-/** Client IP as reported by the hosting proxy (Vercel sets x-forwarded-for / x-real-ip). */
+/**
+ * Client IP as reported by the hosting proxy (rate limits, anti-robot check).
+ * - Vercel (default): it overwrites x-forwarded-for with the visitor's address.
+ * - Own server behind Nginx (Iglao): CLIENT_IP_HEADER=x-real-ip, set by Nginx from the
+ *   connecting address; x-forwarded-for is ignored because a visitor can prepend to it.
+ */
 export async function clientIp(): Promise<string> {
-  const h = await headers();
+  return clientIpFrom(await headers(), process.env.CLIENT_IP_HEADER);
+}
+
+export function clientIpFrom(h: Pick<Headers, "get">, header: string | undefined): string {
+  if (header === "x-real-ip" || header === "cf-connecting-ip") return h.get(header)?.trim() || "0.0.0.0";
   const forwarded = h.get("x-forwarded-for")?.split(",")[0]?.trim();
   return forwarded || h.get("x-real-ip") || "0.0.0.0";
 }

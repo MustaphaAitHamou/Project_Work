@@ -179,7 +179,15 @@ test.describe("Super administrator", () => {
 
     await sql(`update public.service_api_clients set allowed_ips = '{203.0.113.0/24}' where name = $1`, [name]);
     expect((await request.get(url, { headers: { ...auth, "x-forwarded-for": "198.51.100.7" } })).status()).toBe(403);
-    expect((await request.get(url, { headers: { ...auth, "x-forwarded-for": "203.0.113.9" } })).status()).toBe(200);
+    if (process.env.E2E_BEHIND_NGINX === "1") {
+      // Own server (Nginx, CLIENT_IP_HEADER=x-real-ip): a forged x-forwarded-for is ignored, so
+      // an allowed address cannot be claimed; only the real connecting address counts.
+      expect((await request.get(url, { headers: { ...auth, "x-forwarded-for": "203.0.113.9" } })).status()).toBe(403);
+      await sql(`update public.service_api_clients set allowed_ips = '{127.0.0.1/32}' where name = $1`, [name]);
+      expect((await request.get(url, { headers: auth })).status()).toBe(200);
+    } else {
+      expect((await request.get(url, { headers: { ...auth, "x-forwarded-for": "203.0.113.9" } })).status()).toBe(200);
+    }
 
     const row = page.getByRole("row").filter({ hasText: name });
     await row.getByRole("checkbox").check();

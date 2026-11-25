@@ -1,0 +1,97 @@
+name: Production (Iglao)
+
+# Public production deployment on the Iglao VPS. Started BY HAND only (Actions → Run workflow,
+# branch main, type "production"), then held until the owner approves it (required reviewers
+# of the GitHub environment "production"). See deploy/iglao/README.md.
+#
+# GitHub → Settings → Environments → "production":
+#   variables IGLAO_HOST, IGLAO_USER, NEXT_PUBLIC_SITE_URL, NEXT_PUBLIC_SUPABASE_URL,
+#             NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, NEXT_PUBLIC_TURNSTILE_SITE_KEY,
+#             NEXT_PUBLIC_ADSENSE_CLIENT, NEXT_PUBLIC_SENTRY_DSN
+#   secrets   IGLAO_SSH_KEY, IGLAO_KNOWN_HOSTS
+# The build needs no server secret: they stay in /etc/tamurt-jobs/env on the server.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Type "production" to deploy the public site
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    name: Branch and confirmation
+    runs-on: ubuntu-latest
+    steps:
+      - name: main only, explicit confirmation
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          [ "$GITHUB_REF" = "refs/heads/main" ] || { echo "::error::Production is deployed from main only."; exit 1; }
+          [ "$CONFIRM" = "production" ] || { echo "::error::Type \"production\" to confirm."; exit 1; }
+
+  ci:
+    needs: guard
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Build and deploy to Iglao
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: production
+      url: ${{ vars.NEXT_PUBLIC_SITE_URL }}
+    env:
+      APP_ENV: production
+      NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
+      NEXT_PUBLIC_ADSENSE_CLIENT: ${{ vars.NEXT_PUBLIC_ADSENSE_CLIENT }}
+      NEXT_PUBLIC_SENTRY_DSN: ${{ vars.NEXT_PUBLIC_SENTRY_DSN }}
+      DEPLOY_HOST: ${{ vars.IGLAO_HOST }}
+      DEPLOY_USER: ${{ vars.IGLAO_USER }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build the standalone server (no secret)
+        run: scripts/package-standalone.sh release.tar.gz
+      - name: Deploy key
+        env:
+          IGLAO_SSH_KEY: ${{ secrets.IGLAO_SSH_KEY }}
+          IGLAO_KNOWN_HOSTS: ${{ secrets.IGLAO_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$IGLAO_SSH_KEY" > "$HOME/.ssh/deploy_key"
+          chmod 600 "$HOME/.ssh/deploy_key"
+          printf '%s\n' "$IGLAO_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+      - name: Upload and switch (automatic return to the previous release on failure)
+        run: |
+          id="$(date -u +%Y%m%d-%H%M%S)-${GITHUB_SHA::7}"
+          opts=(-i "$HOME/.ssh/deploy_key" -o StrictHostKeyChecking=yes -o BatchMode=yes)
+          scp "${opts[@]}" release.tar.gz "$DEPLOY_USER@$DEPLOY_HOST:/srv/tamurt-jobs/incoming/$id.tar.gz"
+          ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "/srv/tamurt-jobs/bin/deploy.sh /srv/tamurt-jobs/incoming/$id.tar.gz $id && rm -f /srv/tamurt-jobs/incoming/$id.tar.gz"
+      - name: The public site answers
+        run: |
+          for i in $(seq 1 10); do
+            if curl -fsS --max-time 10 "$NEXT_PUBLIC_SITE_URL/api/health" | tee /tmp/health.json | grep -q '"database":"ok"'; then cat /tmp/health.json; exit 0; fi
+            sleep 6
+          done
+          echo "::error::$NEXT_PUBLIC_SITE_URL/api/health does not answer: check the server, or run bin/rollback.sh"
+          exit 1
+      - name: Remove the deploy key
+        if: always()
+        run: rm -f "$HOME/.ssh/deploy_key"

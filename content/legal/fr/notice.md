@@ -15,7 +15,7 @@ Directeur ou directrice de la publication : [À COMPLÉTER : nom et qualité]
 
 ## Hébergement
 
-- Application : **Vercel Inc.**, États-Unis — [À COMPLÉTER : adresse postale à jour figurant sur le site de Vercel].
+- Application : **Iglao** (hébergeur français, serveur situé en France) — [À COMPLÉTER : raison sociale, forme juridique, adresse postale et téléphone d'Iglao, tels qu'ils figurent dans ses mentions légales sur iglao.com].
 - Base de données, authentification et stockage des fichiers : **Supabase Inc.**, États-Unis — [À COMPLÉTER : adresse postale et région d'hébergement des données choisie pour le projet].
 
 ## Paiement

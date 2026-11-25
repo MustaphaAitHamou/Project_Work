@@ -7,6 +7,7 @@
   "skipToContent": "Aller au contenu principal",
   "preprodBanner": "Préproduction : données fictives et paiements en mode test Stripe. Ne saisissez aucune donnée réelle.",
   "adLabel": "Publicité",
+  "adPlaceholder": "Emplacement publicitaire de test : aucune annonce réelle n'est diffusée ici.",
   "toggleTheme": "Changer de thème (clair/sombre)",
   "changeLanguage": "Changer de langue",
   "close": "Fermer",
@@ -1857,6 +1858,7 @@
     "email_provider_missing": "aucun fournisseur d'e-mail configuré",
     "cron_secret_missing": "CRON_SECRET absent : les tâches planifiées sont refusées",
     "captcha_not_configured": "anti-robot (Turnstile) non configuré",
+    "client_ip_header_missing": "adresse des visiteurs non transmise par le serveur (CLIENT_IP_HEADER)",
     "stripe_tax_disabled": "calcul automatique des taxes Stripe désactivé (STRIPE_AUTOMATIC_TAX)"
    },
    "sectionActivity": "Activité",

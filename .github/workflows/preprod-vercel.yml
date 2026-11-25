@@ -1,0 +1,75 @@
+name: Préproduction (Vercel)
+
+# Every push to the pre-production branch runs the full CI, then (only if it passes) deploys
+# to the Vercel pre-production project. Vercel's own Git deployments are switched off in
+# vercel.json, so untested code never reaches the pre-production site.
+#
+# GitHub → Settings → Environments → "preprod":
+#   variables VERCEL_ORG_ID, VERCEL_PROJECT_ID, PREPROD_URL (https://preprod.<domain>)
+#   secret    VERCEL_TOKEN
+# Runtime settings and secrets (Supabase, Stripe test, Resend, Turnstile, PREPROD_BASIC_AUTH…)
+# are set in the Vercel project, not here.
+
+on:
+  push:
+    branches: [claude/jobs-lancement]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-preprod
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Deploy to Vercel (pre-production)
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: preprod
+      url: ${{ vars.PREPROD_URL }}
+    env:
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_CLI: vercel@65.14.0
+    steps:
+      - name: Vercel access configured
+        run: |
+          if [ -z "$VERCEL_PROJECT_ID" ] || [ -z "$VERCEL_TOKEN" ]; then
+            echo "::warning::Pre-production not deployed: VERCEL_PROJECT_ID / VERCEL_TOKEN not set in the GitHub environment 'preprod'."
+            echo "SKIP=1" >> "$GITHUB_ENV"
+          fi
+      - uses: actions/checkout@v5
+        if: env.SKIP != '1'
+      - uses: actions/setup-node@v5
+        if: env.SKIP != '1'
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+        if: env.SKIP != '1'
+      - name: Project settings from Vercel
+        if: env.SKIP != '1'
+        run: npx --yes "$VERCEL_CLI" pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - name: Build
+        if: env.SKIP != '1'
+        run: npx --yes "$VERCEL_CLI" build --prod --token="$VERCEL_TOKEN"
+      - name: Deploy
+        if: env.SKIP != '1'
+        run: npx --yes "$VERCEL_CLI" deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+      - name: Pre-production answers
+        if: env.SKIP != '1' && vars.PREPROD_URL != ''
+        run: |
+          for i in $(seq 1 10); do
+            if curl -fsS --max-time 10 "${{ vars.PREPROD_URL }}/api/health" | tee /tmp/health.json | grep -q '"database":"ok"'; then cat /tmp/health.json; exit 0; fi
+            sleep 6
+          done
+          echo "::error::Pre-production does not answer: ${{ vars.PREPROD_URL }}/api/health"
+          exit 1

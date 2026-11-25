@@ -7,6 +7,7 @@
   "skipToContent": "الانتقال إلى المحتوى الرئيسي",
   "preprodBanner": "بيئة ما قبل الإنتاج: بيانات وهمية ومدفوعات في وضع الاختبار لدى Stripe. لا تُدخل أي بيانات حقيقية.",
   "adLabel": "إعلان",
+  "adPlaceholder": "مساحة إعلانية تجريبية: لا يُعرض هنا أي إعلان حقيقي.",
   "toggleTheme": "تغيير المظهر (فاتح/داكن)",
   "changeLanguage": "تغيير اللغة",
   "close": "إغلاق",
@@ -1857,6 +1858,7 @@
     "email_provider_missing": "لم يُضبط أي مزوّد بريد إلكتروني",
     "cron_secret_missing": "CRON_SECRET غير موجود: تُرفض المهام المجدولة",
     "captcha_not_configured": "الحماية من الروبوتات (Turnstile) غير مضبوطة",
+    "client_ip_header_missing": "الخادم لا ينقل عنوان الزوار (CLIENT_IP_HEADER)",
     "stripe_tax_disabled": "الحساب الآلي للضرائب في Stripe معطّل (STRIPE_AUTOMATIC_TAX)"
    },
    "sectionActivity": "النشاط",

@@ -7,6 +7,7 @@
   "skipToContent": "Skip to main content",
   "preprodBanner": "Pre-production: fictitious data and Stripe test-mode payments. Do not enter any real data.",
   "adLabel": "Advertisement",
+  "adPlaceholder": "Test advertising slot: no real ad is shown here.",
   "toggleTheme": "Toggle theme (light/dark)",
   "changeLanguage": "Change language",
   "close": "Close",
@@ -1857,6 +1858,7 @@
     "email_provider_missing": "no e-mail provider configured",
     "cron_secret_missing": "CRON_SECRET missing: scheduled jobs are refused",
     "captcha_not_configured": "anti-bot (Turnstile) not configured",
+    "client_ip_header_missing": "visitor address not passed on by the server (CLIENT_IP_HEADER)",
     "stripe_tax_disabled": "Stripe automatic tax calculation disabled (STRIPE_AUTOMATIC_TAX)"
    },
    "sectionActivity": "Activity",

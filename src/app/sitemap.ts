@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { locales } from "@/i18n/routing";
-import { env } from "@/lib/env";
+import { publicEnv } from "@/lib/env";
 import { jobPath } from "@/lib/format";
 import { createPublicClient } from "@/lib/supabase/public";
 
@@ -36,7 +36,7 @@ async function openJobs(): Promise<{ slug: string; public_id: string; published_
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = env().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  const base = publicEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
   const entries: Entry[] = STATIC_PATHS.flatMap((p) => localized(base, p, { changeFrequency: p === "/jobs" ? "hourly" : "weekly" }));
   try {
     const [jobs, companies] = await Promise.all([

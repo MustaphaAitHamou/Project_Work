@@ -51,6 +51,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Production on our own server (Iglao): NEXT_OUTPUT=standalone builds a self-contained
+  // server (.next/standalone/server.js) with only the files it needs. Vercel (pre-production)
+  // builds without it. See deploy/iglao/README.md.
+  ...(process.env.NEXT_OUTPUT === "standalone" ? { output: "standalone" as const } : {}),
   // Cache Components are intentionally not enabled in V1: almost every page reads the
   // Supabase session cookie. See docs/ARCHITECTURE.md ("Rendering & caching").
   poweredByHeader: false,

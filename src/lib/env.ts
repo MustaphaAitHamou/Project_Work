@@ -57,6 +57,12 @@ const schema = z.object({
   TAMURT_SERVICES_URL: z.union([z.url(), z.literal("")]).optional(),
   /** Error monitoring (Sentry). Empty: nothing is loaded or sent. */
   NEXT_PUBLIC_SENTRY_DSN: z.union([z.url(), z.literal("")]).optional(),
+  /**
+   * Header that carries the visitor's IP, set by the reverse proxy in front of the app.
+   * Vercel (default): first address of x-forwarded-for. Own server (Iglao, Nginx): x-real-ip,
+   * which Nginx overwrites with the connecting address, so a visitor cannot forge it.
+   */
+  CLIENT_IP_HEADER: z.enum(["x-forwarded-for", "x-real-ip", "cf-connecting-ip", ""]).optional(),
 });
 
 export type Env = z.infer<typeof schema>;
@@ -74,11 +80,39 @@ export function env(): Env {
   return cached;
 }
 
+/**
+ * Public settings only (site address, Supabase project URL and publishable key, environment).
+ * They are enough to build the site: robots.txt, the sitemap and static pages are generated at
+ * build time without any server secret, so the production build (GitHub Actions, for Iglao)
+ * never needs one.
+ */
+const publicSchema = schema.pick({
+  NODE_ENV: true,
+  VERCEL_ENV: true,
+  APP_ENV: true,
+  NEXT_PUBLIC_SITE_URL: true,
+  NEXT_PUBLIC_SUPABASE_URL: true,
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: true,
+});
+export type PublicEnv = z.infer<typeof publicSchema>;
+let cachedPublic: PublicEnv | null = null;
+
+export function publicEnv(): PublicEnv {
+  if (cachedPublic) return cachedPublic;
+  const parsed = publicSchema.safeParse(process.env);
+  if (!parsed.success) {
+    const issues = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
+    throw new Error(`Invalid environment configuration: ${issues}`);
+  }
+  cachedPublic = parsed.data;
+  return cachedPublic;
+}
+
 export type AppEnv = "development" | "preprod" | "production";
 
 /** Application environment: APP_ENV when set, otherwise derived from Vercel. */
 export function appEnv(): AppEnv {
-  const e = env();
+  const e = publicEnv();
   if (e.APP_ENV) return e.APP_ENV;
   if (e.VERCEL_ENV === "production") return "production";
   if (e.VERCEL_ENV === "preview") return "preprod";
@@ -90,7 +124,7 @@ export function isProductionDeployment(): boolean {
 }
 
 export function siteUrl(path = ""): string {
-  return new URL(path, env().NEXT_PUBLIC_SITE_URL).toString();
+  return new URL(path, publicEnv().NEXT_PUBLIC_SITE_URL).toString();
 }
 
 /** Configuration health used by /api/health and the admin dashboard (never exposes secrets). */
@@ -111,6 +145,8 @@ export function integrationStatus() {
     if (e.EMAIL_PROVIDER === "none") problems.push("email_provider_missing");
     if (!e.CRON_SECRET) problems.push("cron_secret_missing");
     if (!e.TURNSTILE_SECRET_KEY) problems.push("captcha_not_configured");
+    // Own server (Iglao): without it, every visitor would share the reverse proxy's address in rate limits.
+    if (!process.env.VERCEL && !e.CLIENT_IP_HEADER) problems.push("client_ip_header_missing");
     if (!e.STRIPE_AUTOMATIC_TAX) problems.push("stripe_tax_disabled");
   }
   return {

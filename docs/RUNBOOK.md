@@ -17,7 +17,7 @@ npx supabase db push
 ```
 
    Ne jamais utiliser `--include-seed` sur la préproduction ni la production : `supabase/seed.sql` est réservé au poste local et aux tests (il désactive la double authentification du back-office).
-4. Déploiement de production, puis vérifications (section 4).
+4. Déploiement de production : GitHub → Actions → **Production (Iglao)**, depuis `main`, puis ton approbation ([deploy/iglao/README.md](../deploy/iglao/README.md)). Ensuite, les vérifications de la section 4.
 
 ## 2. Sauvegardes et restauration
 
@@ -45,7 +45,8 @@ Les fichiers (CV, justificatifs, logos) sont dans Supabase Storage ; ils ne sont
 
 | Problème | Action | Délai |
 | --- | --- | --- |
-| Le nouveau déploiement casse le site | Vercel → Deployments → déploiement précédent → **Instant Rollback** | Immédiat |
+| Le nouveau déploiement casse le site (production Iglao) | `ssh tamurt@<ip> /srv/tamurt-jobs/bin/rollback.sh` : version précédente en quelques secondes. Le déploiement revient déjà seul en arrière si la nouvelle version ne répond pas. | Immédiat |
+| Le nouveau déploiement casse la préproduction (Vercel) | Vercel → Deployments → déploiement précédent → **Instant Rollback** | Immédiat |
 | La publicité gêne ou pose problème | Back-office → Paramètres → `ads.enabled` = `false` | Immédiat |
 | Paiements à suspendre | Back-office → Pays → désactiver la publication payante du pays (journalisé). Les abonnements en cours continuent. | Immédiat |
 | Webhook Stripe en erreur | Stripe → Webhooks : les événements sont rejoués automatiquement pendant 3 jours. Corriger, puis « Renvoyer » les événements en échec si besoin. | Minutes |
@@ -64,7 +65,12 @@ Les fichiers (CV, justificatifs, logos) sont dans Supabase Storage ; ils ne sont
 ## 5. Surveillance
 
 - **Disponibilité :** sonde HTTPS toutes les minutes sur `/api/health` (Better Stack ou UptimeRobot). Le point de santé répond 503 si la base est inaccessible et liste les problèmes de configuration.
-- **Erreurs :** Sentry, quand le DSN est configuré ; sinon, Vercel → Logs.
+- **Erreurs :** Sentry, quand le DSN est configuré.
+- **Journaux du serveur (production) :**
+  - application : `journalctl -u tamurt-jobs` ;
+  - tâches planifiées : `journalctl -t tamurt-jobs-cron` ;
+  - Nginx : `/var/log/nginx/`.
+- **Journaux de la préproduction :** Vercel → Logs.
 - **Paiements :** Stripe → Webhooks (taux d'échec) et back-office → Paiements (événements reçus).
 - **E-mails :** back-office → tableau de bord (file d'e-mails) et Resend → Logs.
 

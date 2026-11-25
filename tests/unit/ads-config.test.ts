@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-const { adsenseClient, parseSlots } = await import("@/lib/ads/config");
+const { adsenseClient, adsMode, parseSlots } = await import("@/lib/ads/config");
 
 describe("AdSense configuration", () => {
   it("accepts only a well-formed publisher id", () => {
@@ -21,5 +21,17 @@ describe("AdSense configuration", () => {
     });
     expect(parseSlots(null)).toEqual({});
     expect(parseSlots(["1234567890"])).toEqual({});
+  });
+
+  it("serves real ads in production only; placeholders elsewhere by default", () => {
+    expect(adsMode(undefined, true)).toBe("live");
+    expect(adsMode(undefined, false)).toBe("placeholder");
+    expect(adsMode("", false)).toBe("placeholder");
+    // A "live" setting outside production falls back to Google's test ads.
+    expect(adsMode("live", false)).toBe("test");
+    expect(adsMode("test", true)).toBe("test");
+    expect(adsMode("off", true)).toBe("off");
+    expect(adsMode("placeholder", true)).toBe("placeholder");
+    expect(adsMode("everything", false)).toBe("placeholder");
   });
 });

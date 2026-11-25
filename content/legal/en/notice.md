@@ -15,7 +15,7 @@ Publication director: [TO COMPLETE: name and position]
 
 ## Hosting
 
-- Application: **Vercel Inc.**, United States — [TO COMPLETE: current postal address published on Vercel's website].
+- Application: **Iglao** (French hosting provider, server located in France) — [TO COMPLETE: company name, legal form, postal address and telephone number of Iglao, as published in its legal notice on iglao.com].
 - Database, authentication and file storage: **Supabase Inc.**, United States — [TO COMPLETE: postal address and data hosting region chosen for the project].
 
 ## Payment

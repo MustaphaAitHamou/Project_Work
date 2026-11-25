@@ -1,0 +1,11 @@
+# Tamurt Jobs — scheduled jobs (/etc/cron.d/tamurt-jobs). Times in UTC (server clock in UTC),
+# same schedule as vercel.json.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Payment grace periods, deadlines, renewals, retention purges, expired requests: every hour.
+7 * * * * tamurt /srv/tamurt-jobs/bin/run-cron.sh maintenance
+# E-mail queue (retries): every 10 minutes.
+*/10 * * * * tamurt /srv/tamurt-jobs/bin/run-cron.sh emails
+# Job alerts for candidates: every morning.
+35 5 * * * tamurt /srv/tamurt-jobs/bin/run-cron.sh alerts

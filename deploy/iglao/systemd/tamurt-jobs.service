@@ -1,0 +1,35 @@
+# Tamurt Jobs — Node.js server (Next.js standalone build), restarted automatically.
+# /etc/systemd/system/tamurt-jobs.service
+[Unit]
+Description=Tamurt Jobs (Next.js)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=tamurt
+Group=tamurt
+WorkingDirectory=/srv/tamurt-jobs/current
+# Secrets and settings (chmod 640, owner root:tamurt). Template: deploy/iglao/env.production.example
+EnvironmentFile=/etc/tamurt-jobs/env
+Environment=NODE_ENV=production PORT=3000 HOSTNAME=127.0.0.1
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=3
+TimeoutStopSec=20
+LimitNOFILE=65536
+
+# Hardening: the application only writes in /srv/tamurt-jobs (Next.js cache).
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/tamurt-jobs
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target
