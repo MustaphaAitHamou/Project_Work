@@ -34,26 +34,15 @@ const stripe = new Stripe(key, {
   ...(process.env.STRIPE_HTTP_CLIENT === "fetch" ? { httpClient: Stripe.createFetchHttpClient() } : {}),
 });
 
-async function newestEventId() {
-  const page = await stripe.events.list({ limit: 1 });
-  return page.data[0]?.id ?? null;
-}
+// Every poll re-reads the last OVERLAP_S seconds of events and skips those already delivered:
+// a cursor (ending_before) would miss an event created in the same second as the cursor, or
+// one that appears late in the list (seen with invoice.payment_failed after a test clock advance).
+const OVERLAP_S = 120;
 
-async function eventsAfter(cursor) {
+async function eventsSince(since) {
   const out = [];
-  let before = cursor;
-  for (;;) {
-    const page = await stripe.events.list({ limit: 100, ...(before ? { ending_before: before } : {}) });
-    if (page.data.length === 0) break;
-    out.push(...page.data);
-    before = page.data[0].id; // newest of this page
-    if (!page.has_more) break;
-  }
-  // Oldest first, without duplicates.
-  const seen = new Set();
-  return out
-    .sort((a, b) => a.created - b.created)
-    .filter((e) => (seen.has(e.id) ? false : (seen.add(e.id), true)));
+  for await (const e of stripe.events.list({ created: { gte: since }, limit: 100 })) out.push(e);
+  return out.sort((a, b) => a.created - b.created); // oldest first
 }
 
 async function forward(event) {
@@ -65,35 +54,39 @@ async function forward(event) {
   if (res.status >= 500) throw new Error(`webhook answered ${res.status}`);
 }
 
-let cursor = await newestEventId();
+const startedAt = Math.floor(Date.now() / 1000);
+let since = startedAt;
 const delivered = new Set();
-console.log(`stripe-forward-events: forwarding new test events to ${target} (starting after ${cursor ?? "nothing"})`);
+console.log(`stripe-forward-events: forwarding new test events to ${target} (created from ${new Date(startedAt * 1000).toISOString()})`);
 const failed = new Map();
 
 for (;;) {
   try {
-    const events = await eventsAfter(cursor);
+    const pollStartedAt = Math.floor(Date.now() / 1000);
+    const events = await eventsSince(Math.max(startedAt, since - OVERLAP_S));
     for (const e of events) {
-      if (delivered.has(e.id)) continue;
+      if (delivered.has(e.id) || failed.has(e.id)) continue;
       try {
         await forward(e);
         delivered.add(e.id);
-        failed.delete(e.id);
       } catch (err) {
         // Like Stripe, retry a failed delivery on the next rounds (at most 5 times).
-        const n = (failed.get(e.id)?.n ?? 0) + 1;
-        if (n <= 5) failed.set(e.id, { n, event: e });
-        console.error(`delivery failed (${n}/5): ${e.type} ${e.id}: ${err instanceof Error ? err.message : err}`);
+        failed.set(e.id, { n: 1, event: e });
+        console.error(`delivery failed (1/5): ${e.type} ${e.id}: ${err instanceof Error ? err.message : err}`);
       }
-      cursor = e.id;
     }
-    for (const { event } of failed.values()) {
+    since = pollStartedAt;
+    for (const [id, f] of failed) {
       try {
-        await forward(event);
-        failed.delete(event.id);
+        await forward(f.event);
+        failed.delete(id);
+        delivered.add(id);
       } catch {
-        const f = failed.get(event.id);
-        if (f && ++f.n > 5) failed.delete(event.id);
+        if (++f.n > 5) {
+          failed.delete(id);
+          delivered.add(id); // given up, like Stripe after its retries: not re-read from the window
+          console.error(`delivery abandoned after 5 attempts: ${f.event.type} ${id}`);
+        }
       }
     }
   } catch (err) {

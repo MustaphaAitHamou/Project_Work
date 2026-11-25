@@ -38,6 +38,15 @@ Modifications, tests exécutés et décisions, du plus récent au plus ancien. L
 - Aperçu réseaux sociaux (image 1200 × 630), `docs/COMPLIANCE_LAUNCH.md` (lancement France seule proposé, questions pour le juriste, proposition de remboursement).
 - Stabilité visuelle : décalage de mise en page de l'accueil mesuré à 0,23–0,24 sur mobile lent, causé par l'arrivée tardive des polices (Bitter, puis Noto Serif en `swap`). Les trois polices passent en `display: optional` : CLS 0,000 sur toutes les pages mesurées ; Bitter s'affiche toujours dans les conditions normales (vérifié). `scripts/measure-web-vitals.mjs` garde la mesure.
 - Surveillance des erreurs : `@sentry/nextjs` 11.11.0 (version de plus de deux semaines), activée seulement avec `NEXT_PUBLIC_SENTRY_DSN`. Aucune identité, aucun cookie, en-tête, corps de requête ni paramètre d'URL n'est envoyé (`dataCollection`, `scrubEvent`). Tunnel `/monitoring` sur le domaine (CSP inchangée), exclu du proxy. Test d'envoi : `/api/health?monitoring=test` avec le secret des tâches planifiées. Politique de confidentialité mise à jour.
+- Portail client Stripe : aucune configuration n'existait en mode test, donc le bouton « Gérer le paiement et les factures » aurait échoué. Nouveau script `scripts/stripe-setup-portal.mjs`, idempotent, qui refuse une clé live sans `--live` ; configuration créée en mode test, et devenue la configuration par défaut.
+- Paiement et portail : une erreur de l'API Stripe (service injoignable, requête refusée, portail absent) affichait une page d'erreur. Elle donne maintenant « Une erreur est survenue. Réessayez. » et est journalisée sans donnée personnelle : type, code, statut et identifiant de requête Stripe, sans le texte de l'erreur, qui peut citer une adresse e-mail.
+- Sentry :
+  - les erreurs du navigateur étaient classées en `development` même en production : l'environnement est maintenant transmis au navigateur au moment du build (`NEXT_PUBLIC_APP_ENV`) ;
+  - le SDK envoyait une « session » à chaque page vue : désactivé, seules les erreurs sont envoyées.
+- `/api/health` : en production, la réponse publique ne dit plus quels services sont configurés (mode Stripe, fournisseur d'e-mail, anti-robot). Le détail reste dans le back-office et avec le secret des tâches planifiées. `docs/RUNBOOK.md` et `docs/STRIPE_TESTING.md` sont adaptés.
+- `.env.example` : variables `PREPROD_BASIC_AUTH`, `NEXT_PUBLIC_ADSENSE_CLIENT`, `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_*`, `STRIPE_HTTP_CLIENT` et explication d'`APP_ENV`.
+- `docs/DEPLOYMENT.md` : l'activation du compte Stripe live ne présume plus de l'entité vendeuse, qui est à confirmer.
+- Relais local des événements Stripe (`scripts/stripe-forward-events.mjs`, outil de développement) : il manquait parfois un événement (`invoice.payment_failed`) créé dans la même seconde que son curseur. Il relit maintenant une fenêtre de deux minutes à chaque passage et ignore les doublons. La préprod et la production reçoivent les webhooks directement de Stripe et ne sont pas concernées.
 
 ### Tests exécutés
 - Appel `GET /v1/account` à l'API Stripe (mode test) : réussi.
@@ -52,6 +61,18 @@ Modifications, tests exécutés et décisions, du plus récent au plus ancien. L
 - Après l'avis de décision des signalements : unitaires 119/119, intégration 49/49.
 - Mesures mobiles (Pixel 7, CPU ×4, 4G lente, build de production locale) : LCP 0,8–1,0 s ; CLS de l'accueil 0,225 → 0,000 après correction ; recherche, entreprises et fiche d'offre à 0,000. E2E 40/40 après la correction. (L'audit Lighthouse via `npx` a été refusé par le contrôle de sécurité de la session : mesures faites avec Playwright.)
 - Build avec DSN Sentry et identifiant AdSense factices : réussi ; `/api/health` indique la surveillance configurée ; réécriture du tunnel `/monitoring` présente (l'hôte factice est injoignable depuis la session, d'où une réponse 500 attendue) ; E2E 40/40.
+- Après les corrections Stripe, Sentry et santé :
+  - unitaires 127/127, dont 5 nouveaux sur les erreurs Stripe et 3 sur `/api/health` ;
+  - intégration 49/49 ; typage et lint verts.
+- E2E sur le build de préproduction (`APP_ENV=preprod`, identifiant AdSense et DSN Sentry factices) : 40/40.
+  - Premier passage avec une clé Stripe sur le serveur : deux échecs attendus (« Paiement indisponible », garde de renouvellement), car ces tests supposent un serveur sans clé.
+  - Repassés sur un serveur sans clé : verts.
+  - Publicité 2/2, avec l'identifiant AdSense du build.
+- Stripe réel (mode test) : 5/5, dont le nouveau parcours du portail client (deux annonces, résiliation de l'une, renouvellement de l'autre).
+  - Un premier passage a échoué : l'événement `invoice.payment_failed` avait bien été émis par Stripe mais pas relayé (défaut du relais local, corrigé).
+  - Second passage : 133 événements relayés, tous acceptés.
+- Build de préproduction : environnement `preprod` présent dans le code du navigateur ; aucun envoi au tunnel `/monitoring` sur trois pages vues (avant : un envoi de session par page).
+- Le portail Stripe s'ouvre (billing.stripe.com), mais son écran ne s'affiche pas dans cette session : ses fichiers viennent de `a300.stripecdn.com`, bloqué par le réseau de la session. Écran à vérifier en préprod (R-11, R-12).
 
 ### Constat sur l'environnement de test
 - Le proxy de la session injecte la clé secrète Stripe dans toutes les requêtes vers `api.stripe.com`, y compris celles du navigateur. Stripe refuse alors la saisie de carte sur Checkout. La saisie de carte et le défi 3D Secure sur la page Stripe sont donc à vérifier à la main en préprod.

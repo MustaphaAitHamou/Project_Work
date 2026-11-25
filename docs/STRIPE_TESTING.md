@@ -25,10 +25,12 @@ Le fichier `tests/e2e/stripe-real.spec.ts` n'utilise aucun mock. Les tarifs, ses
 | Remboursement depuis le back-office | remboursement Stripe réel, enregistré sur le paiement |
 | 3D Secure exigé | l'annonce reste non publiée tant que le paiement n'est pas confirmé |
 | Carte refusée (fonds insuffisants) | aucun abonnement, annonce non publiée |
+| Portail client | configuration par défaut du mode (factures, moyen de paiement, résiliation en fin de période, pas de changement d'offre) ; ouverture depuis l'espace recruteur ; un abonnement par annonce, nommé d'après l'annonce ; résilier une annonce n'affecte pas les autres, qui se renouvellent |
 
 **Limite connue de l'environnement de développement.** Le proxy de la session cloud injecte la clé secrète dans toutes les requêtes vers `api.stripe.com`, y compris celles du navigateur. Stripe refuse alors la saisie de carte faite sur la page Checkout (« Sending credit card numbers directly to the Stripe API is generally unsafe »). Conséquences :
 - la saisie de carte et le défi 3D Secure sur la page Stripe sont vérifiés **à la main en préproduction** (section 3) ;
-- dans les tests automatiques, l'abonnement est créé par l'API exactement comme Checkout le crée : même client, même prix, mêmes métadonnées.
+- dans les tests automatiques, l'abonnement est créé par l'API exactement comme Checkout le crée : même client, même prix, mêmes métadonnées ;
+- l'écran du portail client ne s'affiche pas dans cette session : ses fichiers viennent de `a300.stripecdn.com`, que le réseau de la session bloque. L'ouverture du portail est vérifiée automatiquement, son écran **à la main en préproduction** (recette R-11 et R-12).
 
 ### Lancer les tests
 
@@ -60,6 +62,8 @@ STRIPE_REAL=1 STRIPE_SECRET_KEY=sk_test_... E2E_BASE_URL=http://localhost:3000 n
 
 Derrière un proxy HTTPS (session cloud), ajouter `NODE_USE_ENV_PROXY=1` aux trois commandes.
 
+La suite E2E standard (`npm run test:e2e`) suppose au contraire un serveur **sans** clé Stripe : le paiement y est simulé par des événements signés, et deux de ses tests (« Paiement indisponible », garde de renouvellement) échouent si le serveur a une clé. Lancer les deux suites avec deux serveurs différents.
+
 ## 2. Configuration Stripe (mode test, puis live)
 
 | Réglage | Où | Valeur |
@@ -67,7 +71,7 @@ Derrière un proxy HTTPS (session cloud), ajouter `NODE_USE_ENV_PROXY=1` aux tro
 | Tarif | Back-office Tamurt Jobs → Tarifs → « Créer le prix Stripe » | 5,95 € HT par mois |
 | Webhook | Stripe → Développeurs → Webhooks | URL `https://<domaine>/api/stripe/webhook`, version d'API `2026-10-28.endive`, événements listés dans `docs/DEPLOYMENT.md` |
 | Secret du webhook | Vercel → variables d'environnement | `STRIPE_WEBHOOK_SECRET` (jamais dans le dépôt ni le chat) |
-| Portail client | Stripe → Paramètres → Facturation → Portail client | factures, moyen de paiement, résiliation **en fin de période** ; changement d'offre désactivé ; liens vers les CGV et la politique de confidentialité |
+| Portail client | `scripts/stripe-setup-portal.mjs` (ou Stripe → Paramètres → Facturation → Portail client) | factures, moyen de paiement, nom, adresse et numéro de TVA ; résiliation **en fin de période** avec motif ; changement d'offre désactivé ; liens vers les CGV recruteurs et la politique de confidentialité (option `--site-url`, une fois le domaine connu). **Mode test : configuré le 25/11** (configuration par défaut), sans les liens pour l'instant. |
 | Relances | Stripe → Paramètres → Facturation → Abonnements et e-mails → Gérer les échecs de paiement | Smart Retries sur 1 semaine, puis **annuler l'abonnement**. L'annonce est suspendue après 3 jours (`billing.grace_days`), puis expire quand Stripe annule. |
 | E-mails Stripe aux clients | même page | e-mails d'échec de paiement et de carte expirant activés |
 | Moyens de paiement | Stripe → Paramètres → Moyens de paiement | carte bancaire (et Link). Désactiver ceux qui ne conviennent pas à des entreprises (par exemple Satispay, Amazon Pay) |
@@ -97,6 +101,12 @@ Pour simuler un renouvellement en préproduction, utiliser une horloge de test d
 2. Mettre en production `STRIPE_SECRET_KEY` (clé live) et `STRIPE_WEBHOOK_SECRET` (secret du webhook live), **dans Vercel uniquement**.
 3. Créer le webhook live (même URL, même version d'API, mêmes événements).
 4. Créer le tarif live depuis le back-office de production.
-5. Configurer le portail client, les relances, les e-mails et les moyens de paiement en live (les réglages de test ne sont pas copiés).
-6. Vérifier `/api/health` : `stripe.mode = live`, aucun problème signalé.
+5. Configurer en live le portail client, les relances, les e-mails et les moyens de paiement : les réglages de test ne sont pas copiés. Pour le portail, deux possibilités :
+   - le tableau de bord (réglages de la section 2) ;
+   - le script, depuis un poste de confiance, avec la clé live dans un fichier local non versionné :
+
+   ```bash
+   node --env-file=.env.live.local scripts/stripe-setup-portal.mjs --live --site-url https://<domaine>
+   ```
+6. Vérifier dans le back-office (tableau de bord, bloc « État des intégrations ») : « Stripe : clé de production », secret du webhook présent, aucune alerte de configuration.
 7. Paiement réel de contrôle (5,95 €), puis remboursement depuis le back-office.

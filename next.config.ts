@@ -55,6 +55,9 @@ const nextConfig: NextConfig = {
   // Supabase session cookie. See docs/ARCHITECTURE.md ("Rendering & caching").
   poweredByHeader: false,
   reactStrictMode: true,
+  // The environment (development, preprod, production) is also known in the browser, so that
+  // browser errors are filed under the right environment in Sentry.
+  env: { NEXT_PUBLIC_APP_ENV: appEnvAtBuild },
   turbopack: {
     rules: {
       "*.css": {

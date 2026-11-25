@@ -56,21 +56,21 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 | INF-07 | SPF, DKIM, DMARC | ⏳ En attente de toi | Bloquant | |
 | INF-08 | Sauvegarde avant lancement et procédure de restauration | 🔄 En cours | Bloquant | Procédure dans `docs/RUNBOOK.md` ; sauvegarde à faire le jour J (dépend d'ACC-03). |
 | INF-09 | Procédure de retour arrière (rollback) | ✅ Terminé et testé | Bloquant | `docs/RUNBOOK.md` (Instant Rollback Vercel, interrupteurs publicité et pays, clés, migrations). |
-| INF-10 | Surveillance des erreurs (Sentry) | 🔄 En cours | Non bloquant | Intégrée (SDK 11.11.0), activée seulement si `NEXT_PUBLIC_SENTRY_DSN` est défini : serveur, edge, navigateur via le tunnel `/monitoring`, aucune donnée personnelle envoyée. Build et E2E 40/40 avec un DSN factice (25/11). Reste : DSN réel (ACC-18), puis `/api/health?monitoring=test` pour vérifier la réception. |
-| INF-11 | Point de santé pour la surveillance de disponibilité | ✅ Terminé et testé | Non bloquant | `/api/health` : 503 si la base est inaccessible, problèmes de configuration listés, état de la publicité (25/11). |
+| INF-10 | Surveillance des erreurs (Sentry) | 🔄 En cours | Non bloquant | Intégrée (SDK 11.11.0), activée seulement si `NEXT_PUBLIC_SENTRY_DSN` est défini : serveur, edge, navigateur via le tunnel `/monitoring`, aucune donnée personnelle envoyée. Erreurs seulement : plus d'envoi de « session » à chaque page vue ; les erreurs du navigateur portent le bon environnement (`preprod` constaté dans le build de préprod, 25/11). Reste : DSN réel (ACC-18), puis `/api/health?monitoring=test` pour vérifier la réception. |
+| INF-11 | Point de santé pour la surveillance de disponibilité | ✅ Terminé et testé | Non bloquant | `/api/health` : 503 si la base est inaccessible. En production, la réponse publique se limite à `status` et `database` ; le détail de la configuration est dans le back-office (bloc « État des intégrations ») ou avec le secret des tâches planifiées. Tests unitaires 3/3 (25/11). |
 
 ## 3. Stripe
 
 | ID | Élément | Statut | Lancement | Notes |
 | --- | --- | --- | --- | --- |
 | STR-01 | Produit et tarif 5,95 € HT par mois et par annonce en mode test | ✅ Terminé et testé | Bloquant | Créé depuis le back-office contre le vrai Stripe de test (25/11). À refaire dans le back-office de préprod, qui a sa propre base. |
-| STR-02 | Portail client (factures, moyen de paiement, résiliation en fin de période) | ⬜ À faire | Bloquant | |
+| STR-02 | Portail client (factures, moyen de paiement, résiliation en fin de période) | 🔄 En cours | Bloquant | **Mode test : configuré le 25/11** par `scripts/stripe-setup-portal.mjs` (configuration par défaut : factures, moyen de paiement, nom, adresse et TVA, résiliation en fin de période avec motif, pas de changement d'offre). Vérifié contre le vrai Stripe de test : réglages relus par l'API, ouverture depuis l'espace recruteur (redirection vers billing.stripe.com), un abonnement par annonce nommé d'après l'annonce. Une erreur Stripe affiche désormais un message au lieu d'une page d'erreur. Reste : écran du portail à vérifier en préprod (R-11, R-12), car ses fichiers viennent d'un domaine bloqué dans cette session ; liens CGV et confidentialité une fois le domaine connu ; configuration live au lancement. |
 | STR-03 | Webhook de préprod enregistré et secret dans Vercel | ⏳ En attente de toi | Bloquant | Dépend de l'URL de préprod. |
 | STR-04 | Paiement réel en mode test (carte 4242) et activation de l'annonce | 🔄 En cours | Bloquant | Session Checkout de l'application vérifiée (5,95 €, EUR, métadonnées) ; abonnement réel → annonce activée par webhook (25/11). Reste : saisie de la carte sur la page Checkout, à la main en préprod (limite du proxy de la session, voir STRIPE_TESTING.md). |
 | STR-05 | 3D Secure (cartes 3155 et 3184) | 🔄 En cours | Bloquant | Vérifié par API : annonce non publiée tant que le paiement n'est pas confirmé. Reste : défi 3D Secure sur la page Checkout, en préprod. |
 | STR-06 | Paiement refusé à l'abonnement (carte 9995) | ✅ Terminé et testé | Bloquant | Refus `insufficient_funds` réel : aucun abonnement, annonce non publiée. Affichage du refus sur Checkout à revoir en recette. |
 | STR-07 | Renouvellement, échec de renouvellement, impayé, expiration (horloges de test) | ✅ Terminé et testé | Bloquant | Horloge de test : renouvellement payé, échec (`past_due`, motif réel), suspension après grâce, régularisation, expiration (25/11). |
-| STR-08 | Résiliation depuis le portail et fin d'annonce en fin de période | 🔄 En cours | Bloquant | Résiliation en fin de période vérifiée par API (annonce en ligne jusqu'au terme puis expirée). Reste : portail client à configurer (STR-02) et tester en préprod. |
+| STR-08 | Résiliation depuis le portail et fin d'annonce en fin de période | 🔄 En cours | Bloquant | Vérifié contre le vrai Stripe de test (25/11) : résiliation en fin de période, annonce en ligne jusqu'au terme puis expirée ; avec deux annonces, résilier l'une n'affecte pas l'autre, qui se renouvelle. Reste : clic « Annuler l'abonnement » dans l'écran du portail, en préprod (R-12). |
 | STR-09 | Remboursement depuis le back-office | ✅ Terminé et testé | Bloquant | Remboursement Stripe réel déclenché depuis le back-office (rôle finance), enregistré sur le paiement (25/11). |
 | STR-10 | Factures et reçus (numérotation, mentions, PDF) | ⏳ En attente de toi | Bloquant | Mentions dépendantes de l'entité et de la TVA. |
 | STR-11 | Relances de paiement (Smart Retries) alignées sur le délai de grâce de 3 jours | ⏳ En attente de toi | Bloquant | Réglage du tableau de bord Stripe, sans API. |
@@ -110,7 +110,7 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 | SEC-02 | Double authentification obligatoire au back-office | ✅ Terminé et testé | Bloquant | Application TOTP exigée par la base elle-même (`app.has_permission` refuse toute permission sans session aal2), réglage `security.admin_mfa_required` vrai par défaut, page d'enrôlement et de vérification (4 langues). Intégration 2/2 et E2E 1/1 (25/11). |
 | SEC-03 | Isolation des données (RLS) et contrôle des routes | ✅ Terminé et testé | Bloquant | Tests d'intégration `security-rls` et parcours E2E verts (25/11). |
 | SEC-04 | Limitation de débit, anti-spam, anti-robot | 🔄 En cours | Bloquant | Limiteur PostgreSQL existant ; Turnstile dépend d'ACC-07. |
-| SEC-05 | Aucune donnée de test, clé ni outil de débogage en production | ⬜ À faire | Bloquant | Vérification avant GO. |
+| SEC-05 | Aucune donnée de test, clé ni outil de débogage en production | 🔄 En cours | Bloquant | Audit du code (25/11) : aucune route de test ou de débogage ; aucun `console.log` ; aucune source map publique (aucune dans le build, suppression après envoi à Sentry par défaut) ; migrations sans donnée de démonstration ; scripts de données qui refusent la production (`dev-seed` : base locale seulement, `preprod-seed` : projet de préprod seulement) ; aucun secret dans le dépôt ; page d'erreur sans détail technique (référence seulement) ; test de surveillance protégé par secret. Corrigé : `/api/health` révélait publiquement la configuration (mode Stripe, e-mail, anti-robot). Reste : contrôle sur le déploiement de production avant GO (variables, absence des comptes de recette, clés live, `PREPROD_BASIC_AUTH` absent). |
 | SEC-06 | Antivirus des CV | ⬜ À faire | Non bloquant | Contrôles structurels seulement aujourd'hui. |
 | SEC-07 | Test d'intrusion externe | ⬜ À faire | Non bloquant | Après lancement. |
 
@@ -128,9 +128,9 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 
 | ID | Élément | Statut | Lancement | Notes |
 | --- | --- | --- | --- | --- |
-| TST-01 | Typage, lint, tests unitaires | ✅ Terminé et testé | Bloquant | Typage et lint verts ; unitaires 118/118 (25/11). À relancer à chaque lot. |
-| TST-02 | Tests d'intégration (pile Supabase locale) | ✅ Terminé et testé | Bloquant | 46/46 (25/11). |
-| TST-03 | Tests E2E (candidat, recruteur, admin, webhook, tâches planifiées, accessibilité) | ✅ Terminé et testé | Bloquant | 39/39 sur build de production le 25/11 (plus 4 parcours Stripe réels, 4/4). |
+| TST-01 | Typage, lint, tests unitaires | ✅ Terminé et testé | Bloquant | Typage et lint verts ; unitaires 127/127 (25/11). À relancer à chaque lot. |
+| TST-02 | Tests d'intégration (pile Supabase locale) | ✅ Terminé et testé | Bloquant | 49/49 (25/11). |
+| TST-03 | Tests E2E (candidat, recruteur, admin, webhook, tâches planifiées, accessibilité) | ✅ Terminé et testé | Bloquant | 40/40 sur le build de préproduction (`APP_ENV=preprod`) le 25/11, plus 5 parcours Stripe réels (5/5). La suite standard suppose un serveur sans clé Stripe ; les parcours réels, un serveur avec la clé de test. |
 | TST-04 | Parcours sur ordinateur, tablette, smartphone et dans les 4 langues | ⬜ À faire | Bloquant | |
 | TST-05 | Checklist de recette manuelle exhaustive | ✅ Terminé et testé | Bloquant | `docs/RECETTE.md` (candidat, recruteur, administration, transverse, matrice appareils et langues). |
 | TST-06 | Procédure de signalement de bugs | ✅ Terminé et testé | Bloquant | Message dans la conversation ou modèle GitHub « Bug de recette » (`.github/ISSUE_TEMPLATE/bug-recette.yml`). |

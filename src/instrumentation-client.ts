@@ -9,6 +9,8 @@ if (SENTRY_DSN) {
     // No personal data: no user identity, cookies, headers, request bodies or query strings.
     dataCollection: { userInfo: false, cookies: false, httpHeaders: false, httpBodies: [], urlQueryParams: false },
     tracesSampleRate: 0,
+    // Errors only: no "release health" session sent at every page view.
+    integrations: (defaults) => defaults.filter((integration) => integration.name !== "BrowserSession"),
     beforeSend: scrubEvent,
   });
 }

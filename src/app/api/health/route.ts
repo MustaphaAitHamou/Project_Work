@@ -2,10 +2,14 @@ import { NextResponse, type NextRequest } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { isAuthorizedCron } from "@/lib/cron/auth";
 import { createPublicClient } from "@/lib/supabase/public";
-import { integrationStatus } from "@/lib/env";
+import { integrationStatus, isProductionDeployment } from "@/lib/env";
 import { getAdsConfig } from "@/lib/ads/config";
 
-/** Liveness + configuration health (never exposes secrets). */
+/**
+ * Liveness + configuration health (never exposes secrets).
+ * In production the public answer is only { status, database }: which services are configured
+ * is shown in the back-office dashboard, or here with the scheduled-jobs secret.
+ */
 export async function GET(request: NextRequest) {
   // Go-live check of error monitoring: /api/health?monitoring=test with the scheduled-jobs secret sends a test event.
   if (request.nextUrl.searchParams.get("monitoring") === "test") {
@@ -23,7 +27,9 @@ export async function GET(request: NextRequest) {
     database = "error";
   }
   const integrations = integrationStatus();
-  const ads = await getAdsConfig().catch(() => null);
   const healthy = database === "ok" && integrations.problems.length === 0;
-  return NextResponse.json({ status: healthy ? "ok" : "degraded", database, integrations: { ...integrations, ads: { configured: Boolean(ads?.client), enabled: Boolean(ads?.enabled) } } }, { status: database === "ok" ? 200 : 503, headers: { "Cache-Control": "no-store" } });
+  const init = { status: database === "ok" ? 200 : 503, headers: { "Cache-Control": "no-store" } };
+  if (isProductionDeployment() && !isAuthorizedCron(request)) return NextResponse.json({ status: healthy ? "ok" : "degraded", database }, init);
+  const ads = await getAdsConfig().catch(() => null);
+  return NextResponse.json({ status: healthy ? "ok" : "degraded", database, integrations: { ...integrations, ads: { configured: Boolean(ads?.client), enabled: Boolean(ads?.enabled) } } }, init);
 }

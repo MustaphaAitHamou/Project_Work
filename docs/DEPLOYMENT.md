@@ -65,11 +65,11 @@ npx supabase db push
 
 ## 4. Stripe
 
-1. Activer le compte en mode live (informations de Tamurt Services LLC, compte bancaire).
+1. Activer le compte en mode live au nom de l'entité qui vend (à confirmer : voir [COMPLIANCE_LAUNCH.md](COMPLIANCE_LAUNCH.md), section 3), avec son compte bancaire.
 2. **Developers → Webhooks** : point d'entrée `https://<domaine>/api/stripe/webhook`, version d'API `2026-10-28.endive` (celle du SDK), avec les événements :
    `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.paused`, `customer.subscription.resumed`, `invoice.created`, `invoice.finalized`, `invoice.updated`, `invoice.paid`, `invoice.payment_failed`, `invoice.voided`, `invoice.marked_uncollectible`, `refund.created`, `refund.updated`.
    Copier le secret de signature dans `STRIPE_WEBHOOK_SECRET`.
-3. **Billing → Customer portal** : activer la mise à jour du moyen de paiement, l'historique des factures et la résiliation **en fin de période** ; désactiver le changement d'offre (le bouton « Gérer le paiement et les factures » de l'espace recruteur ouvre ce portail). Relances, moyens de paiement et cartes de test : voir [STRIPE_TESTING.md](STRIPE_TESTING.md).
+3. **Portail client** (le bouton « Gérer le paiement et les factures » de l'espace recruteur l'ouvre) : `scripts/stripe-setup-portal.mjs --site-url https://<domaine>` le crée ou le met à jour (mise à jour du moyen de paiement, historique des factures, résiliation **en fin de période**, pas de changement d'offre). Sans configuration de portail dans le mode Stripe utilisé, le bouton affiche « Une erreur est survenue ». Relances, moyens de paiement et cartes de test : voir [STRIPE_TESTING.md](STRIPE_TESTING.md).
 4. **Taxes** : configurer Stripe Tax et les immatriculations fiscales par pays (voir la checklist de conformité), puis `STRIPE_AUTOMATIC_TAX=true`. Tant que ce n'est pas fait, aucune taxe n'est calculée et le tableau de bord le signale.
 5. **Tarifs** : le tarif de référence (5,95 € HT par annonce active et par mois) est créé par les migrations. Les tarifs par pays et devise se gèrent dans `/admin/pricing` ; le bouton « Créer le prix Stripe » crée le prix correspondant dans Stripe (sinon le montant est transmis au moment du paiement).
 6. Avant ouverture : effectuer un paiement réel de faible montant, vérifier la publication **après** réception du webhook, puis le rembourser depuis `/admin/payments`.

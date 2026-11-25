@@ -16,6 +16,7 @@ npx supabase link --project-ref <ref-production>
 npx supabase db push
 ```
 
+   Ne jamais utiliser `--include-seed` sur la préproduction ni la production : `supabase/seed.sql` est réservé au poste local et aux tests (il désactive la double authentification du back-office).
 4. Déploiement de production, puis vérifications (section 4).
 
 ## 2. Sauvegardes et restauration
@@ -53,7 +54,8 @@ Les fichiers (CV, justificatifs, logos) sont dans Supabase Storage ; ils ne sont
 
 ## 4. Vérifications après déploiement
 
-- `https://<domaine>/api/health` doit afficher `"status":"ok"`, `"appEnv":"production"`, `"stripe":{"mode":"live"…}` et `"problems":[]`.
+- `https://<domaine>/api/health` doit afficher `{"status":"ok","database":"ok"}`. En production, la réponse publique s'arrête là : elle ne dit pas quels services sont configurés.
+- Back-office → tableau de bord, bloc « État des intégrations » : « Stripe : clé de production », secret du webhook, fournisseur d'e-mail, anti-robot ; aucune alerte de configuration. Le détail complet est aussi disponible avec le secret des tâches planifiées (`Authorization: Bearer <CRON_SECRET>`).
 - La page d'accueil, la recherche et une fiche d'offre s'ouvrent.
 - Inscription d'un compte réel : l'e-mail de confirmation arrive, et pas dans les indésirables.
 - Back-office : connexion avec la double authentification ; tableau de bord sans alerte de configuration.

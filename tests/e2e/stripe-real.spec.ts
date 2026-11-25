@@ -99,12 +99,14 @@ async function subscribe(customerId: string, card: string, jobId: string, compan
   const plan = await defaultPlan();
   if (!plan.stripe_price_id) throw new Error("price not synced");
   const pm = await stripe.paymentMethods.attach(card, { customer: customerId });
+  const [job] = await sql<{ title: string; public_id: string }>(`select title, public_id from public.jobs where id = $1`, [jobId]);
   return stripe.subscriptions.create({
     customer: customerId,
     items: [{ price: plan.stripe_price_id }],
     default_payment_method: pm.id,
     payment_behavior: behavior,
     metadata: { job_id: jobId, company_id: company.companyId, plan_id: plan.id },
+    description: `${job.title} (${job.public_id})`,
   });
 }
 
@@ -273,6 +275,52 @@ test("card declined (insufficient funds): no subscription, the advert stays unpu
     expect(error?.decline_code).toBe("insufficient_funds");
     await new Promise((r) => setTimeout(r, 8000)); // let any webhook arrive
     expect((await jobRow(jobId)).status).toBe("pending_payment");
+  } finally {
+    await stripe.testHelpers.testClocks.del(clock.id).catch(() => undefined);
+  }
+});
+
+test("customer portal: opened from the recruiter area, one subscription per advert, cancellation of one advert at the end of the paid period", async ({ page }) => {
+  // The portal configuration of this Stripe mode (scripts/stripe-setup-portal.mjs) is the default one.
+  const [portal] = (await stripe.billingPortal.configurations.list({ is_default: true, limit: 1 })).data;
+  expect(portal, "run scripts/stripe-setup-portal.mjs for this Stripe account").toBeTruthy();
+  expect(portal.features).toMatchObject({
+    invoice_history: { enabled: true },
+    payment_method_update: { enabled: true },
+    subscription_cancel: { enabled: true, mode: "at_period_end" },
+    subscription_update: { enabled: false },
+  });
+
+  const { company, jobId } = await recruiterWithSubmittedJob();
+  const second = await createDraftJob(company, { title: "Comptable confirmé" });
+  const submitted = await company.owner.client.rpc("submit_job", { p_job_id: second.id });
+  if (submitted.error) throw submitted.error;
+  const { clock, customer } = await clockCustomer(company, `portal ${jobId.slice(0, 8)}`);
+  try {
+    const first = await subscribe(customer.id, "pm_card_visa", jobId, company);
+    const other = await subscribe(customer.id, "pm_card_visa", second.id, company);
+    await waitFor("both adverts active", async () => [await jobRow(jobId), await jobRow(second.id)], (rows) => rows.every((j) => j.status === "active"));
+    // In the portal, each subscription is named after its advert (as Checkout does).
+    expect(first.description).toMatch(/^Développeur React \/ TypeScript \(\w+\)$/);
+    expect(other.description).toMatch(/^Comptable confirmé \(\w+\)$/);
+
+    // The recruiter area opens the Stripe portal of this customer.
+    await login(page, company.owner.email, company.owner.password);
+    await page.goto("/fr/employer/billing");
+    await page.getByRole("button", { name: "Gérer le paiement et les factures" }).click();
+    await page.waitForURL(/^https:\/\/billing\.stripe\.com\/p\/session/, { timeout: 60_000, waitUntil: "commit" });
+
+    // What "Annuler l'abonnement" does in the portal: end of the paid period, this advert only.
+    await stripe.subscriptions.update(first.id, { cancel_at_period_end: true });
+    await waitFor("cancellation recorded", () => subRow(jobId), (s) => s.cancel_at_period_end);
+    expect((await jobRow(jobId)).status).toBe("active");
+    expect((await subRow(second.id)).cancel_at_period_end).toBe(false);
+    const periodEnd = (await stripe.subscriptions.retrieve(first.id)).items.data[0].current_period_end;
+    await advanceClock(clock.id, periodEnd + 3600);
+    await waitFor("cancelled advert expired", () => jobRow(jobId), (j) => j.status === "expired");
+    // The other advert renews normally.
+    await waitFor("other advert renewed", () => payments(other.id), (p) => p.filter((x) => x.status === "succeeded").length === 2);
+    expect((await jobRow(second.id)).status).toBe("active");
   } finally {
     await stripe.testHelpers.testClocks.del(clock.id).catch(() => undefined);
   }
