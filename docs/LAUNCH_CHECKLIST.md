@@ -41,6 +41,7 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 | ACC-18 | Sentry : projet Next.js et DSN | ⏳ En attente de toi | Non bloquant | Fortement recommandé. |
 | ACC-19 | Surveillance de disponibilité (Better Stack ou UptimeRobot) sur `/api/health` | ⏳ En attente de toi | Non bloquant | |
 | ACC-20 | Dépôt GitHub en privé | ⏳ En attente de toi | Non bloquant | Recommandé avant l'ouverture. |
+| ACC-21 | Mentions « 9 pays » du site si seule la France ouvre | ⏳ En attente de toi | Bloquant si France seule | Description du site, bandeau de l'accueil, page recruteurs : risque de mention trompeuse. Proposition : « en France » au lancement. |
 
 ## 2. Infrastructure
 
@@ -95,9 +96,9 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 | ID | Élément | Statut | Lancement | Notes |
 | --- | --- | --- | --- | --- |
 | JUR-01 | 42 passages `[À COMPLÉTER]` / `[À VALIDER]` dans `content/legal/fr/` | ⏳ En attente de toi | Bloquant | Identité de l'entreprise (ACC-08) puis relecture professionnelle. |
-| JUR-02 | Conditions de remboursement et de résiliation dans les conditions recruteurs | ⬜ À faire | Bloquant | Rédaction proposée, à valider (ACC-12). |
+| JUR-02 | Conditions de remboursement et de résiliation dans les conditions recruteurs | ⏳ En attente de toi | Bloquant | Résiliation, renouvellement, échecs de paiement et suspension déjà rédigés (art. 5, 7, 11). Remboursement : proposition dans `docs/COMPLIANCE_LAUNCH.md` §5, à décider (ACC-12). |
 | JUR-03 | Checklists de conformité des 9 pays (11 points bloquants chacune) | ⏳ En attente de toi | Bloquant | Jamais validées artificiellement. Proposition de lancement progressif à fournir. |
-| JUR-04 | Analyse pays par pays et liste des questions pour le juriste | ⬜ À faire | Bloquant | |
+| JUR-04 | Analyse pays par pays et liste des questions pour le juriste | ✅ Terminé et testé | Bloquant | `docs/COMPLIANCE_LAUNCH.md` : lancement France seule proposé, ouverture progressive, 10 questions pour le juriste. |
 | JUR-05 | Traduction des textes juridiques (anglais existant ; espagnol et arabe affichés avec avertissement) | ⬜ À faire | Non bloquant | |
 | JUR-06 | Information de l'auteur d'un signalement sur la décision (DSA, art. 16, § 5) | ✅ Terminé et testé | Bloquant | E-mail à l'auteur (compte ou adresse du formulaire, dans sa langue) quand le signalement est traité ou classé, sans la note interne. Test d'intégration (25/11). CGU mises à jour. |
 
@@ -119,7 +120,7 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 | --- | --- | --- | --- | --- |
 | SEO-01 | `robots.txt`, `sitemap.xml`, canonical, hreflang | 🔄 En cours | Bloquant | Existants ; à revérifier avec `APP_ENV`. |
 | SEO-02 | Données structurées `JobPosting` | 🔄 En cours | Non bloquant | Existantes ; à valider. |
-| SEO-03 | Prévisualisation réseaux sociaux (Open Graph) | ⬜ À faire | Non bloquant | |
+| SEO-03 | Prévisualisation réseaux sociaux (Open Graph) | 🔄 En cours | Non bloquant | Image 1200 × 630 aux couleurs de la marque (`opengraph-image.png`, `twitter-image.png`) ; vérification des balises au prochain build. |
 | SEO-04 | Pages d'erreur | 🔄 En cours | Non bloquant | Existantes. |
 | SEO-05 | Accessibilité et performances mobiles | ⬜ À faire | Non bloquant | Tests axe existants. |
 
