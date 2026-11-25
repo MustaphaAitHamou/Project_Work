@@ -13,6 +13,22 @@ Modifications, tests exécutés et décisions, du plus récent au plus ancien. L
 
 ### Modifications
 - Création de cette checklist et de ce journal.
+- `APP_ENV` (préprod distincte de la prod pour Vercel), en-tête `noindex` hors production, mot de passe HTTP Basic optionnel pour la préprod, bandeau « Préproduction » (4 langues). Next.js 16.4.6 (avis de sécurité de 16.4.4).
+- Stripe :
+  - conversion de devise automatique désactivée à chaque session Checkout (le test réel affichait 6,77 $US au lieu de 5,95 €) ;
+  - rattachement de l'abonnement avant d'enregistrer une facture arrivée trop tôt (le test réel a perdu le lien entre le premier paiement et l'annonce) ;
+  - motif réel des refus de paiement (code de refus de la carte au lieu d'un code générique) ;
+  - client HTTP « fetch » optionnel (`STRIPE_HTTP_CLIENT=fetch`) pour passer par un proxy.
+- `scripts/stripe-forward-events.mjs` : relais des vrais événements Stripe de test vers un webhook local.
+- `tests/e2e/stripe-real.spec.ts` (4 parcours réels) et `tests/integration/db/stripe-webhook-order.test.ts`.
+- `docs/STRIPE_TESTING.md` : tests, configuration Stripe, cartes de test, passage en live.
 
 ### Tests exécutés
 - Appel `GET /v1/account` à l'API Stripe (mode test) : réussi.
+- Référence avant modifications : typage, lint, 112 tests unitaires, 45 tests d'intégration verts ; `npm audit --omit=dev` : avis modérés sur Next.js 16.4.4, puis 0 après passage en 16.4.6.
+- Tests unitaires `app-env` : 4/4.
+- Stripe réel (mode test), `tests/e2e/stripe-real.spec.ts` : 4/4 après corrections, 116 événements Stripe relayés, tous traités avec le code 200.
+- Intégration : 46/46 (dont le nouveau test d'ordre des événements).
+
+### Constat sur l'environnement de test
+- Le proxy de la session injecte la clé secrète Stripe dans toutes les requêtes vers `api.stripe.com`, y compris celles du navigateur. Stripe refuse alors la saisie de carte sur Checkout. La saisie de carte et le défi 3D Secure sur la page Stripe sont donc à vérifier à la main en préprod.

@@ -62,18 +62,21 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 
 | ID | Élément | Statut | Lancement | Notes |
 | --- | --- | --- | --- | --- |
-| STR-01 | Produit et tarif 5,95 € HT par mois et par annonce en mode test | ⬜ À faire | Bloquant | Synchronisation depuis le back-office (`syncPlanToStripe`). |
+| STR-01 | Produit et tarif 5,95 € HT par mois et par annonce en mode test | ✅ Terminé et testé | Bloquant | Créé depuis le back-office contre le vrai Stripe de test (25/11). À refaire dans le back-office de préprod, qui a sa propre base. |
 | STR-02 | Portail client (factures, moyen de paiement, résiliation en fin de période) | ⬜ À faire | Bloquant | |
 | STR-03 | Webhook de préprod enregistré et secret dans Vercel | ⏳ En attente de toi | Bloquant | Dépend de l'URL de préprod. |
-| STR-04 | Paiement réel en mode test (carte 4242) et activation de l'annonce | ⬜ À faire | Bloquant | Ne compte qu'avec le vrai environnement de test Stripe. |
-| STR-05 | 3D Secure (cartes 3155 et 3184) | ⬜ À faire | Bloquant | |
-| STR-06 | Paiement refusé à l'abonnement (carte 9995) | ⬜ À faire | Bloquant | |
-| STR-07 | Renouvellement, échec de renouvellement, impayé, expiration (horloges de test) | ⬜ À faire | Bloquant | |
-| STR-08 | Résiliation depuis le portail et fin d'annonce en fin de période | ⬜ À faire | Bloquant | |
-| STR-09 | Remboursement depuis le back-office | ⬜ À faire | Bloquant | |
+| STR-04 | Paiement réel en mode test (carte 4242) et activation de l'annonce | 🔄 En cours | Bloquant | Session Checkout de l'application vérifiée (5,95 €, EUR, métadonnées) ; abonnement réel → annonce activée par webhook (25/11). Reste : saisie de la carte sur la page Checkout, à la main en préprod (limite du proxy de la session, voir STRIPE_TESTING.md). |
+| STR-05 | 3D Secure (cartes 3155 et 3184) | 🔄 En cours | Bloquant | Vérifié par API : annonce non publiée tant que le paiement n'est pas confirmé. Reste : défi 3D Secure sur la page Checkout, en préprod. |
+| STR-06 | Paiement refusé à l'abonnement (carte 9995) | ✅ Terminé et testé | Bloquant | Refus `insufficient_funds` réel : aucun abonnement, annonce non publiée. Affichage du refus sur Checkout à revoir en recette. |
+| STR-07 | Renouvellement, échec de renouvellement, impayé, expiration (horloges de test) | ✅ Terminé et testé | Bloquant | Horloge de test : renouvellement payé, échec (`past_due`, motif réel), suspension après grâce, régularisation, expiration (25/11). |
+| STR-08 | Résiliation depuis le portail et fin d'annonce en fin de période | 🔄 En cours | Bloquant | Résiliation en fin de période vérifiée par API (annonce en ligne jusqu'au terme puis expirée). Reste : portail client à configurer (STR-02) et tester en préprod. |
+| STR-09 | Remboursement depuis le back-office | ✅ Terminé et testé | Bloquant | Remboursement Stripe réel déclenché depuis le back-office (rôle finance), enregistré sur le paiement (25/11). |
 | STR-10 | Factures et reçus (numérotation, mentions, PDF) | ⏳ En attente de toi | Bloquant | Mentions dépendantes de l'entité et de la TVA. |
 | STR-11 | Relances de paiement (Smart Retries) alignées sur le délai de grâce de 3 jours | ⏳ En attente de toi | Bloquant | Réglage du tableau de bord Stripe, sans API. |
-| STR-12 | Préparation du passage en live (produits, tarif, webhook, clés) | ⬜ À faire | Bloquant | **Activation des paiements réels seulement après ton accord.** |
+| STR-12 | Préparation du passage en live (produits, tarif, webhook, clés) | 🔄 En cours | Bloquant | Procédure écrite dans `docs/STRIPE_TESTING.md`. **Activation des paiements réels seulement après ton accord.** |
+| STR-13 | Prix toujours en euros (conversion de devise Stripe désactivée) | ✅ Terminé et testé | Bloquant | Constaté en test réel : sans ce réglage, Checkout affichait 6,77 $US hors d'Europe. |
+| STR-14 | Événements Stripe dans le désordre (facture avant abonnement) | ✅ Terminé et testé | Bloquant | Constaté en test réel : le premier paiement n'était pas rattaché à l'annonce. Corrigé et couvert par un test d'intégration. |
+| STR-15 | Motif réel des paiements refusés (back-office et e-mail) | ✅ Terminé et testé | Non bloquant | |
 
 ## 4. Publicité
 

@@ -113,23 +113,56 @@ async function handleCheckout(session: Stripe.Checkout.Session, deps: WebhookDep
   return "checkout";
 }
 
-async function handleInvoice(inv: Stripe.Invoice, deps: WebhookDeps, kind: "paid" | "failed" | "update") {
+/** Why a payment failed: the PaymentIntent's last error (decline code first), not the invoice finalisation error. */
+async function paymentFailure(inv: Stripe.Invoice, paymentIntentId: string | null, stripe: Stripe | null): Promise<{ code: string; message: string | null }> {
+  if (paymentIntentId && stripe) {
+    try {
+      const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+      const err = pi.last_payment_error;
+      if (err) return { code: err.decline_code ?? err.code ?? "payment_failed", message: err.message ?? null };
+    } catch {
+      /* fall back below */
+    }
+  }
+  return { code: inv.last_finalization_error?.code ?? "payment_failed", message: inv.last_finalization_error?.message ?? null };
+}
+
+/**
+ * Stripe does not guarantee the order of events: an invoice may arrive before the
+ * customer.subscription.created / checkout.session.completed events that link its
+ * subscription to an advert. In that case the subscription is read from Stripe and
+ * synced first, so that the invoice and the payment are attached to the advert.
+ */
+async function ensureSubscriptionLinked(inv: Stripe.Invoice, deps: WebhookDeps, eventCreated: number) {
+  const subId = invoiceSubscriptionId(inv);
+  if (!subId || !deps.stripe) return;
+  const { data, error } = await deps.admin.from("subscriptions").select("id").eq("stripe_subscription_id", subId).maybeSingle();
+  if (error) throw new Error(error.message);
+  if (data) return;
+  const sub = await deps.stripe.subscriptions.retrieve(subId);
+  await rpc(deps, "billing_sync_subscription", { p: mapSubscription(sub, eventCreated) });
+}
+
+async function handleInvoice(inv: Stripe.Invoice, deps: WebhookDeps, kind: "paid" | "failed" | "update", eventCreated: number) {
+  await ensureSubscriptionLinked(inv, deps, eventCreated);
   await rpc(deps, "billing_record_invoice", { p: mapInvoice(inv) });
   if (kind === "update") return "invoice_recorded";
   const subId = invoiceSubscriptionId(inv);
   const line = inv.lines?.data?.[0];
+  const paymentIntentId = await paymentIntentForInvoice(inv, deps.stripe);
+  const failure = kind === "failed" ? await paymentFailure(inv, paymentIntentId, deps.stripe) : null;
   await rpc(deps, "billing_record_payment", {
     p: {
       stripe_invoice_id: inv.id,
       stripe_subscription_id: subId,
       stripe_customer_id: idOf(inv.customer as string | { id: string }),
       attempt_number: Math.max(inv.attempt_count ?? 1, 1),
-      payment_intent_id: await paymentIntentForInvoice(inv, deps.stripe),
+      payment_intent_id: paymentIntentId,
       amount: kind === "paid" ? inv.amount_paid : inv.amount_due,
       currency: inv.currency,
       status: kind === "paid" ? "succeeded" : "failed",
-      failure_code: kind === "failed" ? (inv.last_finalization_error?.code ?? "payment_failed") : null,
-      failure_message: kind === "failed" ? (inv.last_finalization_error?.message ?? null) : null,
+      failure_code: failure?.code ?? null,
+      failure_message: failure?.message ?? null,
       period_end: ts(line?.period?.end),
     },
   });
@@ -137,7 +170,8 @@ async function handleInvoice(inv: Stripe.Invoice, deps: WebhookDeps, kind: "paid
 }
 
 /** A renewal invoice for an advert that is no longer active must never be charged. */
-async function guardRenewal(inv: Stripe.Invoice, deps: WebhookDeps) {
+async function guardRenewal(inv: Stripe.Invoice, deps: WebhookDeps, eventCreated: number) {
+  await ensureSubscriptionLinked(inv, deps, eventCreated);
   await rpc(deps, "billing_record_invoice", { p: mapInvoice(inv) });
   if (inv.billing_reason !== "subscription_cycle") return "invoice_recorded";
   const subId = invoiceSubscriptionId(inv);
@@ -208,19 +242,19 @@ export async function processStripeEvent(event: Stripe.Event, deps: WebhookDeps)
         detail = "subscription_synced";
         break;
       case "invoice.paid":
-        detail = await handleInvoice(obj as Stripe.Invoice, deps, "paid");
+        detail = await handleInvoice(obj as Stripe.Invoice, deps, "paid", event.created);
         break;
       case "invoice.payment_failed":
-        detail = await handleInvoice(obj as Stripe.Invoice, deps, "failed");
+        detail = await handleInvoice(obj as Stripe.Invoice, deps, "failed", event.created);
         break;
       case "invoice.created":
-        detail = await guardRenewal(obj as Stripe.Invoice, deps);
+        detail = await guardRenewal(obj as Stripe.Invoice, deps, event.created);
         break;
       case "invoice.finalized":
       case "invoice.updated":
       case "invoice.voided":
       case "invoice.marked_uncollectible":
-        detail = await handleInvoice(obj as Stripe.Invoice, deps, "update");
+        detail = await handleInvoice(obj as Stripe.Invoice, deps, "update", event.created);
         break;
       case "refund.created":
       case "refund.updated":

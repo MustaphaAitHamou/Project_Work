@@ -8,7 +8,15 @@ let client: Stripe | null | undefined;
 export function getStripe(): Stripe | null {
   if (client !== undefined) return client;
   const key = env().STRIPE_SECRET_KEY;
-  client = key ? new Stripe(key, { appInfo: { name: "Tamurt Jobs", url: env().NEXT_PUBLIC_SITE_URL }, maxNetworkRetries: 2, timeout: 20_000 }) : null;
+  client = key
+    ? new Stripe(key, {
+        appInfo: { name: "Tamurt Jobs", url: env().NEXT_PUBLIC_SITE_URL },
+        maxNetworkRetries: 2,
+        timeout: 20_000,
+        // Fetch-based client: honours an HTTPS proxy (NODE_USE_ENV_PROXY=1), unlike the default Node client.
+        ...(process.env.STRIPE_HTTP_CLIENT === "fetch" ? { httpClient: Stripe.createFetchHttpClient() } : {}),
+      })
+    : null;
   return client;
 }
 

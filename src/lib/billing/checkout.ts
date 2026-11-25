@@ -69,6 +69,9 @@ export async function createJobCheckout(actor: { id: string; email: string; name
     metadata,
     subscription_data: { metadata, description: `${prep.job.title} (${prep.job.public_id})` },
     automatic_tax: { enabled: env().STRIPE_AUTOMATIC_TAX },
+    // The price shown on Tamurt Jobs (and in the terms) is the price charged: no currency
+    // conversion by Stripe (Adaptive Pricing would add conversion fees and another currency).
+    adaptive_pricing: { enabled: false },
     tax_id_collection: { enabled: true },
     billing_address_collection: "required",
     customer_update: { address: "auto", name: "auto" },
