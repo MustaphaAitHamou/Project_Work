@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import { withSentryConfig } from "@sentry/nextjs/config";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
@@ -76,4 +77,19 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+const withIntl = withNextIntl(nextConfig);
+
+// Error monitoring: wrapped only when a DSN is configured. Browser events go through the
+// same-origin /monitoring tunnel, so the content security policy needs no third-party host.
+// Source maps are uploaded only if SENTRY_AUTH_TOKEN, SENTRY_ORG and SENTRY_PROJECT are set.
+export default process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(withIntl, {
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      tunnelRoute: "/monitoring",
+      silent: true,
+      telemetry: false,
+      sourcemaps: { disable: !process.env.SENTRY_AUTH_TOKEN },
+    })
+  : withIntl;

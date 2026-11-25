@@ -83,6 +83,6 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Skip API routes, auth callbacks, Next internals and static files.
-  matcher: ["/((?!api|auth|_next|_vercel|.*\\..*).*)"],
+  // Skip API routes, auth callbacks, the error-monitoring tunnel, Next internals and static files.
+  matcher: ["/((?!api|auth|monitoring|_next|_vercel|.*\\..*).*)"],
 };

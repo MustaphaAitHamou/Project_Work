@@ -56,7 +56,7 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 | INF-07 | SPF, DKIM, DMARC | ⏳ En attente de toi | Bloquant | |
 | INF-08 | Sauvegarde avant lancement et procédure de restauration | 🔄 En cours | Bloquant | Procédure dans `docs/RUNBOOK.md` ; sauvegarde à faire le jour J (dépend d'ACC-03). |
 | INF-09 | Procédure de retour arrière (rollback) | ✅ Terminé et testé | Bloquant | `docs/RUNBOOK.md` (Instant Rollback Vercel, interrupteurs publicité et pays, clés, migrations). |
-| INF-10 | Surveillance des erreurs (Sentry) | ⬜ À faire | Non bloquant | Intégration activée seulement si le DSN est fourni. |
+| INF-10 | Surveillance des erreurs (Sentry) | 🔄 En cours | Non bloquant | Intégrée (SDK 11.11.0), activée seulement si `NEXT_PUBLIC_SENTRY_DSN` est défini : serveur, edge, navigateur via le tunnel `/monitoring`, aucune donnée personnelle envoyée. Build et E2E 40/40 avec un DSN factice (25/11). Reste : DSN réel (ACC-18), puis `/api/health?monitoring=test` pour vérifier la réception. |
 | INF-11 | Point de santé pour la surveillance de disponibilité | ✅ Terminé et testé | Non bloquant | `/api/health` : 503 si la base est inaccessible, problèmes de configuration listés, état de la publicité (25/11). |
 
 ## 3. Stripe

@@ -55,6 +55,8 @@ const schema = z.object({
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
   /** Tamurt Services (parent company) address: enables the red yaz button at the top right. Empty: no button. */
   TAMURT_SERVICES_URL: z.union([z.url(), z.literal("")]).optional(),
+  /** Error monitoring (Sentry). Empty: nothing is loaded or sent. */
+  NEXT_PUBLIC_SENTRY_DSN: z.union([z.url(), z.literal("")]).optional(),
 });
 
 export type Env = z.infer<typeof schema>;
@@ -116,6 +118,7 @@ export function integrationStatus() {
     stripe: { mode: stripeMode, webhook: Boolean(e.STRIPE_WEBHOOK_SECRET), automaticTax: e.STRIPE_AUTOMATIC_TAX },
     email: { provider: e.EMAIL_PROVIDER },
     captcha: Boolean(e.TURNSTILE_SECRET_KEY && e.NEXT_PUBLIC_TURNSTILE_SITE_KEY),
+    monitoring: Boolean(e.NEXT_PUBLIC_SENTRY_DSN),
     registries: {
       fr_recherche_entreprises: e.REGISTRY_FR_ENABLED === "true",
       eu_vies: e.REGISTRY_VIES_ENABLED === "true",

@@ -24,6 +24,7 @@
     "admin:grant": "node --env-file=.env.local scripts/grant-admin.mjs"
   },
   "dependencies": {
+    "@sentry/nextjs": "11.11.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.118.0",
     "class-variance-authority": "^0.7.1",
