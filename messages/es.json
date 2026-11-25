@@ -2328,5 +2328,22 @@
    "back": "Volver a mis CV",
    "failed": "No se ha podido crear la versión anónima. Vuelve a intentarlo en un momento."
   }
+ },
+ "adminSecurity": {
+  "title": "Verificación en dos pasos del back-office",
+  "enrollText": "El back-office da acceso a los CV, los pagos y las decisiones de moderación. Proteja su cuenta con una aplicación de autenticación (Google Authenticator, Microsoft Authenticator, 1Password…).",
+  "verifyText": "Introduzca el código de 6 cifras que muestra su aplicación de autenticación.",
+  "start": "Configurar la aplicación",
+  "step1": "1. Escanee este código QR con su aplicación de autenticación.",
+  "step2": "O introduzca esta clave en la aplicación:",
+  "step3": "2. Introduzca el código de 6 cifras que muestra.",
+  "qrAlt": "Código QR de configuración de la verificación en dos pasos",
+  "codeLabel": "Código de 6 cifras",
+  "verify": "Verificar",
+  "invalidCode": "Código incorrecto o caducado. Introduzca el código que se muestra ahora.",
+  "rateLimited": "Demasiados intentos. Vuelva a intentarlo en 15 minutos.",
+  "notAllowed": "Esta página está reservada al equipo de Tamurt Jobs.",
+  "error": "La configuración ha fallado. Vuelva a intentarlo.",
+  "lostDevice": "¿Ha perdido el teléfono? Un superadministrador puede restablecer su verificación en dos pasos."
  }
 }

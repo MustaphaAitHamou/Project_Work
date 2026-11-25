@@ -53,10 +53,10 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 | INF-05 | Variables d'environnement Vercel (préprod et prod) | ⏳ En attente de toi | Bloquant | Liste exacte dans `docs/DEPLOYMENT.md`. |
 | INF-06 | Domaine, DNS, HTTPS | ⏳ En attente de toi | Bloquant | Certificats gérés par Vercel. |
 | INF-07 | SPF, DKIM, DMARC | ⏳ En attente de toi | Bloquant | |
-| INF-08 | Sauvegarde avant lancement et procédure de restauration | ⬜ À faire | Bloquant | |
-| INF-09 | Procédure de retour arrière (rollback) | ⬜ À faire | Bloquant | |
+| INF-08 | Sauvegarde avant lancement et procédure de restauration | 🔄 En cours | Bloquant | Procédure dans `docs/RUNBOOK.md` ; sauvegarde à faire le jour J (dépend d'ACC-03). |
+| INF-09 | Procédure de retour arrière (rollback) | ✅ Terminé et testé | Bloquant | `docs/RUNBOOK.md` (Instant Rollback Vercel, interrupteurs publicité et pays, clés, migrations). |
 | INF-10 | Surveillance des erreurs (Sentry) | ⬜ À faire | Non bloquant | Intégration activée seulement si le DSN est fourni. |
-| INF-11 | Point de santé pour la surveillance de disponibilité | ⬜ À faire | Non bloquant | `/api/health` existe, à vérifier. |
+| INF-11 | Point de santé pour la surveillance de disponibilité | ✅ Terminé et testé | Non bloquant | `/api/health` : 503 si la base est inaccessible, problèmes de configuration listés, état de la publicité (25/11). |
 
 ## 3. Stripe
 
@@ -104,9 +104,9 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 
 | ID | Élément | Statut | Lancement | Notes |
 | --- | --- | --- | --- | --- |
-| SEC-01 | Dépendances sans vulnérabilité élevée | 🔄 En cours | Bloquant | `npm audit --omit=dev`. |
-| SEC-02 | Double authentification obligatoire au back-office | ⬜ À faire | Bloquant | Le back-office accède aux CV et aux paiements. |
-| SEC-03 | Isolation des données (RLS) et contrôle des routes | 🔄 En cours | Bloquant | Couvert par les tests d'intégration, à relancer. |
+| SEC-01 | Dépendances sans vulnérabilité élevée | ✅ Terminé et testé | Bloquant | Next.js 16.4.6 ; `npm audit --omit=dev` : 0 vulnérabilité (25/11). À refaire juste avant le lancement. |
+| SEC-02 | Double authentification obligatoire au back-office | ✅ Terminé et testé | Bloquant | Application TOTP exigée par la base elle-même (`app.has_permission` refuse toute permission sans session aal2), réglage `security.admin_mfa_required` vrai par défaut, page d'enrôlement et de vérification (4 langues). Intégration 2/2 et E2E 1/1 (25/11). |
+| SEC-03 | Isolation des données (RLS) et contrôle des routes | ✅ Terminé et testé | Bloquant | Tests d'intégration `security-rls` et parcours E2E verts (25/11). |
 | SEC-04 | Limitation de débit, anti-spam, anti-robot | 🔄 En cours | Bloquant | Limiteur PostgreSQL existant ; Turnstile dépend d'ACC-07. |
 | SEC-05 | Aucune donnée de test, clé ni outil de débogage en production | ⬜ À faire | Bloquant | Vérification avant GO. |
 | SEC-06 | Antivirus des CV | ⬜ À faire | Non bloquant | Contrôles structurels seulement aujourd'hui. |
@@ -138,9 +138,9 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 | ID | Élément | Statut | Lancement | Notes |
 | --- | --- | --- | --- | --- |
 | PRE-01 | URL de préprod en ligne | ⏳ En attente de toi | Bloquant | Dépend d'ACC-01 à ACC-03. |
-| PRE-02 | Comptes de test (candidat, recruteur, administrateur) | ⬜ À faire | Bloquant | |
-| PRE-03 | Jeu de données de démonstration, jamais en production | ⬜ À faire | Bloquant | |
-| PRE-04 | Cartes Stripe de test documentées | ⬜ À faire | Bloquant | |
+| PRE-02 | Comptes de test (candidat, recruteur, administrateur) | 🔄 En cours | Bloquant | `scripts/preprod-seed.mjs` prêt et testé en local (candidat, recruteur vérifié, super admin, modération, finance ; mots de passe aléatoires dans un fichier ignoré par Git). À exécuter sur la préprod (dépend d'ACC-03). |
+| PRE-03 | Jeu de données de démonstration, jamais en production | 🔄 En cours | Bloquant | 6 offres « (démo) » d'une entreprise fictive ; le script refuse `APP_ENV=production`, une autre cible que le projet de préprod, et toute base contenant des abonnements live. |
+| PRE-04 | Cartes Stripe de test documentées | ✅ Terminé et testé | Bloquant | `docs/STRIPE_TESTING.md`, section 3. |
 
 ## 10. Production (samedi 28)
 

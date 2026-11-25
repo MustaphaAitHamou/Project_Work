@@ -2328,5 +2328,22 @@
    "back": "Back to my CVs",
    "failed": "The anonymous version could not be created. Please try again in a moment."
   }
+ },
+ "adminSecurity": {
+  "title": "Back-office two-step verification",
+  "enrollText": "The back-office gives access to CVs, payments and moderation decisions. Protect your account with an authenticator app (Google Authenticator, Microsoft Authenticator, 1Password…).",
+  "verifyText": "Enter the 6-digit code shown by your authenticator app.",
+  "start": "Set up the app",
+  "step1": "1. Scan this QR code with your authenticator app.",
+  "step2": "Or enter this key in the app:",
+  "step3": "2. Enter the 6-digit code it shows.",
+  "qrAlt": "Two-step verification setup QR code",
+  "codeLabel": "6-digit code",
+  "verify": "Verify",
+  "invalidCode": "Incorrect or expired code. Enter the code shown right now.",
+  "rateLimited": "Too many attempts. Try again in 15 minutes.",
+  "notAllowed": "This page is reserved for the Tamurt Jobs team.",
+  "error": "Setup failed. Please try again.",
+  "lostDevice": "Lost your phone? A super administrator can reset your two-step verification."
  }
 }

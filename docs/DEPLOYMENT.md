@@ -6,15 +6,28 @@ Ce guide décrit le déploiement sur **Supabase** (base de données, authentific
 
 ## 1. Environnements
 
-Prévoir au minimum deux environnements isolés :
+Deux environnements strictement isolés, chacun avec **son projet Vercel et son projet Supabase** (les tâches planifiées de Vercel ne tournent que sur le déploiement de production d'un projet : la préproduction doit donc être un projet à part) :
 
-| | Préproduction (Preview Vercel) | Production |
+| | Préproduction | Production |
 |---|---|---|
-| Projet Supabase | dédié | dédié |
+| Projet Vercel | `tamurt-jobs-preprod`, branche de production `claude/jobs-lancement` | `tamurt-jobs`, branche `main` |
+| `APP_ENV` | `preprod` | `production` |
+| Projet Supabase | dédié (peut rester en offre gratuite) | dédié, offre Pro (sauvegardes quotidiennes, pas de mise en pause) |
 | Stripe | mode test (`sk_test_…`) | mode live (`sk_live_…` ou clé restreinte `rk_live_…`) |
-| Indexation | interdite (`robots.txt` bloque tout hors production) | autorisée |
+| Accès | protégé par `PREPROD_BASIC_AUTH` (`identifiant:mot de passe`) | public |
+| Indexation | interdite (`robots.txt` et en-tête `X-Robots-Tag`) | autorisée |
+| Données | comptes de test et données de démonstration (`scripts/preprod-seed.mjs`) | données réelles uniquement |
 
-L'application considère qu'elle tourne en production lorsque `VERCEL_ENV=production` (ou `APP_ENV=production` hors Vercel). Dans ce cas : le paiement est refusé si la clé Stripe n'est pas une clé live, les événements Stripe de test sont ignorés, et le tableau de bord d'administration signale toute configuration manquante.
+L'application est en production lorsque `APP_ENV=production` (ou, sans `APP_ENV`, `VERCEL_ENV=production`). `APP_ENV` prime : le projet de préproduction est « production » pour Vercel mais doit se comporter en préproduction. En production : le paiement est refusé si la clé Stripe n'est pas une clé live, les événements Stripe de test sont ignorés, et `/api/health` comme le tableau de bord signalent toute configuration manquante (y compris un `PREPROD_BASIC_AUTH` oublié).
+
+### Variables ajoutées pour le lancement
+
+| Variable | Où | Rôle |
+|---|---|---|
+| `APP_ENV` | préprod et prod | `preprod` ou `production` (voir ci-dessus) |
+| `PREPROD_BASIC_AUTH` | préprod uniquement | `identifiant:mot de passe` (ASCII) demandés par le navigateur ; **jamais en production** |
+| `NEXT_PUBLIC_ADSENSE_CLIENT` | prod (et préprod pour tester) | identifiant éditeur AdSense `ca-pub-…` ; à définir **avant** le build (CSP, `ads.txt`). Voir [ADSENSE.md](ADSENSE.md) |
+| `STRIPE_HTTP_CLIENT` | facultatif | `fetch` uniquement derrière un proxy HTTPS (tests locaux) ; inutile sur Vercel |
 
 ## 2. Supabase
 
@@ -36,7 +49,8 @@ npx supabase db push
 7. **Authentication → Attack protection** : activer Cloudflare Turnstile avec la clé secrète (la même que `TURNSTILE_SECRET_KEY`).
 8. **API / Data API** : n'exposer que le schéma `public` (le schéma `app` contient des fonctions internes et ne doit pas être exposé).
 9. **Storage** : les compartiments `resumes` et `verification-documents` (privés) et `company-logos` (public) sont créés par les migrations ; ne pas les rendre publics.
-10. **Database → Backups** : activer la restauration à un instant donné (PITR) selon l'offre souscrite.
+10. **Database → Backups** : offre Pro = sauvegarde quotidienne conservée 7 jours ; la restauration à un instant donné (PITR) est une option payante. Faire une sauvegarde manuelle avant le lancement (voir [RUNBOOK.md](RUNBOOK.md)).
+11. **Authentication → Multi-Factor** : l'application TOTP est activée par défaut sur les projets hébergés. Le back-office l'exige (`security.admin_mfa_required`, vrai par défaut) : chaque membre de l'équipe enregistre une application d'authentification à sa première connexion au back-office. Ne jamais exécuter `supabase/seed.sql` sur un projet hébergé (il désactive cette exigence pour le développement local).
 
 ## 3. Vercel
 
@@ -52,10 +66,10 @@ npx supabase db push
 ## 4. Stripe
 
 1. Activer le compte en mode live (informations de Tamurt Services LLC, compte bancaire).
-2. **Developers → Webhooks** : point d'entrée `https://<domaine>/api/stripe/webhook`, avec les événements :
+2. **Developers → Webhooks** : point d'entrée `https://<domaine>/api/stripe/webhook`, version d'API `2026-10-28.endive` (celle du SDK), avec les événements :
    `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.paused`, `customer.subscription.resumed`, `invoice.created`, `invoice.finalized`, `invoice.updated`, `invoice.paid`, `invoice.payment_failed`, `invoice.voided`, `invoice.marked_uncollectible`, `refund.created`, `refund.updated`.
    Copier le secret de signature dans `STRIPE_WEBHOOK_SECRET`.
-3. **Billing → Customer portal** : activer la mise à jour du moyen de paiement et l'historique des factures (le bouton « Gérer le paiement et les factures » de l'espace recruteur ouvre ce portail).
+3. **Billing → Customer portal** : activer la mise à jour du moyen de paiement, l'historique des factures et la résiliation **en fin de période** ; désactiver le changement d'offre (le bouton « Gérer le paiement et les factures » de l'espace recruteur ouvre ce portail). Relances, moyens de paiement et cartes de test : voir [STRIPE_TESTING.md](STRIPE_TESTING.md).
 4. **Taxes** : configurer Stripe Tax et les immatriculations fiscales par pays (voir la checklist de conformité), puis `STRIPE_AUTOMATIC_TAX=true`. Tant que ce n'est pas fait, aucune taxe n'est calculée et le tableau de bord le signale.
 5. **Tarifs** : le tarif de référence (5,95 € HT par annonce active et par mois) est créé par les migrations. Les tarifs par pays et devise se gèrent dans `/admin/pricing` ; le bouton « Créer le prix Stripe » crée le prix correspondant dans Stripe (sinon le montant est transmis au moment du paiement).
 6. Avant ouverture : effectuer un paiement réel de faible montant, vérifier la publication **après** réception du webhook, puis le rembourser depuis `/admin/payments`.

@@ -2911,6 +2911,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      admin_mfa_status: { Args: Record<PropertyKey, never>; Returns: Json };
       admin_moderate_job: {
         Args: {
           p_decision: string;

@@ -2328,5 +2328,22 @@
    "back": "Retour à mes CV",
    "failed": "La version anonyme n'a pas pu être créée. Réessayez dans un instant."
   }
+ },
+ "adminSecurity": {
+  "title": "Double authentification du back-office",
+  "enrollText": "Le back-office donne accès aux CV, aux paiements et aux décisions de modération. Protégez votre compte avec une application d'authentification (Google Authenticator, Microsoft Authenticator, 1Password…).",
+  "verifyText": "Saisissez le code à 6 chiffres affiché par votre application d'authentification.",
+  "start": "Configurer l'application",
+  "step1": "1. Scannez ce QR code avec votre application d'authentification.",
+  "step2": "Ou saisissez cette clé dans l'application :",
+  "step3": "2. Saisissez le code à 6 chiffres qu'elle affiche.",
+  "qrAlt": "QR code de configuration de la double authentification",
+  "codeLabel": "Code à 6 chiffres",
+  "verify": "Vérifier",
+  "invalidCode": "Code incorrect ou expiré. Saisissez le code affiché en ce moment.",
+  "rateLimited": "Trop de tentatives. Réessayez dans 15 minutes.",
+  "notAllowed": "Cette page est réservée à l'équipe Tamurt Jobs.",
+  "error": "La configuration a échoué. Réessayez.",
+  "lostDevice": "Téléphone perdu ? Un super administrateur peut réinitialiser votre double authentification."
  }
 }

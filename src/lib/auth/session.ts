@@ -86,9 +86,20 @@ export async function requireEmployer(locale: string, next?: string): Promise<Se
   return user;
 }
 
+/** Back-office second factor: required (platform setting) and verified in this session (aal2)? Cached per request. */
+const adminMfaSatisfied = cache(async (): Promise<boolean> => {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("admin_mfa_status");
+  const status = data as { required?: boolean; aal?: string } | null;
+  // Fail closed: without an answer, the second factor is considered required.
+  return status?.required === false || status?.aal === "aal2";
+});
+
 export async function requirePermission(locale: string, permission: Permission): Promise<SessionUser> {
   const user = await requireUser(locale, `/${locale}/admin`);
   if (!hasPermission(user.roles, permission)) redirect(`/${locale}`);
+  // The database refuses every back-office operation without a second factor; send the user to set it up or enter it.
+  if (!(await adminMfaSatisfied())) redirect(`/${locale}/admin-security`);
   return user;
 }
 
