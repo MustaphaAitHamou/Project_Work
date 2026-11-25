@@ -40,13 +40,13 @@ Aucune photo n'est demandée. Nous vous invitons à ne pas indiquer de données 
 | Produire des statistiques agrégées (y compris pour Tamurt HQ) | intérêt légitime ; seules des données agrégées, sans donnée personnelle, sont transmises |
 | Répondre à vos demandes d'exercice des droits | obligation légale |
 
-Vos données ne sont **jamais vendues** et ne sont pas utilisées à des fins publicitaires.
+Vos données de compte, votre CV et vos candidatures ne sont **jamais vendus** ni utilisés à des fins publicitaires. Les pages publiques peuvent afficher des publicités Google, avec des cookies publicitaires déposés uniquement avec votre consentement (voir la politique cookies). [À VALIDER]
 
 ## 4. Qui reçoit vos données ?
 
 - **Les entreprises auxquelles vous postulez**, et elles seules, reçoivent votre candidature, en deux temps. D'abord **anonymement** : votre profil professionnel et la version anonymisée de votre CV que vous avez validée, sous un alias propre à chaque candidature. Ensuite, **seulement si vous acceptez** la demande du recruteur : vos prénom, nom, e-mail, téléphone, ville et votre CV d'origine. Refuser ne rejette pas votre candidature, et vous pouvez retirer cet accès plus tard (Tamurt Jobs ne peut pas effacer ce que l'entreprise a déjà enregistré de son côté). Le masquage automatique des données personnelles ne peut pas garantir un anonymat absolu : c'est pourquoi vous relisez et validez la version transmise. Aucune entreprise ne peut consulter l'ensemble des profils ou des CV.
 - **Le personnel habilité de Tamurt Jobs**, selon son rôle (vérification, modération, support, finances, confidentialité). Les accès aux CV et aux justificatifs sont journalisés.
-- **Nos sous-traitants techniques** : Supabase (base de données, authentification, stockage des fichiers) [À COMPLÉTER : région d'hébergement], Vercel (hébergement de l'application), Stripe (paiement ; Stripe agit aussi en tant que responsable de traitement pour ses propres obligations), [À COMPLÉTER : prestataire d'e-mail, par exemple Resend], Cloudflare (contrôle anti-robot Turnstile, s'il est activé).
+- **Nos sous-traitants techniques** : Supabase (base de données, authentification, stockage des fichiers) [À COMPLÉTER : région d'hébergement], Vercel (hébergement de l'application), Stripe (paiement ; Stripe agit aussi en tant que responsable de traitement pour ses propres obligations), [À COMPLÉTER : prestataire d'e-mail, par exemple Resend], Cloudflare (contrôle anti-robot Turnstile, s'il est activé), Google (publicité AdSense sur les pages publiques ; pour la publicité personnalisée, Google agit comme responsable de traitement indépendant [À VALIDER]).
 - **Les registres publics** consultés pour vérifier les entreprises (par exemple : API Recherche d'entreprises en France, Companies House au Royaume-Uni, VIES de la Commission européenne, Zefix en Suisse, OpenCorporates) : seuls les identifiants et le nom de l'entreprise leur sont communiqués.
 - **Tamurt HQ** ne reçoit que des **indicateurs agrégés** (nombre d'offres, de candidatures, revenus par devise, etc.), jamais de CV ni de donnée personnelle.
 - Les **autorités**, lorsque la loi l'exige.

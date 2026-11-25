@@ -6,6 +6,13 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
 const supabaseOrigin = new URL(supabaseUrl).origin;
 const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+// Google AdSense and its certified consent platform (Privacy & messaging) are allowed only when
+// a publisher id is configured. Ads are then shown or hidden from the back-office (ads.enabled).
+const adsConfigured = /^ca-pub-\d{10,20}$/.test(process.env.NEXT_PUBLIC_ADSENSE_CLIENT?.trim() ?? "");
+const ADS_SCRIPT = "https://*.googlesyndication.com https://*.google.com https://*.gstatic.com https://*.adtrafficquality.google https://*.doubleclick.net https://*.googletagservices.com https://*.googleadservices.com";
+const ADS_FRAME = "https://*.googlesyndication.com https://*.doubleclick.net https://*.google.com https://*.adtrafficquality.google https://*.googleadservices.com";
+const ADS_CONNECT = "https://*.google.com https://*.googlesyndication.com https://*.doubleclick.net https://*.adtrafficquality.google https://*.googleadservices.com https://*.gstatic.com";
+const frameSources = [turnstileEnabled ? "https://challenges.cloudflare.com" : "", adsConfigured ? ADS_FRAME : ""].filter(Boolean).join(" ");
 const isDev = process.env.NODE_ENV !== "production";
 // Same rule as appEnv() in src/lib/env.ts, evaluated at build time: only the real
 // production deployment may be indexed by search engines.
@@ -17,12 +24,13 @@ const indexable = appEnvAtBuild === "production";
 // nonce-based policy is used (which forces dynamic rendering of every page).
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}${turnstileEnabled ? " https://challenges.cloudflare.com" : ""}`,
-  "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: ${supabaseOrigin}`,
-  "font-src 'self' data:",
-  `connect-src 'self' ${supabaseOrigin}${isDev ? " ws: wss:" : ""}`,
-  `frame-src ${turnstileEnabled ? "https://challenges.cloudflare.com" : "'none'"}`,
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}${turnstileEnabled ? " https://challenges.cloudflare.com" : ""}${adsConfigured ? ` ${ADS_SCRIPT}` : ""}`,
+  `style-src 'self' 'unsafe-inline'${adsConfigured ? " https://fonts.googleapis.com" : ""}`,
+  // Ad creatives can come from any HTTPS host.
+  `img-src 'self' data: blob: ${supabaseOrigin}${adsConfigured ? " https:" : ""}`,
+  `font-src 'self' data:${adsConfigured ? " https://fonts.gstatic.com" : ""}`,
+  `connect-src 'self' ${supabaseOrigin}${isDev ? " ws: wss:" : ""}${adsConfigured ? ` ${ADS_CONNECT}` : ""}`,
+  `frame-src ${frameSources || "'none'"}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self' https://checkout.stripe.com https://billing.stripe.com",

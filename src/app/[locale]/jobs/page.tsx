@@ -9,6 +9,7 @@ import { MARKETS } from "@/lib/domain";
 import { formatNumber } from "@/lib/format";
 import { getCountryNamer } from "@/lib/i18n/names-server";
 import { JobCard } from "@/components/jobs/job-card";
+import { AdSlot } from "@/components/ads/ad-slot";
 import { SearchBar } from "@/components/jobs/search-bar";
 import { FiltersForm } from "@/components/jobs/filters-form";
 import { SortSelect } from "@/components/jobs/sort-select";
@@ -115,6 +116,7 @@ export default async function JobsPage({ params, searchParams }: Props) {
           )}
 
           <Pagination page={page} totalPages={totalPages} hrefFor={(n) => `/jobs?${toQueryString(p, { page: n })}`} />
+          <AdSlot placement="jobs" />
           <p className="text-xs text-muted-foreground">
             {t("rankingNotice")}{" "}
             <Link href="/how-ranking-works" className="underline">

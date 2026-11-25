@@ -6,6 +6,7 @@
  "common": {
   "skipToContent": "الانتقال إلى المحتوى الرئيسي",
   "preprodBanner": "بيئة ما قبل الإنتاج: بيانات وهمية ومدفوعات في وضع الاختبار لدى Stripe. لا تُدخل أي بيانات حقيقية.",
+  "adLabel": "إعلان",
   "toggleTheme": "تغيير المظهر (فاتح/داكن)",
   "changeLanguage": "تغيير اللغة",
   "close": "إغلاق",
@@ -88,6 +89,7 @@
   "employerTerms": "الشروط التجارية للمُوظِّفين",
   "privacy": "الخصوصية",
   "cookies": "ملفات تعريف الارتباط",
+  "cookieSettings": "إعدادات ملفات تعريف الارتباط",
   "legalNotice": "الإشعار القانوني",
   "copyright": "© {year} Tamurt Services LLC — Tamurt Jobs",
   "notAnAgency": "تنشر Tamurt Jobs إعلانات التوظيف وتنقل الطلبات. وهي ليست وكالة عمل مؤقت ولا صاحب عمل ولا وسيطًا لدفع الأجور."

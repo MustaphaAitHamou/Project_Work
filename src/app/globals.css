@@ -230,3 +230,12 @@
     animation: tj-dash 1.4s linear infinite;
   }
 }
+
+/* Advertising slots: space reserved before the ad loads (no layout shift), slot removed when Google has no ad to show. */
+.ad-slot-box {
+  min-height: 280px;
+  background: color-mix(in oklab, var(--muted) 30%, transparent);
+}
+.ad-slot:has(ins.adsbygoogle[data-ad-status="unfilled"]) {
+  display: none;
+}

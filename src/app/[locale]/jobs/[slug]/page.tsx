@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AdSlot } from "@/components/ads/ad-slot";
 import { notFound, permanentRedirect } from "next/navigation";
 import { getFormatter, getTranslations, setRequestLocale } from "next-intl/server";
 import { AlertTriangle, Building2, CalendarClock, Globe2, Languages, MapPin, ShieldCheck, Users, Wallet } from "lucide-react";
@@ -254,6 +255,8 @@ export default async function JobPage({ params }: Props) {
           </Card>
         </aside>
       </div>
+
+      <AdSlot placement="job" />
 
       {similar.length > 0 && (
         <section aria-labelledby="similar" className="mt-12 space-y-4">

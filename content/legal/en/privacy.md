@@ -40,13 +40,13 @@ No photo is requested. Please do not include sensitive data (health, origin, opi
 | Produce aggregated statistics (including for Tamurt HQ) | legitimate interest; only aggregated data, without personal data, is transmitted |
 | Answer your rights requests | legal obligation |
 
-Your data is **never sold** and is not used for advertising.
+Your account data, your CV and your applications are **never sold** nor used for advertising. Public pages may show Google ads, with advertising cookies set only with your consent (see the cookie policy). [TO VALIDATE]
 
 ## 4. Who receives your data?
 
 - **The companies you apply to**, and only them, receive your application, in two stages. First **anonymously**: your professional profile and the anonymised version of your CV that you approved, under an alias specific to each application. Then, **only if you accept** the recruiter's request: your first name, last name, e-mail, phone, city and original CV. Declining does not reject your application, and you can withdraw this access later (Tamurt Jobs cannot erase what the company has already recorded on its side). Automatic masking of personal data cannot guarantee absolute anonymity: this is why you read and approve the version transmitted. No company can browse all profiles or CVs.
 - **Authorised Tamurt Jobs staff**, according to their role (verification, moderation, support, finance, privacy). Accesses to CVs and documents are logged.
-- **Our technical processors**: Supabase (database, authentication, file storage) [TO COMPLETE: hosting region], Vercel (application hosting), Stripe (payment; Stripe also acts as a controller for its own obligations), [TO COMPLETE: e-mail provider, for example Resend], Cloudflare (Turnstile anti-bot check, if enabled).
+- **Our technical processors**: Supabase (database, authentication, file storage) [TO COMPLETE: hosting region], Vercel (application hosting), Stripe (payment; Stripe also acts as a controller for its own obligations), [TO COMPLETE: e-mail provider, for example Resend], Cloudflare (Turnstile anti-bot check, if enabled), Google (AdSense advertising on public pages; for personalised advertising, Google acts as an independent controller [TO VALIDATE]).
 - **The public registries** consulted to verify companies (for example: Recherche d'entreprises API in France, Companies House in the United Kingdom, the European Commission's VIES, Zefix in Switzerland, OpenCorporates): only the company's identifiers and name are sent to them.
 - **Tamurt HQ** only receives **aggregated indicators** (number of offers, applications, revenue per currency, etc.), never CVs or personal data.
 - **Authorities**, where required by law.

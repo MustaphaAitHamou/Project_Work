@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { AdSlot } from "@/components/ads/ad-slot";
 import { CheckCircle2, ShieldCheck } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { getJobPrice, getLatestJobs, getRegionNames } from "@/lib/jobs/queries";
@@ -322,6 +323,9 @@ export default async function HomePage({
           </div>
         </div>
       </section>
+      <div className="container-page">
+        <AdSlot placement="home" />
+      </div>
     </>
   );
 }

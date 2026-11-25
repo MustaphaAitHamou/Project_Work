@@ -1,0 +1,46 @@
+name: Bug de recette
+description: Signaler une anomalie trouvée pendant la recette de Tamurt Jobs
+title: "[Recette] "
+labels: ["recette", "bug"]
+body:
+  - type: input
+    id: etape
+    attributes:
+      label: Étape de la checklist
+      description: Identifiant dans docs/RECETTE.md, par exemple R-06
+    validations:
+      required: true
+  - type: dropdown
+    id: gravite
+    attributes:
+      label: Gravité
+      options:
+        - Bloquant (empêche le lancement)
+        - Majeur (gêne fortement)
+        - Mineur (cosmétique)
+    validations:
+      required: true
+  - type: input
+    id: environnement
+    attributes:
+      label: Appareil, navigateur et langue
+      placeholder: iPhone 15, Safari, arabe
+    validations:
+      required: true
+  - type: textarea
+    id: etapes
+    attributes:
+      label: Ce que j'ai fait
+    validations:
+      required: true
+  - type: textarea
+    id: attendu
+    attributes:
+      label: Ce que j'attendais / ce qui s'est passé
+    validations:
+      required: true
+  - type: textarea
+    id: captures
+    attributes:
+      label: Captures d'écran
+      description: Ne jamais coller de mot de passe, de clé ni de donnée personnelle réelle.

@@ -1,9 +1,11 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { getAdsConfig } from "@/lib/ads/config";
+import { CookieSettingsLink } from "@/components/ads/cookie-settings-link";
 import { Logo } from "./logo";
 
 export async function SiteFooter() {
-  const t = await getTranslations("footer");
+  const [t, ads] = await Promise.all([getTranslations("footer"), getAdsConfig()]);
   const year = new Date().getUTCFullYear();
   const columns = [
     {
@@ -53,6 +55,11 @@ export async function SiteFooter() {
                   </Link>
                 </li>
               ))}
+              {col.title === t("about") && ads.enabled && (
+                <li>
+                  <CookieSettingsLink label={t("cookieSettings")} className="text-muted-foreground hover:text-foreground" />
+                </li>
+              )}
             </ul>
           </nav>
         ))}

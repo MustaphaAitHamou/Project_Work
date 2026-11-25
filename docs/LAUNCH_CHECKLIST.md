@@ -83,12 +83,12 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 | ID | Élément | Statut | Lancement | Notes |
 | --- | --- | --- | --- | --- |
 | PUB-01 | Choix du produit : AdSense (Google Ads sert à acheter de la publicité) | ✅ Terminé et testé | Non bloquant | Vérifié dans l'aide Google le 24/11. |
-| PUB-02 | Emplacements desktop et mobile sans décalage de mise en page | ⬜ À faire | Non bloquant | Jamais dans les espaces privés, l'authentification, le paiement ni les pages juridiques. |
-| PUB-03 | Consentement via la CMP certifiée de Google (TCF), refus géré | ⬜ À faire | Non bloquant | Exigée pour l'EEE, le Royaume-Uni et la Suisse. |
-| PUB-04 | Interrupteur d'activation dans le back-office | ⬜ À faire | Non bloquant | |
-| PUB-05 | `ads.txt` généré depuis l'identifiant éditeur | ⬜ À faire | Non bloquant | |
-| PUB-06 | Politique de sécurité (CSP) ouverte aux seuls domaines Google nécessaires | ⬜ À faire | Non bloquant | |
-| PUB-07 | Textes cookies et confidentialité mis à jour | ⬜ À faire | Bloquant si la pub est activée | Ils promettent aujourd'hui « aucun cookie publicitaire ». |
+| PUB-02 | Emplacements desktop et mobile sans décalage de mise en page | ✅ Terminé et testé | Non bloquant | 5 emplacements publics étiquetés « Publicité », 280 px réservés, chargement à l'approche de l'écran. Jamais dans les espaces privés, l'authentification ni les pages juridiques (E2E `ads.spec.ts`, 25/11). |
+| PUB-03 | Consentement via la CMP certifiée de Google (TCF), refus géré | ⏳ En attente de toi | Non bloquant | Code prêt : CMP de Google chargée avec AdSense, lien « Paramètres des cookies ». Reste : créer le message « Réglementations européennes » dans AdSense (ACC-15), puis vérifier l'affichage réel. |
+| PUB-04 | Interrupteur d'activation dans le back-office | ✅ Terminé et testé | Non bloquant | Paramètres `ads.enabled` et `ads.slots`, désactivé par défaut (E2E). |
+| PUB-05 | `ads.txt` généré depuis l'identifiant éditeur | ✅ Terminé et testé | Non bloquant | Contenu vérifié par E2E. Domaine racine à traiter si Jobs est en sous-domaine. |
+| PUB-06 | Politique de sécurité (CSP) ouverte aux seuls domaines Google nécessaires | ✅ Terminé et testé | Non bloquant | Ouverte seulement si l'identifiant éditeur est configuré (E2E). Balise de vérification `google-adsense-account` ajoutée. |
+| PUB-07 | Textes cookies et confidentialité mis à jour | 🔄 En cours | Bloquant si la pub est activée | Mis à jour en FR et EN le 25/11 (publicité seulement avec consentement, jamais avec les données de compte ou les CV). Passages `[À VALIDER]` pour le juriste ; ES et AR affichent les textes FR/EN. |
 
 ## 5. Juridique et conformité
 
@@ -126,12 +126,12 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 
 | ID | Élément | Statut | Lancement | Notes |
 | --- | --- | --- | --- | --- |
-| TST-01 | Typage, lint, tests unitaires | 🔄 En cours | Bloquant | |
-| TST-02 | Tests d'intégration (pile Supabase locale) | 🔄 En cours | Bloquant | |
-| TST-03 | Tests E2E (candidat, recruteur, admin, webhook, tâches planifiées, accessibilité) | ⬜ À faire | Bloquant | |
+| TST-01 | Typage, lint, tests unitaires | ✅ Terminé et testé | Bloquant | Typage et lint verts ; unitaires 118/118 (25/11). À relancer à chaque lot. |
+| TST-02 | Tests d'intégration (pile Supabase locale) | ✅ Terminé et testé | Bloquant | 46/46 (25/11). |
+| TST-03 | Tests E2E (candidat, recruteur, admin, webhook, tâches planifiées, accessibilité) | ✅ Terminé et testé | Bloquant | 39/39 sur build de production le 25/11 (plus 4 parcours Stripe réels, 4/4). |
 | TST-04 | Parcours sur ordinateur, tablette, smartphone et dans les 4 langues | ⬜ À faire | Bloquant | |
-| TST-05 | Checklist de recette manuelle exhaustive | ⬜ À faire | Bloquant | `docs/RECETTE.md`. |
-| TST-06 | Procédure de signalement de bugs | ⬜ À faire | Bloquant | |
+| TST-05 | Checklist de recette manuelle exhaustive | ✅ Terminé et testé | Bloquant | `docs/RECETTE.md` (candidat, recruteur, administration, transverse, matrice appareils et langues). |
+| TST-06 | Procédure de signalement de bugs | ✅ Terminé et testé | Bloquant | Message dans la conversation ou modèle GitHub « Bug de recette » (`.github/ISSUE_TEMPLATE/bug-recette.yml`). |
 
 ## 9. Préproduction (jeudi 26)
 

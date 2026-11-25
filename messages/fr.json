@@ -6,6 +6,7 @@
  "common": {
   "skipToContent": "Aller au contenu principal",
   "preprodBanner": "Préproduction : données fictives et paiements en mode test Stripe. Ne saisissez aucune donnée réelle.",
+  "adLabel": "Publicité",
   "toggleTheme": "Changer de thème (clair/sombre)",
   "changeLanguage": "Changer de langue",
   "close": "Fermer",
@@ -88,6 +89,7 @@
   "employerTerms": "Conditions commerciales recruteurs",
   "privacy": "Confidentialité",
   "cookies": "Cookies",
+  "cookieSettings": "Paramètres des cookies",
   "legalNotice": "Mentions légales",
   "copyright": "© {year} Tamurt Services LLC — Tamurt Jobs",
   "notAnAgency": "Tamurt Jobs publie des annonces et transmet des candidatures. Ce n'est ni une agence d'intérim, ni un employeur, ni un intermédiaire de paiement des salaires."

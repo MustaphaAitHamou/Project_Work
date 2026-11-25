@@ -22,6 +22,15 @@ Modifications, tests exécutés et décisions, du plus récent au plus ancien. L
 - `scripts/stripe-forward-events.mjs` : relais des vrais événements Stripe de test vers un webhook local.
 - `tests/e2e/stripe-real.spec.ts` (4 parcours réels) et `tests/integration/db/stripe-webhook-order.test.ts`.
 - `docs/STRIPE_TESTING.md` : tests, configuration Stripe, cartes de test, passage en live.
+- Publicité AdSense :
+  - 5 emplacements publics étiquetés, place réservée, chargement à l'approche de l'écran, emplacement masqué s'il n'est pas rempli ;
+  - CMP certifiée de Google et lien « Paramètres des cookies » ;
+  - interrupteur `ads.enabled` et identifiants `ads.slots` dans les paramètres du back-office (migration `20261125090000_ads_settings.sql`) ;
+  - `ads.txt` et balise de vérification générés depuis `NEXT_PUBLIC_ADSENSE_CLIENT` ;
+  - CSP ouverte aux domaines Google seulement dans ce cas ;
+  - textes cookies et confidentialité (FR, EN) mis à jour, avec passages `[À VALIDER]` ;
+  - `docs/ADSENSE.md`.
+- `docs/RECETTE.md` (recette manuelle) et modèle GitHub « Bug de recette ».
 
 ### Tests exécutés
 - Appel `GET /v1/account` à l'API Stripe (mode test) : réussi.
@@ -29,6 +38,8 @@ Modifications, tests exécutés et décisions, du plus récent au plus ancien. L
 - Tests unitaires `app-env` : 4/4.
 - Stripe réel (mode test), `tests/e2e/stripe-real.spec.ts` : 4/4 après corrections, 116 événements Stripe relayés, tous traités avec le code 200.
 - Intégration : 46/46 (dont le nouveau test d'ordre des événements).
+- Unitaires : 118/118 (dont configuration AdSense et `APP_ENV`).
+- E2E complets sur build de production (identifiant AdSense factice, publicité désactivée par défaut) : 39/39, dont publicité 2/2 et accessibilité 6/6 ; les 4 parcours Stripe réels sont lancés séparément (4/4).
 
 ### Constat sur l'environnement de test
 - Le proxy de la session injecte la clé secrète Stripe dans toutes les requêtes vers `api.stripe.com`, y compris celles du navigateur. Stripe refuse alors la saisie de carte sur Checkout. La saisie de carte et le défi 3D Secure sur la page Stripe sont donc à vérifier à la main en préprod.

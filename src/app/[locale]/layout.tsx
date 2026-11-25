@@ -6,6 +6,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing, isRtl } from "@/i18n/routing";
 import { getSessionUser } from "@/lib/auth/session";
 import { appEnv, siteUrl } from "@/lib/env";
+import { adsenseClient } from "@/lib/ads/config";
 import { Providers } from "@/components/layout/providers";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -41,6 +42,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       languages: Object.fromEntries(routing.locales.map((l) => [l, `/${l}`])),
     },
     openGraph: { type: "website", siteName: "Tamurt Jobs", title: t("title"), description: t("description"), locale },
+    // Lets Google verify site ownership for AdSense without loading any ad script.
+    ...(adsenseClient() ? { other: { "google-adsense-account": adsenseClient()! } } : {}),
     icons: {
       icon: [
         { url: "/icon.svg", type: "image/svg+xml" },

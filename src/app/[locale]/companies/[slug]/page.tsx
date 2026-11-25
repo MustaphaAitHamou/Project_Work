@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AdSlot } from "@/components/ads/ad-slot";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ExternalLink, ShieldCheck } from "lucide-react";
@@ -84,6 +85,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ locale
           </ul>
         )}
       </section>
+      <AdSlot placement="company" />
     </div>
   );
 }

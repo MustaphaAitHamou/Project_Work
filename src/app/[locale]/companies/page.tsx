@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AdSlot } from "@/components/ads/ad-slot";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -69,6 +70,7 @@ export default async function CompaniesPage({ params, searchParams }: { params: 
           ))}
         </ul>
       )}
+      <AdSlot placement="companies" />
     </div>
   );
 }
