@@ -1,4 +1,4 @@
-# État du projet — 16 novembre 2026
+# État du projet — 25 novembre 2026
 
 Ce document distingue strictement ce qui est **implémenté et vérifié par des tests**, ce qui est **implémenté mais non validé contre le service réel** (faute d'accès ou de clés depuis l'environnement de développement), et ce qui **reste à faire ou à décider**.
 
@@ -6,9 +6,9 @@ Ce document distingue strictement ce qui est **implémenté et vérifié par des
 
 | Suite | Résultat | Portée |
 |---|---|---|
-| Unitaires (`npm run test:unit`) | 112/112 | validation des identifiants d'entreprise (formats, clés de contrôle), moteur de vérification, analyse des fichiers (PDF/DOCX malveillants), extraction du texte des CV, masquage des données personnelles (FR, EN, ES), validation et erreurs d'inscription, paramètres de recherche, données structurées d'offre, rendu des e-mails, parité des permissions SQL/TypeScript, traductions (clés et structure ICU identiques dans les 4 langues) |
-| Intégration SQL (`npm run test:integration`) | 45/45 | RLS et droits (accès croisés, base de CV inaccessible, élévation de privilèges, fonctions réservées), candidature en un clic (atomicité, doublons concurrents, quotas, accord préalable, statut « consultée »), **candidatures anonymes** (profil chargé de données personnelles, vue recruteur avant accord, contournements par table, historique, fichier et identifiant, demande, acceptation, refus, expiration, retrait, changements de statut, rétention, export), cycle de vie annonce/abonnement/paiement, décisions d'administration et notifications |
-| Bout en bout (`npm run test:e2e`) | 37/37 | parcours candidat complet (dont vérification du CV anonymisé, réponse à une demande d'identité, retrait de l'accès), parcours recruteur complet (profil anonyme, CV original verrouillé, demande puis levée de l'anonymat), inscription (champs manquants, e-mail invalide, mot de passe faible, adresse déjà inscrite, trop de tentatives, hors ligne, erreur serveur, confirmation par e-mail, utilisateur déjà connecté), webhook Stripe, back-office (8 scénarios), tâches planifiées, accessibilité (axe, WCAG 2.2 A/AA, FR/AR, thème sombre, nouveaux écrans compris) |
+| Unitaires (`npm run test:unit`) | 131/131 (25/11) | validation des identifiants d'entreprise (formats, clés de contrôle), moteur de vérification, analyse des fichiers (PDF/DOCX malveillants), extraction du texte des CV, masquage des données personnelles (FR, EN, ES), validation et erreurs d'inscription, paramètres de recherche, données structurées d'offre, rendu des e-mails, parité des permissions SQL/TypeScript, traductions (clés et structure ICU identiques dans les 4 langues) |
+| Intégration SQL (`npm run test:integration`) | 49/49 (25/11) | RLS et droits (accès croisés, base de CV inaccessible, élévation de privilèges, fonctions réservées), candidature en un clic (atomicité, doublons concurrents, quotas, accord préalable, statut « consultée »), **candidatures anonymes** (profil chargé de données personnelles, vue recruteur avant accord, contournements par table, historique, fichier et identifiant, demande, acceptation, refus, expiration, retrait, changements de statut, rétention, export), cycle de vie annonce/abonnement/paiement, décisions d'administration et notifications |
+| Bout en bout (`npm run test:e2e`) | 43/43 (25/11, serveur autonome de production derrière Nginx) + 5/5 parcours Stripe réels en mode test | parcours candidat complet (dont vérification du CV anonymisé, réponse à une demande d'identité, retrait de l'accès), parcours recruteur complet (profil anonyme, CV original verrouillé, demande puis levée de l'anonymat), inscription (champs manquants, e-mail invalide, mot de passe faible, adresse déjà inscrite, trop de tentatives, hors ligne, erreur serveur, confirmation par e-mail, utilisateur déjà connecté), webhook Stripe, back-office (8 scénarios), tâches planifiées, accessibilité (axe, WCAG 2.2 A/AA, FR/AR, thème sombre, nouveaux écrans compris) |
 | Qualité | OK | `tsc` strict, ESLint sans erreur, `supabase db lint` sans erreur, `npm audit` (production) sans vulnérabilité, `next build` réussi |
 
 Les tests d'intégration et E2E s'exécutent contre une pile Supabase locale réelle (PostgreSQL, Auth, Storage, Mailpit) et le vrai serveur Next.js (en CI : build de production). La **CI GitHub Actions est verte** sur `main` : audit des dépendances, typage, lint, tests unitaires, migrations appliquées sur une base vierge, lint SQL, cohérence des types générés, tests d'intégration, build de production et tests E2E. Les tests E2E n'interrogent pas les registres d'entreprises (services tiers), pour rester déterministes.
@@ -33,11 +33,13 @@ Les tests d'intégration et E2E s'exécutent contre une pile Supabase locale ré
 
 | Intégration | Ce qui est fait | Ce qui manque |
 |---|---|---|
-| **Stripe** | Checkout, abonnements, portail client, remboursements, synchronisation des prix, webhooks (18 types d'événements) ; testés avec des **événements signés synthétiques** envoyés au vrai point d'entrée | compte Stripe live, clés, endpoint de webhook enregistré, Stripe Tax ; aucun appel réel à l'API Stripe n'a pu être fait. Le test « facture de renouvellement d'une annonce clôturée » vérifie que l'arrêt est **enregistré en erreur et rejoué** faute d'accès à l'API |
+| **Stripe** | **Validé contre le vrai Stripe de test le 25/11** (voir [STRIPE_TESTING.md](STRIPE_TESTING.md)) : tarif, Checkout, abonnement, activation par webhook, renouvellement, échec, grâce, suspension, régularisation, résiliation, remboursement, 3D Secure, refus, portail client, événements dans le désordre | saisie de carte et écran du portail à vérifier à la main en préprod ; compte live, webhook live et Stripe Tax au lancement, après accord |
 | **Resend** | fournisseur implémenté selon l'API documentée | clé API et domaine vérifié ; le chemin SMTP est, lui, testé de bout en bout avec Mailpit |
 | **Registres d'entreprises** | France, VIES, Companies House, Zefix, OpenCorporates implémentés selon leurs contrats publiés, testés sur des réponses types | accès réseau et clés (Companies House, Zefix, OpenCorporates) ; en leur absence la vérification bascule en revue manuelle, comportement vérifié |
 | **Cloudflare Turnstile** | widget, vérification serveur, transmission à Supabase Auth | clés et activation dans Supabase ; non testé |
-| **Supabase hébergé / Vercel** | migrations, configuration, crons, guide de déploiement | projet et déploiement réels non créés |
+| **Supabase hébergé** | migrations vérifiées sur base vierge (25/11), réglages d'authentification documentés ([EMAIL.md](EMAIL.md)) | projets préprod et production non créés (accès du propriétaire) |
+| **Vercel (préproduction)** | workflow « CI puis déploiement », `vercel.json`, protection et non-indexation | projet, offre (Pro requise pour un usage commercial) et jeton |
+| **Iglao (production)** | serveur autonome, Nginx, systemd, cron, déploiement et retour arrière ([deploy/iglao](../deploy/iglao/README.md)), rejoués dans une simulation Ubuntu 24.04 avec E2E 43/43 | VPS réel, domaine, certificat |
 
 ## Reste à faire ou à décider
 
@@ -59,12 +61,12 @@ Les tests d'intégration et E2E s'exécutent contre une pile Supabase locale ré
 - Faire valider juridiquement les textes mis à jour (confidentialité, conditions recruteurs).
 
 **Recommandé**
-- Double authentification obligatoire pour les comptes du back-office (non implémentée).
+- ~~Double authentification obligatoire pour les comptes du back-office~~ : faite le 25/11 (exigée par la base elle-même).
 - Analyse antivirus des fichiers déposés (contrôles structurels seulement aujourd'hui).
 - Durées de conservation des journaux d'audit, signalements, demandes et comptes inactifs ([DATA_RETENTION.md](DATA_RETENTION.md)).
 - Relecture des traductions anglaise, espagnole et arabe par des locuteurs natifs, et traduction des textes juridiques en espagnol et en arabe (affichés aujourd'hui en anglais et en français avec un avertissement).
-- Supervision et alertes (erreurs serveur, webhooks en échec, file d'e-mails).
+- Supervision : Sentry intégré (sans donnée personnelle), point de santé ; reste à brancher le DSN et une sonde de disponibilité.
 - Audit d'accessibilité manuel et test d'intrusion externe.
-- Information de l'auteur d'un signalement sur la suite donnée (obligations du règlement sur les services numériques à analyser).
+- ~~Information de l'auteur d'un signalement sur la suite donnée~~ : faite le 25/11 (e-mail de décision dans sa langue).
 
 **Exclu volontairement** (exigences du cahier des charges) : messagerie ou chat entre candidats et recruteurs, photo de profil, consultation d'une base de CV par les entreprises, transmission de données personnelles à Tamurt HQ.

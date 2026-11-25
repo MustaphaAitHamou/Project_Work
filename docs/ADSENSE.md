@@ -22,6 +22,20 @@
   - Sans consentement, Google ne sert que des annonces non personnalisées ou limitées.
   - Le lien « Paramètres des cookies », en bas de page, rouvre les choix.
 - **Interrupteur :** Back-office → Paramètres → `ads.enabled` (`true` ou `false`). Les identifiants des blocs se règlent au même endroit, dans `ads.slots`.
+- **Mode par environnement (`ADS_MODE`)**, en plus de l'interrupteur :
+
+| Mode | Par défaut | Effet |
+| --- | --- | --- |
+| `placeholder` | préproduction et développement | Emplacements étiquetés « Emplacement publicitaire de test ». Aucun script Google ni requête à Google, et aucune annonce réelle. Fonctionne sans compte AdSense, pour vérifier la place des blocs avant l'approbation. |
+| `test` | — | Vrai code AdSense avec `data-adtest="on"` : Google sert des annonces de test, ni affichages ni clics ne sont comptés. Exige l'identifiant éditeur. Sert à tester la CMP et le chargement en préproduction une fois le compte ouvert. |
+| `live` | production | Annonces réelles. Un `live` demandé hors production est ramené à `test`. |
+| `off` | — | Aucune publicité, quel que soit l'interrupteur. |
+
+- Vérifié par E2E (25/11) :
+  - en mode `placeholder`, aucune requête vers les serveurs publicitaires de Google ;
+  - aucun emplacement dans les candidatures, l'espace recruteur, la page de paiement ni le back-office ;
+  - le bouton « Postuler » reste accessible sur une fiche d'offre qui porte un emplacement.
+- L'approbation du site par Google n'est **pas** simulée : elle aura lieu sur le domaine public.
 - **`ads.txt` :** il est généré automatiquement à l'adresse `/ads.txt` à partir de l'identifiant éditeur.
 - **Politique de sécurité (CSP) :** elle n'autorise les domaines de Google que si l'identifiant éditeur est configuré.
 - **Textes :** la politique cookies et la politique de confidentialité ont été mises à jour. Les passages `[À VALIDER]` sont à faire relire par le juriste.

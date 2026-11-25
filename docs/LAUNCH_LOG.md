@@ -76,3 +76,84 @@ Modifications, tests exécutés et décisions, du plus récent au plus ancien. L
 
 ### Constat sur l'environnement de test
 - Le proxy de la session injecte la clé secrète Stripe dans toutes les requêtes vers `api.stripe.com`, y compris celles du navigateur. Stripe refuse alors la saisie de carte sur Checkout. La saisie de carte et le défi 3D Secure sur la page Stripe sont donc à vérifier à la main en préprod.
+
+## 25 novembre 2026 (après-midi) — production sur Iglao
+
+### Décisions du propriétaire
+- Architecture définitive :
+  - GitHub pour le code, Vercel pour la **préproduction seulement**, **Iglao pour la production** ;
+  - Supabase, Stripe, Resend et AdSense.
+- Lancement public visé le **30 novembre**, sous conditions.
+
+### Constats
+- **Iglao** : hébergeur français (cPanel, Plesk, VPS Linux KVM, centres de données en France). Aucune offre publique ne mentionne Node.js.
+  - Recommandation : un VPS Linux de 4 Go de RAM au moins.
+  - À confirmer avec Iglao : sauvegardes ou instantanés, IPv6, comportement de l'anti-DDoS avec les webhooks.
+  - Ses coordonnées légales n'ont pas été trouvées : marquées `[À COMPLÉTER]`.
+- **Vercel Hobby** : usage non commercial seulement, et les tâches planifiées plus fréquentes qu'une fois par jour font échouer le déploiement. La préprod d'un produit commercial relève donc de Pro (20 $/mois). Décision du propriétaire, rien n'est souscrit.
+
+### Modifications
+- **Serveur autonome** (`NEXT_OUTPUT=standalone`) et `scripts/package-standalone.sh`. La construction n'a plus besoin d'aucun secret :
+  - `robots.txt`, le plan du site et le client public de Supabase lisent seulement les réglages publics (`publicEnv`) ;
+  - avant, la construction exigeait la clé secrète de Supabase.
+- **`deploy/iglao/`** :
+  - Nginx (HTTPS, en-têtes, fichiers statiques, rejet des noms d'hôte inconnus) ;
+  - service systemd durci ;
+  - cron ;
+  - `deploy.sh` : bascule, vérification de santé, retour automatique, refus des archives contenant un `.env` ;
+  - `rollback.sh` ;
+  - `run-cron.sh` ;
+  - modèle de configuration ;
+  - procédure complète.
+- **Workflows GitHub** :
+  - `ci.yml` réutilisable ;
+  - `preprod-vercel.yml` : CI, puis déploiement Vercel ; les déploiements automatiques de Vercel sont coupés dans `vercel.json` ;
+  - `deploy-iglao.yml` : manuel depuis `main`, confirmation saisie, CI complète, approbation de l'environnement `production`, puis vérification publique.
+- **Adresse du visiteur derrière Nginx** : `CLIENT_IP_HEADER=x-real-ip`. Un `X-Forwarded-For` forgé est ignoré. Le tableau de bord signale l'absence de ce réglage en production autohébergée.
+- **Publicité par environnement** (`ADS_MODE`) :
+  - hors production, emplacements de test étiquetés, sans aucune requête à Google ;
+  - annonces de test AdSense en option ;
+  - annonces réelles réservées à la production.
+- **Textes juridiques** : Iglao comme hébergeur, Resend comme sous-traitant, avec les mentions à compléter.
+- **Documentation** :
+  - `docs/EMAIL.md` (Resend, DNS, Supabase) ;
+  - `docs/DEPLOYMENT.md` et `docs/RUNBOOK.md` réécrits pour Vercel en préproduction et Iglao en production ;
+  - `.env.example`.
+
+### Défauts trouvés en rejouant la procédure du VPS, tous corrigés
+La simulation reproduit le VPS dans un conteneur Ubuntu 24.04 : Nginx 1.24 avec des processus `www-data`, utilisateur `tamurt`, `/srv/tamurt-jobs`, `deploy.sh`.
+1. **Toutes les connexions et confirmations d'e-mail en 502** : les cookies de session de Supabase dépassaient les tampons par défaut de Nginx (« upstream sent too big header »). Tampons agrandis dans les deux sens.
+2. **Actions serveur refusées** (« Invalid Server Actions request ») : Nginx transmettait l'hôte sans son port. Il transmet désormais l'hôte exact (`$http_host`), et un serveur par défaut rejette les autres noms.
+3. **Déconnexion et lien de confirmation d'e-mail** : ils redirigeaient vers l'adresse interne de Node.js (`http://…:3000`). Ce sont maintenant des redirections relatives (`redirectToPath`).
+4. **Pages sans leurs scripts** : `useradd` crée `/srv/tamurt-jobs` en 750, illisible par Nginx. Ajouté `chmod 755` à la procédure.
+5. **Tâches planifiées en échec** : dossier d'état dans `/run`, interdit en écriture à l'utilisateur `tamurt`. Il est déplacé dans `shared/cron`.
+6. **Retour arrière risqué** : une version en échec restait dans `releases/` et aurait été choisie comme « précédente ». Elle est désormais rangée dans `failed/`, et `rollback.sh` revient à son point de départ si la cible ne répond pas.
+
+Aussi :
+- en-tête `Cache-Control` doublé sur les fichiers statiques, corrigé ;
+- `http2 on;` refusé par le Nginx d'Ubuntu 24.04, remplacé par `listen … http2`.
+
+### Faille de sécurité corrigée
+- Avant le chargement du JavaScript (connexion lente), les formulaires partageaient un défaut : connexion, inscription, mot de passe et une vingtaine d'autres partaient en **GET**, avec tous les champs dans l'adresse.
+- Le mot de passe se retrouvait alors dans l'historique et dans les journaux du serveur. Constaté dans les journaux de Nginx (`/fr/login?email=…&password=…`).
+- Correctif : méthode POST, et boutons d'envoi désactivés tant que la page n'est pas prête (`useSyncExternalStore`).
+
+### Tests exécutés
+- Construction du serveur autonome **sans** `.env.local` ni secret : réussie (30 Mo).
+  - L'archive contient les textes juridiques et le module d'images natif Linux x64, et aucun `.env`.
+- `nginx -t` sur les deux configurations.
+- E2E à travers Nginx sur le serveur autonome déployé par `deploy.sh` : **43/43**. Le test des adresses IP autorisées vérifie, derrière Nginx, qu'un en-tête forgé est refusé.
+- `run-cron.sh` (maintenance, e-mails, alertes) en tant que `tamurt` : HTTP 200.
+- Retours arrière :
+  - `rollback.sh` vers la version précédente, puis vers une version donnée ;
+  - une version cassée revient seule à la précédente (le site reste en ligne) ;
+  - une archive contenant un `.env` est refusée.
+- Charge (`scripts/load-test.mjs`, à travers Nginx, 4 vCPU, base sur la même machine) :
+  - 5 visiteurs simultanés : médiane 110 ms, p95 160 ms, 49 req/s ;
+  - 20 visiteurs : 41 req/s, 0 erreur ;
+  - mémoire de l'application : environ 830 Mo.
+- Migrations sur une base **vierge, sans seed** : 25 migrations dans l'ordre, sans erreur.
+  - Aucun compte, aucune entreprise, aucune offre, aucun administrateur.
+  - Publication payante fermée partout, tarif de référence présent, publicité désactivée, double authentification du back-office exigée.
+- `supabase db lint` : aucune erreur. Types générés à jour.
+- Unitaires 131/131, intégration 49/49, typage et lint verts.

@@ -1,6 +1,8 @@
 # Checklist de lancement — Tamurt Jobs
 
-Préproduction visée : **jeudi 26 novembre 2026**. Lancement visé : **samedi 28 novembre 2026**, après accord explicite.
+Préproduction visée : **jeudi 26 novembre 2026** sur Vercel, si les accès sont disponibles. Recette et préparation d'Iglao : du 27 au 29 novembre. Lancement public visé : **lundi 30 novembre 2026** sur **Iglao**, après accord explicite et seulement si les contrôles techniques, juridiques et de sécurité sont satisfaits.
+
+Hébergement : **Vercel pour la préproduction uniquement**, **VPS Iglao pour la production** ([deploy/iglao/README.md](../deploy/iglao/README.md)).
 
 Ce fichier est la référence entre les sessions. Le journal des modifications, des tests et des décisions est dans [LAUNCH_LOG.md](LAUNCH_LOG.md).
 
@@ -13,7 +15,7 @@ Ce fichier est la référence entre les sessions. Le journal des modifications, 
 | ⬜ À faire | Pas commencé. |
 | ⏳ En attente de toi | Bloqué par une information, un accès, une décision ou une action du propriétaire. |
 
-La colonne **Lancement** indique si l'élément est **Bloquant** ou **Non bloquant** pour l'ouverture de samedi.
+La colonne **Lancement** indique si l'élément est **Bloquant** ou **Non bloquant** pour l'ouverture du 30 novembre.
 
 Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription-anonymat`. Elle sera fusionnée dans `main` après ton accord.
 
@@ -22,7 +24,7 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 | ID | Élément | Statut | Lancement | Notes |
 | --- | --- | --- | --- | --- |
 | ACC-01 | Nom de domaine et accès DNS | ⏳ En attente de toi | Bloquant | E-mails, anti-robot, webhooks, Search Console, `ads.txt` (au domaine racine si Jobs est en sous-domaine). |
-| ACC-02 | Vercel en offre Pro, deux projets (`tamurt-jobs-preprod`, `tamurt-jobs`), jeton d'API | ⏳ En attente de toi | Bloquant | Hobby interdit l'usage commercial et limite les tâches planifiées à une par jour. |
+| ACC-02 | Vercel pour la préproduction : décision Hobby ou Pro, projet `tamurt-jobs-preprod`, jeton | ⏳ En attente de toi | Bloquant pour la préprod | Hobby : usage non commercial seulement, et les tâches planifiées plus fréquentes qu'une fois par jour y font échouer le déploiement → Pro (20 $/mois) selon les conditions de Vercel. Alternative : préprod aussi sur Iglao. Production : plus sur Vercel. |
 | ACC-03 | Supabase : projets préprod et prod en région UE, prod en Pro, jeton d'accès personnel | ⏳ En attente de toi | Bloquant | En gratuit : mise en pause après une semaine d'inactivité, aucune sauvegarde automatique. |
 | ACC-04 | Stripe : clé secrète de test (formulaire sécurisé) | ✅ Terminé et testé | Bloquant | Clé injectée par le proxy de la session ; appel `GET /v1/account` réussi le 25/11. |
 | ACC-05 | Stripe : entité titulaire du compte live, activation (identité, banque) | ⏳ En attente de toi | Bloquant | Le compte est **français (FR)** alors que les textes nomment Tamurt Services LLC (États-Unis) : à trancher. |
@@ -42,22 +44,28 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 | ACC-19 | Surveillance de disponibilité (Better Stack ou UptimeRobot) sur `/api/health` | ⏳ En attente de toi | Non bloquant | |
 | ACC-20 | Dépôt GitHub en privé | ⏳ En attente de toi | Non bloquant | Recommandé avant l'ouverture. |
 | ACC-21 | Mentions « 9 pays » du site si seule la France ouvre | ⏳ En attente de toi | Bloquant si France seule | Description du site, bandeau de l'accueil, page recruteurs : risque de mention trompeuse. Proposition : « en France » au lancement. |
+| ACC-22 | Iglao : offre VPS Linux (KVM, ≥ 2 vCPU, ≥ 4 Go de RAM, Ubuntu 24.04 ou Debian 12), adresse IP, accès SSH | ⏳ En attente de toi | Bloquant | Les offres mutualisées cPanel/Plesk ne conviennent pas (Node.js non annoncé, tâches planifiées, webhooks). Mesuré : l'application occupe environ 830 Mo de mémoire sous charge. |
+| ACC-23 | GitHub : environnements `preprod` et `production` (variables, secrets, approbation obligatoire) | ⏳ En attente de toi | Bloquant | Liste exacte dans `deploy/iglao/README.md` §6 et `docs/DEPLOYMENT.md` §3. Clé de déploiement SSH générée par toi. |
+| ACC-24 | Coordonnées d'Iglao pour les mentions légales (raison sociale, adresse, téléphone) | ⏳ En attente de toi | Bloquant | Non trouvées dans les sources publiques consultées ; marquées `[À COMPLÉTER]` dans `notice.md`. |
 
 ## 2. Infrastructure
 
 | ID | Élément | Statut | Lancement | Notes |
 | --- | --- | --- | --- | --- |
-| INF-01 | Distinction préprod / production indépendante de Vercel (`APP_ENV`) | 🔄 En cours | Bloquant | Le projet de préprod est « production » pour Vercel : il faut `APP_ENV=preprod`. |
+| INF-01 | Distinction préprod / production indépendante de l'hébergeur (`APP_ENV`) | ✅ Terminé et testé | Bloquant | `APP_ENV` prime sur Vercel ; en production Iglao, `APP_ENV=production` explicite. Tests unitaires `app-env`, E2E en `preprod`. |
 | INF-02 | Préprod non indexée et protégée par mot de passe | 🔄 En cours | Bloquant | En-tête `X-Robots-Tag` et authentification HTTP Basic optionnelle. |
 | INF-03 | Migrations appliquées sur Supabase préprod puis prod | ⏳ En attente de toi | Bloquant | Dépend d'ACC-03. Migration d'anonymisation avant le code. |
 | INF-04 | Configuration Auth Supabase (URL du site, redirections, SMTP, anti-robot) | ⏳ En attente de toi | Bloquant | |
-| INF-05 | Variables d'environnement Vercel (préprod et prod) | ⏳ En attente de toi | Bloquant | Liste exacte dans `docs/DEPLOYMENT.md`. |
-| INF-06 | Domaine, DNS, HTTPS | ⏳ En attente de toi | Bloquant | Certificats gérés par Vercel. |
+| INF-05 | Variables d'environnement : Vercel (préprod), `/etc/tamurt-jobs/env` (prod), GitHub (réglages publics) | ⏳ En attente de toi | Bloquant | Listes exactes : `docs/DEPLOYMENT.md` §3, `deploy/iglao/env.production.example`, `deploy/iglao/README.md` §6. |
+| INF-06 | Domaine, DNS, HTTPS | ⏳ En attente de toi | Bloquant | Préprod : CNAME vers Vercel. Prod : enregistrement A vers le VPS, certificat Let's Encrypt (certbot, procédure §5 du README Iglao). |
 | INF-07 | SPF, DKIM, DMARC | ⏳ En attente de toi | Bloquant | |
 | INF-08 | Sauvegarde avant lancement et procédure de restauration | 🔄 En cours | Bloquant | Procédure dans `docs/RUNBOOK.md` ; sauvegarde à faire le jour J (dépend d'ACC-03). |
-| INF-09 | Procédure de retour arrière (rollback) | ✅ Terminé et testé | Bloquant | `docs/RUNBOOK.md` (Instant Rollback Vercel, interrupteurs publicité et pays, clés, migrations). |
+| INF-09 | Procédure de retour arrière (rollback) | ✅ Terminé et testé | Bloquant | Prod Iglao : `rollback.sh` (version précédente ou donnée), retour automatique si une nouvelle version ne répond pas ; vérifiés dans la simulation du 25/11 (y compris version cassée et archive contenant un `.env`, refusée). Préprod : Instant Rollback de Vercel. |
 | INF-10 | Surveillance des erreurs (Sentry) | 🔄 En cours | Non bloquant | Intégrée (SDK 11.11.0), activée seulement si `NEXT_PUBLIC_SENTRY_DSN` est défini : serveur, edge, navigateur via le tunnel `/monitoring`, aucune donnée personnelle envoyée. Erreurs seulement : plus d'envoi de « session » à chaque page vue ; les erreurs du navigateur portent le bon environnement (`preprod` constaté dans le build de préprod, 25/11). Reste : DSN réel (ACC-18), puis `/api/health?monitoring=test` pour vérifier la réception. |
 | INF-11 | Point de santé pour la surveillance de disponibilité | ✅ Terminé et testé | Non bloquant | `/api/health` : 503 si la base est inaccessible. En production, la réponse publique se limite à `status` et `database` ; le détail de la configuration est dans le back-office (bloc « État des intégrations ») ou avec le secret des tâches planifiées. Tests unitaires 3/3 (25/11). |
+| INF-12 | Production autohébergée : serveur autonome, Nginx, systemd, cron, déploiement | ✅ Terminé et testé (simulation) | Bloquant | Procédure rejouée le 25/11 dans un conteneur Ubuntu 24.04 (Nginx 1.24, utilisateur `tamurt`) : construction sans secret, `deploy.sh`, E2E 43/43 à travers Nginx, tâches planifiées, retours arrière. 6 défauts trouvés et corrigés (voir journal). Reste sur le vrai VPS : systemd, certbot, pare-feu (dépend d'ACC-22). |
+| INF-13 | Déploiement depuis GitHub avec tests avant déploiement | 🔄 En cours | Bloquant | Workflows `preprod-vercel.yml` (CI puis Vercel) et `deploy-iglao.yml` (CI, puis approbation, puis Iglao) poussés le 25/11. Leur exécution réelle dépend des accès (ACC-02, ACC-22, ACC-23). |
+| INF-14 | Tests de charge adaptés au lancement | ✅ Terminé et testé | Non bloquant | `scripts/load-test.mjs`, 25/11, à travers Nginx sur le serveur autonome (4 vCPU, base sur la même machine) : 5 visiteurs simultanés, pages à 110 ms (médiane) et 160 ms (p95), 49 req/s ; 20 visiteurs, 41 req/s, 0 erreur. À refaire sur le VPS. |
 
 ## 3. Stripe
 
@@ -84,12 +92,13 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 | ID | Élément | Statut | Lancement | Notes |
 | --- | --- | --- | --- | --- |
 | PUB-01 | Choix du produit : AdSense (Google Ads sert à acheter de la publicité) | ✅ Terminé et testé | Non bloquant | Vérifié dans l'aide Google le 24/11. |
-| PUB-02 | Emplacements desktop et mobile sans décalage de mise en page | ✅ Terminé et testé | Non bloquant | 5 emplacements publics étiquetés « Publicité », 280 px réservés, chargement à l'approche de l'écran. Jamais dans les espaces privés, l'authentification ni les pages juridiques (E2E `ads.spec.ts`, 25/11). |
+| PUB-02 | Emplacements desktop et mobile sans décalage de mise en page | ✅ Terminé et testé | Non bloquant | 5 emplacements publics étiquetés, espace réservé (280 px). Jamais sur les candidatures, l'espace recruteur, le paiement ni le back-office (E2E du 25/11). |
 | PUB-03 | Consentement via la CMP certifiée de Google (TCF), refus géré | ⏳ En attente de toi | Non bloquant | Code prêt : CMP de Google chargée avec AdSense, lien « Paramètres des cookies ». Reste : créer le message « Réglementations européennes » dans AdSense (ACC-15), puis vérifier l'affichage réel. |
 | PUB-04 | Interrupteur d'activation dans le back-office | ✅ Terminé et testé | Non bloquant | Paramètres `ads.enabled` et `ads.slots`, désactivé par défaut (E2E). |
 | PUB-05 | `ads.txt` généré depuis l'identifiant éditeur | ✅ Terminé et testé | Non bloquant | Contenu vérifié par E2E. Domaine racine à traiter si Jobs est en sous-domaine. |
 | PUB-06 | Politique de sécurité (CSP) ouverte aux seuls domaines Google nécessaires | ✅ Terminé et testé | Non bloquant | Ouverte seulement si l'identifiant éditeur est configuré (E2E). Balise de vérification `google-adsense-account` ajoutée. |
 | PUB-07 | Textes cookies et confidentialité mis à jour | 🔄 En cours | Bloquant si la pub est activée | Mis à jour en FR et EN le 25/11 (publicité seulement avec consentement, jamais avec les données de compte ou les CV). Passages `[À VALIDER]` pour le juriste ; ES et AR affichent les textes FR/EN. |
+| PUB-08 | Publicité par environnement : emplacements de test hors production, réelle en production seule | ✅ Terminé et testé | Non bloquant | `ADS_MODE` : `placeholder` par défaut hors production (aucune requête à Google, vérifié par E2E), `test` (annonces de test AdSense), `live` réservé à la production. Tests unitaires et E2E du 25/11. |
 
 ## 5. Juridique et conformité
 
@@ -109,10 +118,11 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 | SEC-01 | Dépendances sans vulnérabilité élevée | ✅ Terminé et testé | Bloquant | Next.js 16.4.6 ; `npm audit --omit=dev` : 0 vulnérabilité (25/11). À refaire juste avant le lancement. |
 | SEC-02 | Double authentification obligatoire au back-office | ✅ Terminé et testé | Bloquant | Application TOTP exigée par la base elle-même (`app.has_permission` refuse toute permission sans session aal2), réglage `security.admin_mfa_required` vrai par défaut, page d'enrôlement et de vérification (4 langues). Intégration 2/2 et E2E 1/1 (25/11). |
 | SEC-03 | Isolation des données (RLS) et contrôle des routes | ✅ Terminé et testé | Bloquant | Tests d'intégration `security-rls` et parcours E2E verts (25/11). |
-| SEC-04 | Limitation de débit, anti-spam, anti-robot | 🔄 En cours | Bloquant | Limiteur PostgreSQL existant ; Turnstile dépend d'ACC-07. |
+| SEC-04 | Limitation de débit, anti-spam, anti-robot | 🔄 En cours | Bloquant | Limiteur PostgreSQL ; adresse du visiteur non falsifiable derrière Nginx (`CLIENT_IP_HEADER=x-real-ip`, tests unitaires et E2E). Turnstile intégré (formulaires d'authentification via Supabase, signalements via l'application) : clés réelles en attente (ACC-07) ; en préprod, clés de test publiques de Cloudflare. |
 | SEC-05 | Aucune donnée de test, clé ni outil de débogage en production | 🔄 En cours | Bloquant | Audit du code (25/11) : aucune route de test ou de débogage ; aucun `console.log` ; aucune source map publique (aucune dans le build, suppression après envoi à Sentry par défaut) ; migrations sans donnée de démonstration ; scripts de données qui refusent la production (`dev-seed` : base locale seulement, `preprod-seed` : projet de préprod seulement) ; aucun secret dans le dépôt ; page d'erreur sans détail technique (référence seulement) ; test de surveillance protégé par secret. Corrigé : `/api/health` révélait publiquement la configuration (mode Stripe, e-mail, anti-robot). Reste : contrôle sur le déploiement de production avant GO (variables, absence des comptes de recette, clés live, `PREPROD_BASIC_AUTH` absent). |
 | SEC-06 | Antivirus des CV | ⬜ À faire | Non bloquant | Contrôles structurels seulement aujourd'hui. |
 | SEC-07 | Test d'intrusion externe | ⬜ À faire | Non bloquant | Après lancement. |
+| SEC-08 | Formulaires envoyés avant le chargement du JavaScript | ✅ Terminé et testé | Bloquant | Constaté le 25/11 : sur un serveur lent, la connexion partait en GET avec le mot de passe dans l'adresse, donc dans l'historique et les journaux. Corrigé : POST et boutons désactivés tant que la page n'est pas prête. E2E sans JavaScript. |
 
 ## 7. SEO et préparation commerciale
 
@@ -128,14 +138,14 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 
 | ID | Élément | Statut | Lancement | Notes |
 | --- | --- | --- | --- | --- |
-| TST-01 | Typage, lint, tests unitaires | ✅ Terminé et testé | Bloquant | Typage et lint verts ; unitaires 127/127 (25/11). À relancer à chaque lot. |
+| TST-01 | Typage, lint, tests unitaires | ✅ Terminé et testé | Bloquant | Typage et lint verts ; unitaires 131/131 (25/11). À relancer à chaque lot. |
 | TST-02 | Tests d'intégration (pile Supabase locale) | ✅ Terminé et testé | Bloquant | 49/49 (25/11). |
-| TST-03 | Tests E2E (candidat, recruteur, admin, webhook, tâches planifiées, accessibilité) | ✅ Terminé et testé | Bloquant | 40/40 sur le build de préproduction (`APP_ENV=preprod`) le 25/11, plus 5 parcours Stripe réels (5/5). La suite standard suppose un serveur sans clé Stripe ; les parcours réels, un serveur avec la clé de test. |
+| TST-03 | Tests E2E (candidat, recruteur, admin, webhook, tâches planifiées, accessibilité) | ✅ Terminé et testé | Bloquant | 43/43 le 25/11 sur le serveur autonome de production, à travers Nginx (`APP_ENV=preprod`). Parcours Stripe réels lancés à part (5/5, plus tôt le 25/11). |
 | TST-04 | Parcours sur ordinateur, tablette, smartphone et dans les 4 langues | ⬜ À faire | Bloquant | |
 | TST-05 | Checklist de recette manuelle exhaustive | ✅ Terminé et testé | Bloquant | `docs/RECETTE.md` (candidat, recruteur, administration, transverse, matrice appareils et langues). |
 | TST-06 | Procédure de signalement de bugs | ✅ Terminé et testé | Bloquant | Message dans la conversation ou modèle GitHub « Bug de recette » (`.github/ISSUE_TEMPLATE/bug-recette.yml`). |
 
-## 9. Préproduction (jeudi 26)
+## 9. Préproduction (jeudi 26, Vercel)
 
 | ID | Élément | Statut | Lancement | Notes |
 | --- | --- | --- | --- | --- |
@@ -144,7 +154,7 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 | PRE-03 | Jeu de données de démonstration, jamais en production | 🔄 En cours | Bloquant | 6 offres « (démo) » d'une entreprise fictive ; le script refuse `APP_ENV=production`, une autre cible que le projet de préprod, et toute base contenant des abonnements live. |
 | PRE-04 | Cartes Stripe de test documentées | ✅ Terminé et testé | Bloquant | `docs/STRIPE_TESTING.md`, section 3. |
 
-## 10. Production (samedi 28)
+## 10. Production (lundi 30, Iglao)
 
 | ID | Élément | Statut | Lancement | Notes |
 | --- | --- | --- | --- | --- |
@@ -152,6 +162,6 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 | PRD-02 | Configuration de production vérifiée (`/api/health` sans problème) | ⬜ À faire | Bloquant | |
 | PRD-03 | Activation commerciale du compte Stripe vérifiée | ⏳ En attente de toi | Bloquant | |
 | PRD-04 | Produit, tarif et webhook live | ⬜ À faire | Bloquant | Après ton accord. |
-| PRD-05 | Données de test séparées des données réelles | ⬜ À faire | Bloquant | Projets Supabase et Vercel distincts. |
+| PRD-05 | Données de test séparées des données réelles | ⬜ À faire | Bloquant | Projets Supabase distincts ; préprod sur Vercel, production sur Iglao. Migrations vérifiées sur base vierge : aucun compte ni donnée de démonstration (25/11). |
 | PRD-06 | Conformité des pays ouverts | ⏳ En attente de toi | Bloquant | |
 | PRD-07 | Sauvegarde, rollback, bilan GO / NO GO | ⬜ À faire | Bloquant | **Mise en ligne publique et paiements réels seulement après ton accord explicite.** |
