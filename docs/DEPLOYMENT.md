@@ -75,6 +75,15 @@ SUPABASE_ACCESS_TOKEN=<jeton> node scripts/supabase-apply-migrations.mjs --proje
 
 **Offre.** Le plan Hobby est réservé à un usage personnel et non commercial. De plus, il fait échouer le déploiement de tâches planifiées plus fréquentes qu'une fois par jour. La préproduction d'un produit commercial relève donc de **Pro** (20 $ par mois, 20 $ d'usage inclus, un siège). C'est la décision du propriétaire.
 
+**Configuration automatique.** `scripts/vercel-preprod-setup.mjs` configure le projet existant, de façon idempotente, sans jamais afficher de secret :
+- Node.js 22 et région Paris (`cdg1`) ;
+- les variables publiques ;
+- `CRON_SECRET`, généré ;
+- le webhook Stripe de **test** et son secret, copié directement dans Vercel ;
+- le contournement réservé à l'automatisation, puisque le site est protégé par l'authentification Vercel.
+
+Restent à saisir par le propriétaire, en *Sensitive* : `SUPABASE_SECRET_KEY` et `STRIPE_SECRET_KEY` (`sk_test_…`). Le portail client Stripe se règle avec `scripts/stripe-setup-portal.mjs --site-url <adresse de la préprod>`.
+
 1. Créer le projet `tamurt-jobs-preprod` (framework Next.js, Node.js 22, région de fonctions proche de Supabase, par exemple Paris `cdg1`), lié au dépôt GitHub.
    - `vercel.json` désactive les déploiements automatiques de Vercel (`git.deploymentEnabled: false`) : c'est GitHub Actions qui déploie, **après** la réussite des tests.
 2. Variables d'environnement du projet (cible *Production*, puisque la préproduction est le déploiement « production » de ce projet) :
@@ -84,7 +93,9 @@ SUPABASE_ACCESS_TOKEN=<jeton> node scripts/supabase-apply-migrations.mjs --proje
    - e-mails : `EMAIL_PROVIDER=resend`, `RESEND_API_KEY` (*Sensitive*), `EMAIL_FROM` ;
    - `CRON_SECRET` (32 caractères aléatoires ou plus, *Sensitive*) ;
    - anti-robot : clés de test publiques de Cloudflare (`NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA`, `TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA`), ou de vraies clés ;
-   - protection : `PREPROD_BASIC_AUTH=identifiant:mot de passe` (*Sensitive*), choisis par toi.
+   - protection d'accès :
+     - soit **l'authentification Vercel sur tous les déploiements**, retenue le 26/11 : seuls les comptes de ton équipe Vercel entrent. Stripe et les tests passent par le contournement réservé à l'automatisation ;
+     - soit `PREPROD_BASIC_AUTH=identifiant:mot de passe` (*Sensitive*), si des testeurs extérieurs à l'équipe doivent entrer.
 3. Domaine `preprod.<domaine>` (enregistrement CNAME indiqué par Vercel), HTTPS automatique.
 4. GitHub → Settings → Environments → `preprod` :
    - variables `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` (Vercel → Settings → General) et `PREPROD_URL` ;

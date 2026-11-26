@@ -13,6 +13,10 @@
 //
 // Test passwords are random, generated at each run, and written only to the --out file
 // (default: preprod-accounts.local.txt, git-ignored). Never commit or paste them.
+//
+// Behind an HTTPS proxy that injects the secret key into the "apikey" header (cloud session),
+// pass SUPABASE_SECRET_KEY=sb_secret_proxy_injected: the client then sends the key only in
+// "apikey" (no duplicate "Authorization: Bearer" carrying the placeholder).
 import { randomBytes } from "node:crypto";
 import { writeFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
@@ -38,7 +42,22 @@ if (!ref) stop("--preprod <project-ref> is required.");
 if (!isLocal && url !== `https://${ref}.supabase.co`) stop(`the target ${url} is not the pre-production project ${ref}.`);
 if (process.env.APP_ENV === "production") stop("refusing to run with APP_ENV=production.");
 
-const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+const PROXY_PLACEHOLDER = "sb_secret_proxy_injected";
+const viaProxy = key === PROXY_PLACEHOLDER;
+const db = createClient(url, key, {
+  auth: { persistSession: false, autoRefreshToken: false },
+  ...(viaProxy
+    ? {
+        global: {
+          fetch: (input, init = {}) => {
+            const headers = new Headers(init.headers);
+            if (headers.get("authorization") === `Bearer ${PROXY_PLACEHOLDER}`) headers.delete("authorization");
+            return fetch(input, { ...init, headers });
+          },
+        },
+      }
+    : {}),
+});
 
 const live = await db.from("subscriptions").select("id", { count: "exact", head: true }).eq("livemode", true);
 if (live.error) stop(`cannot inspect the database: ${live.error.message}`);
