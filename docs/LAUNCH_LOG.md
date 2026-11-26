@@ -169,3 +169,24 @@ Aussi :
   - Résultat : 25 fichiers appliqués, **30 entrées d'historique, aucune manquante, aucune erreur**.
   - L'API numérote elle-même les versions : la comparaison se fait par nom, ce qui est documenté dans `docs/DEPLOYMENT.md`.
 - **Vérification du contenu par SQL en lecture : impossible avec ce jeton.** Il faudrait la permission `database_read`, non indispensable. Le contenu (villes, pays, tarif, compartiments de fichiers, réglages) sera contrôlé sur le site de préproduction.
+
+## 26 novembre 2026 — préproduction Vercel (configuration automatique)
+
+- **Projet Vercel** `tamurt-jobs-preprod`, créé par le propriétaire et lié au dépôt (branche `claude/jobs-lancement`). Réglé par l'API :
+  - Node.js 22 (au lieu de 26) et région Paris `cdg1` (au lieu de Washington) ;
+  - adresse : `https://tamurt-jobs-preprod.vercel.app`.
+- **Protection d'accès conservée :** authentification Vercel sur **tous** les déploiements. Un contournement réservé à l'automatisation (webhook Stripe, tests) a été créé ; sa valeur est uniquement dans `preprod-access.local.txt`, ignoré par Git.
+- **`scripts/vercel-preprod-setup.mjs`** (idempotent, aucun secret affiché) :
+  - variables publiques : `APP_ENV=preprod`, adresse du site, URL Supabase, clés de **test** Turnstile, registres, `ADS_MODE=placeholder`, taxe Stripe désactivée, `EMAIL_PROVIDER=none` ;
+  - `CRON_SECRET` généré, enregistré en *Sensitive* ;
+  - webhook Stripe **de test** créé vers la préproduction (18 événements, version d'API `2026-10-28.endive`), son secret copié directement dans Vercel.
+- **Portail client Stripe de test :** adresse de retour et liens vers les conditions et la confidentialité de la préproduction.
+- **Base de préproduction vérifiée** avec la clé secrète du projet, transmise par formulaire sécurisé et injectée dans l'en-tête `apikey` :
+  - référentiel : 44 326 villes, 204 régions, 9 pays, 6 devises ;
+  - tarif `job_monthly` à 5,95 € hors taxe ;
+  - réglages et sécurité : 16 réglages, publicité désactivée, double authentification exigée, compartiments de fichiers corrects, publication payante fermée partout, aucun compte.
+- **Comptes de recette et données de démonstration** (`scripts/preprod-seed.mjs`, adapté à la clé injectée) :
+  - 6 comptes (candidat, recruteur vérifié, super administrateur, modération, finance, entreprise de démonstration) et 6 offres « (démo) » ;
+  - mots de passe aléatoires dans `preprod-accounts.local.txt` (droits 600, ignoré par Git).
+- **Non fait volontairement :** ouvrir la publication payante de la France en préproduction. C'est une dérogation de conformité, décision du propriétaire (back-office → Pays → FR), même en préproduction.
+- **Reste avant le premier déploiement :** `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (publique), `SUPABASE_SECRET_KEY` et `STRIPE_SECRET_KEY` à saisir dans Vercel par le propriétaire, ainsi que les réglages d'authentification Supabase.
