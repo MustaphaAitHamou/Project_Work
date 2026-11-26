@@ -54,7 +54,10 @@ Pour que je puisse tester l'envoi réel depuis cette session, la même clé est 
 | Rate limits → e-mails par heure | 30 au moins (préproduction) | selon le trafic (le SMTP Resend lève la limite par défaut) |
 
 - Les liens des modèles pointent vers `{{ .SiteURL }}/auth/confirm?token_hash=…`. Ils fonctionnent même si l'e-mail est ouvert sur un autre appareil, et ramènent la personne dans sa langue.
-- Avec le jeton d'accès Supabase, je pousse ces réglages et les modèles avec `supabase config push`, après avoir montré les différences avec `supabase config diff`. Le mot de passe SMTP reste saisi par toi dans le tableau de bord.
+- `scripts/supabase-auth-config.mjs` applique ces réglages et les trois modèles par l'API.
+  - Il exige un jeton portant **deux** permissions, `auth_config_write` **et** `project_admin_write`. Cette dernière est large : elle permet aussi de mettre en pause, restaurer ou supprimer le projet. Constaté le 26/11 : un jeton « Auth » seul est refusé.
+  - Sinon, saisir les réglages à la main dans le tableau de bord (tableau ci-dessus).
+  - Le mot de passe SMTP reste saisi par toi dans le tableau de bord.
 
 ## 4. Ce qui est vérifié
 
