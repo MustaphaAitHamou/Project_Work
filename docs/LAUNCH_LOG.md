@@ -157,3 +157,15 @@ Aussi :
   - Publication payante fermée partout, tarif de référence présent, publicité désactivée, double authentification du back-office exigée.
 - `supabase db lint` : aucune erreur. Types générés à jour.
 - Unitaires 131/131, intégration 49/49, typage et lint verts.
+
+## 26 novembre 2026 — Supabase de préproduction
+
+- **Jeton Supabase.** Le jeton fourni par le propriétaire est limité au projet `tamurt-jobs-preprod`, avec la permission *Migrations* en lecture-écriture. Il est valide.
+  - Mes premiers appels (liste des projets et des organisations) étaient hors de sa portée. Ma demande d'un nouveau jeton plus large était donc inutile ; elle est retirée.
+  - Seule la référence du projet manquait : `swaxeycawxtaxflfepqa`.
+- **Migrations appliquées** avec `scripts/supabase-apply-migrations.mjs`, nouveau script qui passe par l'API de gestion, sans mot de passe de base :
+  - 17 migrations appliquées, puis refus du fichier des villes (2 Mo) : « Request body is too large ». Le script s'est arrêté comme prévu.
+  - Le script a été adapté pour découper ce fichier en 6 parties de 190 à 360 Ko, entre deux instructions, puis il a été relancé.
+  - Résultat : 25 fichiers appliqués, **30 entrées d'historique, aucune manquante, aucune erreur**.
+  - L'API numérote elle-même les versions : la comparaison se fait par nom, ce qui est documenté dans `docs/DEPLOYMENT.md`.
+- **Vérification du contenu par SQL en lecture : impossible avec ce jeton.** Il faudrait la permission `database_read`, non indispensable. Le contenu (villes, pays, tarif, compartiments de fichiers, réglages) sera contrôlé sur le site de préproduction.

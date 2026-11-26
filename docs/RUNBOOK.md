@@ -9,12 +9,10 @@ Procédures à suivre pour le lancement et en cas d'incident.
 3. Migrations appliquées **avant** la promotion du code qui en dépend :
 
 ```bash
-npx supabase link --project-ref <ref-production>
+SUPABASE_ACCESS_TOKEN=<jeton du projet de production> node scripts/supabase-apply-migrations.mjs --project-ref <ref-production> --confirm-ref <ref-production>
 ```
 
-```bash
-npx supabase db push
-```
+Lancer d'abord avec `--dry-run` pour voir la liste. Le script n'applique que les migrations absentes de l'historique et s'arrête à la première erreur.
 
    Ne jamais utiliser `--include-seed` sur la préproduction ni la production : `supabase/seed.sql` est réservé au poste local et aux tests (il désactive la double authentification du back-office).
 4. Déploiement de production : GitHub → Actions → **Production (Iglao)**, depuis `main`, puis ton approbation ([deploy/iglao/README.md](../deploy/iglao/README.md)). Ensuite, les vérifications de la section 4.

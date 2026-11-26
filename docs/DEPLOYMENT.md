@@ -46,15 +46,20 @@ La construction n'a besoin que des réglages publics (`NEXT_PUBLIC_*`, `APP_ENV`
 ## 2. Supabase
 
 1. Créer le projet. **Choisir la région** en fonction des marchés et de l'analyse des transferts de données (par exemple une région de l'Union européenne pour les utilisateurs européens) — décision à valider avec le conseil en protection des données.
-2. Appliquer les migrations (le fichier `seed.sql` n'est **pas** appliqué par cette commande) :
+2. Appliquer les migrations avec `scripts/supabase-apply-migrations.mjs`. Le script :
+   - passe par l'API de gestion de Supabase, sans mot de passe de base ;
+   - suffit avec un jeton personnel **limité au projet** et à la permission *Migrations* en lecture-écriture ;
+   - n'applique jamais `seed.sql`.
 
 ```bash
-npx supabase link --project-ref <référence-du-projet>
+SUPABASE_ACCESS_TOKEN=<jeton> node scripts/supabase-apply-migrations.mjs --project-ref <référence> --confirm-ref <référence> --dry-run
 ```
 
-```bash
-npx supabase db push
-```
+   Puis la même commande sans `--dry-run`.
+   - L'historique est comparé par **nom de fichier** : une migration déjà appliquée n'est jamais rejouée.
+   - Le gros fichier des villes est envoyé en 6 parties, car l'API refuse les requêtes de plus de quelques centaines de Ko.
+   - L'API numérote elle-même les versions. Ne pas mélanger avec `supabase db push` sur le même projet sans `supabase migration repair` : la CLI compare les numéros de version, pas les noms.
+   - Préproduction `swaxeycawxtaxflfepqa` : les 25 migrations y sont appliquées depuis le 26/11 (30 entrées d'historique, sans erreur).
 
 3. **Authentication → URL configuration** : *Site URL* = `https://<domaine>` ; *Redirect URLs* : `https://<domaine>/auth/confirm`.
 4. **Authentication → Email templates** : reprendre les modèles de `supabase/templates/` (confirmation, récupération, changement d'adresse). Ils pointent vers `{{ .SiteURL }}/auth/confirm` et sont multilingues.

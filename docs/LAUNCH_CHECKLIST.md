@@ -54,7 +54,7 @@ Branche de travail : `claude/jobs-lancement`, partie de `claude/jobs-inscription
 | --- | --- | --- | --- | --- |
 | INF-01 | Distinction préprod / production indépendante de l'hébergeur (`APP_ENV`) | ✅ Terminé et testé | Bloquant | `APP_ENV` prime sur Vercel ; en production Iglao, `APP_ENV=production` explicite. Tests unitaires `app-env`, E2E en `preprod`. |
 | INF-02 | Préprod non indexée et protégée par mot de passe | 🔄 En cours | Bloquant | En-tête `X-Robots-Tag` et authentification HTTP Basic optionnelle. |
-| INF-03 | Migrations appliquées sur Supabase préprod puis prod | ⏳ En attente de toi | Bloquant | Dépend d'ACC-03. Migration d'anonymisation avant le code. |
+| INF-03 | Migrations appliquées sur Supabase préprod puis prod | 🔄 En cours | Bloquant | **Préprod `swaxeycawxtaxflfepqa` : 25 migrations appliquées le 26/11** par `scripts/supabase-apply-migrations.mjs` (jeton limité au projet, permission Migrations), 30 entrées d'historique, aucune erreur. Contenu à confirmer en ligne (le jeton n'a pas la lecture SQL, non indispensable). Prod : quand le projet existera. |
 | INF-04 | Configuration Auth Supabase (URL du site, redirections, SMTP, anti-robot) | ⏳ En attente de toi | Bloquant | |
 | INF-05 | Variables d'environnement : Vercel (préprod), `/etc/tamurt-jobs/env` (prod), GitHub (réglages publics) | ⏳ En attente de toi | Bloquant | Listes exactes : `docs/DEPLOYMENT.md` §3, `deploy/iglao/env.production.example`, `deploy/iglao/README.md` §6. |
 | INF-06 | Domaine, DNS, HTTPS | ⏳ En attente de toi | Bloquant | Préprod : CNAME vers Vercel. Prod : enregistrement A vers le VPS, certificat Let's Encrypt (certbot, procédure §5 du README Iglao). |
