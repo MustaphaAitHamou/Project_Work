@@ -1,5 +1,6 @@
-# Tamurt Jobs — scheduled jobs (/etc/cron.d/tamurt-jobs). Times in UTC (server clock in UTC),
-# same schedule as vercel.json.
+# Tamurt Jobs — scheduled jobs of the PRODUCTION server (/etc/cron.d/tamurt-jobs). Times in UTC
+# (server clock in UTC). This is the reference schedule. vercel.json only serves the Vercel
+# pre-production, where the Hobby plan allows one run per day per job.
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 

@@ -190,3 +190,16 @@ Aussi :
   - mots de passe aléatoires dans `preprod-accounts.local.txt` (droits 600, ignoré par Git).
 - **Non fait volontairement :** ouvrir la publication payante de la France en préproduction. C'est une dérogation de conformité, décision du propriétaire (back-office → Pays → FR), même en préproduction.
 - **Reste avant le premier déploiement :** `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (publique), `SUPABASE_SECRET_KEY` et `STRIPE_SECRET_KEY` à saisir dans Vercel par le propriétaire, ainsi que les réglages d'authentification Supabase.
+
+## 27 novembre 2026 — premier déploiement Vercel
+
+- Échec du déploiement `dpl_H2TF3s74coNuchUt9mUk35kQWQKJ` (commit c28499f) : « Hobby accounts are limited to daily cron jobs. This cron expression (7 * * * *) would run more than once per day ». L'équipe Vercel est en **Hobby**.
+- **Correctifs :**
+  - `vercel.json` (préproduction seulement) : maintenance 03:07, e-mails 04:15, alertes 05:35 (UTC), une fois par jour chacune ; les routes restent identiques ;
+  - nouveau `scripts/preprod-run-cron.mjs` : déclenchement manuel, avec le secret des tâches et le contournement Vercel, refusé hors préproduction ;
+  - production Iglao **inchangée** (`deploy/iglao/cron/tamurt-jobs`) : seul son commentaire d'en-tête est corrigé ;
+  - nouveau test unitaire `schedules` : tâches au plus quotidiennes dans `vercel.json`, calendrier horaire et toutes les 10 minutes conservé pour Iglao.
+- **Vérifications :**
+  - construction avec les réglages publics de préproduction et sans secret : réussie, 224 pages ;
+  - unitaires et typage verts ;
+  - les trois variables à saisir par le propriétaire sont présentes dans Vercel.

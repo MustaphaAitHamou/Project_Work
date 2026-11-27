@@ -100,7 +100,15 @@ Restent à saisir par le propriétaire, en *Sensitive* : `SUPABASE_SECRET_KEY` e
 4. GitHub → Settings → Environments → `preprod` :
    - variables `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` (Vercel → Settings → General) et `PREPROD_URL` ;
    - secret `VERCEL_TOKEN` (jeton Vercel dédié au déploiement).
-5. Tâches planifiées (`vercel.json`) : maintenance horaire, e-mails toutes les 10 minutes, alertes quotidiennes, appelées avec `Authorization: Bearer <CRON_SECRET>`.
+5. Tâches planifiées (`vercel.json`) : **une exécution par jour** pour chacune (maintenance 03:07, file d'e-mails 04:15, alertes 05:35, en UTC), parce que l'offre Hobby refuse toute tâche plus fréquente (déploiement du 27/11 en échec : « Hobby accounts are limited to daily cron jobs »).
+   - Rien n'est perdu : les e-mails partent juste après chaque action, la tâche ne sert qu'aux reprises.
+   - Pour les tests, déclenchement manuel sécurisé, avec le secret des tâches et le contournement Vercel, lus dans `preprod-access.local.txt` :
+
+```bash
+node scripts/preprod-run-cron.mjs maintenance
+```
+
+   - La production Iglao garde son calendrier : maintenance toutes les heures, e-mails toutes les 10 minutes (`deploy/iglao/cron/tamurt-jobs`). Un test unitaire vérifie les deux.
 6. Webhook Stripe **de test** vers `https://preprod.<domaine>/api/stripe/webhook` (voir section 4). La protection par mot de passe ne s'applique pas à `/api`, donc Stripe peut l'atteindre.
 
 ## 3 bis. Iglao (production)
