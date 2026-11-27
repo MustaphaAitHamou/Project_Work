@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { initialActionState } from "@/lib/action-state";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/forms/submit-button";
+import { Turnstile } from "@/components/forms/turnstile";
 import { FormMessage } from "@/components/forms/form-message";
 import { resendConfirmationAction } from "../actions";
 
@@ -23,6 +24,7 @@ export function ResendForm() {
         <Input id="resend-email" name="email" type="email" autoComplete="email" required />
         <SubmitButton variant="outline">{t("resend")}</SubmitButton>
       </div>
+      <Turnstile />
     </ActionForm>
   );
 }

@@ -133,6 +133,9 @@ export async function forgotPasswordAction(_prev: ActionState, formData: FormDat
     redirectTo: siteUrl(`/auth/confirm`),
     captchaToken: (formData.get("captchaToken") as string) || undefined,
   });
+  // The anti-robot check happens before any account lookup: saying it failed reveals nothing,
+  // and the visitor is not left waiting for an e-mail that was never sent.
+  if (error?.code === "captcha_failed") return failure(t("captchaFailed"));
   if (error && error.status !== 429) console.error("resetPasswordForEmail", error.code);
   // Generic answer: never reveal whether an account exists.
   return success(t("resetEmailSent"));
@@ -165,6 +168,12 @@ export async function resendConfirmationAction(_prev: ActionState, formData: For
   if (!email.success) return failure(t("validation.email"));
   if (!(await rateLimit(`resend:${await ipKey()}`, 5, 3600))) return failure(t("rateLimited"));
   const supabase = await createClient();
-  await supabase.auth.resend({ type: "signup", email: email.data, options: { emailRedirectTo: siteUrl("/auth/confirm") } });
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email: email.data,
+    options: { emailRedirectTo: siteUrl("/auth/confirm"), captchaToken: (formData.get("captchaToken") as string) || undefined },
+  });
+  if (error?.code === "captcha_failed") return failure(t("captchaFailed"));
+  if (error && error.status !== 429) console.error("resend confirmation", error.code);
   return success(t("confirmationResent"));
 }
