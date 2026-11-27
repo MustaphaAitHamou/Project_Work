@@ -203,3 +203,24 @@ Aussi :
   - construction avec les réglages publics de préproduction et sans secret : réussie, 224 pages ;
   - unitaires et typage verts ;
   - les trois variables à saisir par le propriétaire sont présentes dans Vercel.
+
+## 27 novembre 2026 — anti-robot Cloudflare Turnstile
+
+- Revue du code : chaque formulaire d'authentification transmet le jeton à Supabase, et le signalement anonyme est vérifié par l'application (`siteverify`). **3 défauts corrigés :**
+  1. Le widget n'était jamais réinitialisé. Un jeton ne sert qu'une fois : après un mauvais mot de passe, la deuxième tentative aurait renvoyé un jeton usé, refusé par Supabase, jusqu'au rechargement de la page. Le widget est maintenant réinitialisé après chaque envoi, et le jeton est vidé à expiration ou en cas d'échec.
+  2. Le renvoi de l'e-mail de confirmation n'avait ni widget ni jeton : une fois la protection activée, il aurait échoué sans message.
+  3. Mot de passe oublié : un jeton refusé était masqué par la réponse générique « e-mail envoyé ». Il est désormais signalé, sans rien révéler sur l'existence du compte.
+- Tests unitaires ajoutés :
+  - `auth-captcha` (5 tests) : transmission du jeton pour l'inscription, la connexion, la réinitialisation et le renvoi, et messages clairs en cas de refus ;
+  - `turnstile-verify` (3 tests) : contrôle serveur ; un jeton absent, refusé ou invérifiable est refusé.
+  - Unitaires : 141/141.
+- Déploiement de préproduction `dpl_6tBgS582Eko4RnGDe2cRhnGweSuH` (commit b59e68c), déclenché par l'API :
+  - sans contournement, renvoi vers la connexion Vercel : la protection est active ;
+  - `/api/health` : base OK, `preprod`, Stripe en test, anti-robot configuré ;
+  - en-têtes : `noindex` et CSP ouverte à Cloudflare.
+- Réseau de la session : ajout de `tamurt-jobs-preprod.vercel.app` et `challenges.cloudflare.com`, approuvé par le propriétaire.
+- Nouvelle suite **`tests/preprod`**, avec `playwright.preprod.config.ts`. Elle vise le site déployé, avec le contournement d'automatisation ajouté au seul hôte de la préproduction. Le scénario Turnstile passe **4/4** avec le vrai widget de Cloudflare (clés de test) :
+  - connexion : jeton transmis à chaque tentative, nouveau jeton après un mauvais mot de passe, puis connexion réussie ;
+  - mot de passe oublié et renvoi de confirmation : jeton transmis ;
+  - inscription : jeton transmis (envoi intercepté, aucun compte créé) ;
+  - signalement anonyme : contrôle serveur accepté. Un signalement de test, « à classer sans suite », reste en base de préproduction.
