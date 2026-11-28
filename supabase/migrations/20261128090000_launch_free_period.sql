@@ -929,3 +929,28 @@ begin
   return jsonb_build_object('subscription_id', v_sub.id, 'job_id', v_sub.job_id, 'job_result', v_result);
 end;
 $$;
+
+-- -----------------------------------------------------------------------------
+-- E-mail outbox: bulk mailings (launch-offer reminders, job alert digests) after the
+-- transactional e-mails waiting at the same time.
+-- -----------------------------------------------------------------------------
+create or replace function public.email_claim_batch(p_limit integer default 25)
+returns setof public.email_outbox
+language sql volatile
+security definer
+set search_path = ''
+as $$
+  update public.email_outbox o set status = 'sending', locked_at = now(), attempts = o.attempts + 1
+  where o.id in (
+    select id from public.email_outbox
+    where (status = 'pending' or (status = 'failed' and attempts < 8)
+           or (status = 'sending' and locked_at < now() - interval '10 minutes'))
+      and send_after <= now()
+    -- Transactional e-mails first: a batch of reminders or alert digests never delays the
+    -- confirmation of an application or a payment.
+    order by (template in ('free_period_ending', 'job_alert_digest')), created_at
+    limit least(greatest(p_limit, 1), 100)
+    for update skip locked
+  )
+  returning o.*
+$$;

@@ -431,6 +431,27 @@ describe("launch offer: free publication until 31/12/2026 23:59:59 Paris", () =>
     expect(await outbox("free_period_ending", company.companyId)).toBe(2);
   });
 
+  it("e-mail outbox: a batch of reminders never delays a transactional e-mail", async () => {
+    const client = await db().connect();
+    try {
+      await client.query("begin");
+      // Only the two rows below are due in this transaction (rolled back at the end).
+      await client.query(`update public.email_outbox set send_after = now() + interval '1 day' where status in ('pending', 'failed', 'sending')`);
+      await client.query(
+        `insert into public.email_outbox (to_email, template, created_at) values
+           ('rappel@example.test', 'free_period_ending', now() - interval '1 hour'),
+           ('candidat@example.test', 'application_submitted', now())`,
+      );
+      const first = await client.query(`select template from public.email_claim_batch(1)`);
+      expect(first.rows).toEqual([{ template: "application_submitted" }]);
+      const second = await client.query(`select template from public.email_claim_batch(1)`);
+      expect(second.rows).toEqual([{ template: "free_period_ending" }]);
+    } finally {
+      await client.query("rollback");
+      client.release();
+    }
+  });
+
   it("back-office end date: invalid values refused; an extension extends the adverts online, a shortening does not cut them", async () => {
     const admin = await (await import("../../helpers/supabase")).createTestUser("candidate", { firstName: "Su", lastName: "Peradmin" });
     await grantAdminRole(admin.id, "super_admin");
