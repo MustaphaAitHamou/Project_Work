@@ -224,3 +224,15 @@ Aussi :
   - mot de passe oublié et renvoi de confirmation : jeton transmis ;
   - inscription : jeton transmis (envoi intercepté, aucun compte créé) ;
   - signalement anonyme : contrôle serveur accepté. Un signalement de test, « à classer sans suite », reste en base de préproduction.
+
+## 28 novembre 2026 — vraies clés Turnstile en préproduction
+
+- Le propriétaire a remplacé les clés de test par celles de son widget, à 00:12 UTC.
+- Déploiement `dpl_EVDHDqySBMME4x6G3jJ3L9LVkAEV` (commit b59e68c) : **Ready**, créé à 00:14, donc construit avec la nouvelle clé de site (`0x4AAA…`).
+- **Constat sur le site déployé :** le widget réel s'affiche sur `tamurt-jobs-preprod.vercel.app`, en français : « Vérifiez que vous êtes humain » (capture d'écran). Aucune erreur de domaine : le domaine de préproduction est bien autorisé dans le widget.
+- **Les 4 tests automatiques n'obtiennent plus de jeton.** Face au navigateur automatisé, Cloudflare présente un défi interactif au lieu d'un jeton automatique. Indices relevés à l'intérieur du cadre de Cloudflare : « No available adapters », sondes refusées.
+  - C'est le comportement attendu contre les robots.
+  - Une tentative de cocher la case automatiquement a été **refusée par les garde-fous de la session**, à juste titre : ce serait automatiser la résolution d'un défi anti-robot.
+  - Les tests sont désormais ignorés avec `PREPROD_TURNSTILE_KEYS=real` ; la vérification avec les vraies clés est une étape manuelle (`docs/RECETTE.md`, T-10).
+- La transmission des jetons reste prouvée par les 4 tests du 27/11 : même code, même chaîne, seules les clés ont changé.
+- À corriger par le propriétaire : `TURNSTILE_SECRET_KEY` est enregistrée en **Plain** dans Vercel, donc lisible ; la passer en **Sensitive**.

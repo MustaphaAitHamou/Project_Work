@@ -10,6 +10,12 @@ import type { Page, Request } from "@playwright/test";
  */
 const candidate = () => preprodAccount("recette.candidat@example.test");
 
+// With the owner's REAL widget keys, Cloudflare shows an interactive challenge to automated
+// browsers (observed on 28/11: « Vérifiez que vous êtes humain »): no token can be obtained
+// automatically, by design. These checks then run with Cloudflare's test keys only, and the
+// real keys are checked by a person (docs/RECETTE.md, T-10).
+test.skip(process.env.PREPROD_TURNSTILE_KEYS === "real", "Real Turnstile keys deployed: manual check T-10 in docs/RECETTE.md.");
+
 /** Cloudflare draws the widget in an isolated frame: we check that its area is displayed. */
 async function widgetShown(page: Page, scope = page.locator("body")) {
   const box = scope.getByTestId("turnstile");

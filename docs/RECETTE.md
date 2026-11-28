@@ -131,3 +131,15 @@ Gravité : **bloquant** (empêche le lancement), **majeur** (gêne fortement), *
   - emplacements étiquetés « Publicité » sur les pages publiques seulement ;
   - lien « Paramètres des cookies » en bas de page.
 - [ ] **T-09 E-mails.** Expéditeur, objet, liens et langue corrects ; pas de spam.
+- [ ] **T-10 Anti-robot avec les vraies clés Turnstile** (à faire **avant** d'activer « Enable Captcha protection » dans Supabase, puis juste après).
+  1. Ouvrir `/fr/login` dans un navigateur normal : le widget Cloudflare s'affiche, sans message « domaine non autorisé », et se valide (coche verte, parfois après un clic).
+  2. Fiche d'une offre « (démo) » → **Signaler**, sans être connecté → envoyer. Le message « Merci, votre signalement a été transmis » prouve que la clé de site et la clé secrète du serveur forment bien une paire. La clé secrète est celle de `TURNSTILE_SECRET_KEY`.
+  3. Activer la protection dans Supabase avec **la même clé secrète**, puis, dans une fenêtre privée :
+     - se connecter avec un compte de recette ;
+     - tester « Mot de passe oublié » ;
+     - tester l'inscription d'une adresse réelle.
+
+     Tout doit passer.
+  4. En cas de refus (« La vérification anti-robot a échoué ») : désactiver l'option dans Supabase, ce qui prend effet immédiatement, puis le signaler.
+
+  Les tests automatiques `tests/preprod/turnstile.spec.ts` ne peuvent pas faire ces vérifications avec les vraies clés. Cloudflare présente un défi interactif aux navigateurs automatisés, par conception. Les lancer avec `PREPROD_TURNSTILE_KEYS=real` pour les ignorer proprement.
