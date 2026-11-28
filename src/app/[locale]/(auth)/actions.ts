@@ -13,10 +13,37 @@ import { routing } from "@/i18n/routing";
 import { passwordSchema, TERMS_VERSION } from "@/lib/validation/auth";
 import { getSessionUser, spacePath } from "@/lib/auth/session";
 import { classifySignUpResult, signupFailureMessages, validateSignUp, type SignupFailureKind } from "@/lib/auth/signup-errors";
+import { captchaFailure, captchaMessageKey, captchaTokenFrom, isCaptchaError, turnstileWidgetEnabled } from "@/lib/auth/captcha";
 
 function localeFrom(formData: FormData): string {
   const l = String(formData.get("locale") ?? "");
   return (routing.locales as readonly string[]).includes(l) ? l : routing.defaultLocale;
+}
+
+type AuthT = (key: never, values?: never) => string;
+
+/**
+ * The anti-robot widget is shown but the form came without a token (sent before the widget
+ * finished, or without JavaScript): Supabase would refuse it, so it is not called at all.
+ */
+function missingCaptcha(token: string | undefined): boolean {
+  return turnstileWidgetEnabled() && !token;
+}
+
+/**
+ * A token refused by Supabase Auth: the cause is logged (Cloudflare codes only, no personal data)
+ * and turned into a message the visitor can act on. Outside production the technical detail is
+ * added, so that a configuration problem (secret key of another widget…) shows at once.
+ */
+function captchaRefusal(error: Parameters<typeof captchaFailure>[0], action: string) {
+  const { reason, detail } = captchaFailure(error);
+  const log = reason === "misconfigured" || reason === "unavailable" ? console.error : console.warn;
+  log(`[captcha] ${action}: refused by Supabase Auth (${reason}: ${detail})`);
+  return { key: captchaMessageKey(reason), technical: isProductionDeployment() ? undefined : detail };
+}
+
+function withTechnical(t: AuthT, message: string, technical: string | undefined): string {
+  return technical ? `${message} ${t("errors.technicalDetail" as never, { code: technical } as never)}` : message;
 }
 
 export type SignupResultData = {
@@ -46,6 +73,8 @@ export async function signUpAction(_prev: ActionState, formData: FormData): Prom
     return failure(t(checked.message as never), fieldErrors);
   }
   const input = checked.data;
+  const captchaToken = captchaTokenFrom(formData);
+  if (missingCaptcha(captchaToken)) return failure(t("captchaMissing"));
   const [ipOk, emailOk] = await Promise.all([
     rateLimit(`signup:${await ipKey()}`, 10, 3600),
     rateLimit(`signup:email:${input.email}`, 5, 3600),
@@ -60,7 +89,7 @@ export async function signUpAction(_prev: ActionState, formData: FormData): Prom
     password: input.password,
     options: {
       emailRedirectTo: siteUrl("/auth/confirm"),
-      captchaToken: (formData.get("captchaToken") as string) || undefined,
+      captchaToken,
       data: {
         account_type: input.accountType,
         first_name: input.firstName,
@@ -72,6 +101,10 @@ export async function signUpAction(_prev: ActionState, formData: FormData): Prom
     },
   });
   const outcome = classifySignUpResult(error, data?.user);
+  if (outcome?.kind === "captcha" || isCaptchaError(error)) {
+    const refusal = captchaRefusal(error, "signUp");
+    return { ...failure(t(refusal.key)), data: { reason: "captcha", technical: refusal.technical } };
+  }
   if (outcome) {
     if (outcome.kind === "server") console.error("signUp failed", outcome.code, error?.status, error?.message);
     const { message, field } = signupFailureMessages(outcome.kind);
@@ -97,6 +130,8 @@ export async function signInAction(_prev: ActionState, formData: FormData): Prom
     password: formData.get("password"),
   });
   if (!parsed.success) return failure(t("invalidCredentials"));
+  const captchaToken = captchaTokenFrom(formData);
+  if (missingCaptcha(captchaToken)) return failure(t("captchaMissing"));
 
   const ip = await ipKey();
   const [ipOk, accountOk] = await Promise.all([
@@ -109,11 +144,15 @@ export async function signInAction(_prev: ActionState, formData: FormData): Prom
   const { data, error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.password,
-    options: { captchaToken: (formData.get("captchaToken") as string) || undefined },
+    // Checked by Supabase Auth only (never here as well: a token is valid once).
+    options: { captchaToken },
   });
   if (error || !data.user) {
     if (error?.code === "email_not_confirmed") return failure(t("emailNotConfirmed"));
-    if (error?.code === "captcha_failed") return failure(t("captchaFailed"));
+    if (isCaptchaError(error)) {
+      const refusal = captchaRefusal(error, "signIn");
+      return failure(withTechnical(t as AuthT, t(refusal.key), refusal.technical));
+    }
     return failure(t("invalidCredentials"));
   }
   const next = safeNextPath(formData.get("next") as string | null, locale);
@@ -127,15 +166,20 @@ export async function forgotPasswordAction(_prev: ActionState, formData: FormDat
   const t = await getTranslations({ locale, namespace: "auth" });
   const email = z.email().safeParse(String(formData.get("email") ?? "").trim().toLowerCase());
   if (!email.success) return failure(t("validation.email"), { email: t("validation.email") });
+  const captchaToken = captchaTokenFrom(formData);
+  if (missingCaptcha(captchaToken)) return failure(t("captchaMissing"));
   if (!(await rateLimit(`reset:${await ipKey()}`, 5, 3600))) return failure(t("rateLimited"));
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email.data, {
     redirectTo: siteUrl(`/auth/confirm`),
-    captchaToken: (formData.get("captchaToken") as string) || undefined,
+    captchaToken,
   });
   // The anti-robot check happens before any account lookup: saying it failed reveals nothing,
   // and the visitor is not left waiting for an e-mail that was never sent.
-  if (error?.code === "captcha_failed") return failure(t("captchaFailed"));
+  if (isCaptchaError(error)) {
+    const refusal = captchaRefusal(error, "resetPassword");
+    return failure(withTechnical(t as AuthT, t(refusal.key), refusal.technical));
+  }
   if (error && error.status !== 429) console.error("resetPasswordForEmail", error.code);
   // Generic answer: never reveal whether an account exists.
   return success(t("resetEmailSent"));
@@ -166,14 +210,19 @@ export async function resendConfirmationAction(_prev: ActionState, formData: For
   const t = await getTranslations({ locale, namespace: "auth" });
   const email = z.email().safeParse(String(formData.get("email") ?? "").trim().toLowerCase());
   if (!email.success) return failure(t("validation.email"));
+  const captchaToken = captchaTokenFrom(formData);
+  if (missingCaptcha(captchaToken)) return failure(t("captchaMissing"));
   if (!(await rateLimit(`resend:${await ipKey()}`, 5, 3600))) return failure(t("rateLimited"));
   const supabase = await createClient();
   const { error } = await supabase.auth.resend({
     type: "signup",
     email: email.data,
-    options: { emailRedirectTo: siteUrl("/auth/confirm"), captchaToken: (formData.get("captchaToken") as string) || undefined },
+    options: { emailRedirectTo: siteUrl("/auth/confirm"), captchaToken },
   });
-  if (error?.code === "captcha_failed") return failure(t("captchaFailed"));
+  if (isCaptchaError(error)) {
+    const refusal = captchaRefusal(error, "resendConfirmation");
+    return failure(withTechnical(t as AuthT, t(refusal.key), refusal.technical));
+  }
   if (error && error.status !== 429) console.error("resend confirmation", error.code);
   return success(t("confirmationResent"));
 }

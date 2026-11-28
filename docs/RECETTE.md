@@ -175,26 +175,24 @@ Gravité : **bloquant** (empêche le lancement), **majeur** (gêne fortement), *
   - emplacements étiquetés « Publicité » sur les pages publiques seulement ;
   - lien « Paramètres des cookies » en bas de page.
 - [ ] **T-09 E-mails.** Expéditeur, objet, liens et langue corrects ; pas de spam.
-- [ ] **T-10 Anti-robot avec les vraies clés Turnstile.**
-  - État au 28/11 :
-    - étapes 1 et 2 faites par toi : widget « Succès ! » sur la connexion, signalement envoyé ;
-    - protection CAPTCHA **active** dans Supabase ;
-    - vérifié automatiquement sur la préproduction réelle (`tests/preprod/captcha-enforced.spec.ts`, 4/4) : sans jeton valide, Supabase refuse la connexion, le mot de passe oublié, l'inscription et le renvoi de confirmation, et l'application refuse le signalement, avec le message « La vérification anti-robot a échoué. Réessayez. ». Aucun compte créé, aucun e-mail envoyé.
-  - **Reste l'étape 3**, avec le vrai widget, dans une fenêtre privée :
-    - connexion d'un compte de recette candidat, puis recruteur ;
-    - « Mot de passe oublié » vers **ton** adresse ;
-    - inscription d'une adresse à toi.
+- [ ] **T-10 Anti-robot avec les vraies clés Turnstile et la protection CAPTCHA de Supabase active.**
+  - **Prérequis : une seule paire de clés.** Le widget Cloudflare dont la clé de site est compilée dans la préproduction (elle commence par `0x4AAAAAAG`) a **une** clé secrète. Elle doit être saisie à l'identique :
+    - dans Vercel (`TURNSTILE_SECRET_KEY`), pour le signalement anonyme ;
+    - dans Supabase → Authentication → Attack Protection → Turnstile, pour la connexion, l'inscription, le mot de passe oublié et le renvoi.
 
-    Sans SMTP configuré, Supabase n'envoie qu'aux membres de ton équipe Supabase, au plus 2 e-mails par heure (voir [EMAIL.md](EMAIL.md) § 3.3).
-  - Procédure d'origine :
-  1. Ouvrir `/fr/login` dans un navigateur normal : le widget Cloudflare s'affiche, sans message « domaine non autorisé », et se valide (coche verte, parfois après un clic).
-  2. Fiche d'une offre « (démo) » → **Signaler**, sans être connecté → envoyer. Le message « Merci, votre signalement a été transmis » prouve que la clé de site et la clé secrète du serveur forment bien une paire. La clé secrète est celle de `TURNSTILE_SECRET_KEY`.
-  3. Activer la protection dans Supabase avec **la même clé secrète**, puis, dans une fenêtre privée :
-     - se connecter avec un compte de recette ;
-     - tester « Mot de passe oublié » ;
-     - tester l'inscription d'une adresse réelle.
+    Je peux le contrôler sans afficher aucun secret, en comparant leurs empreintes SHA-256 (l'API de Supabase ne renvoie que l'empreinte).
+  - **Dans une fenêtre privée**, sur `https://tamurt-jobs-preprod.vercel.app/fr/login` :
+    1. le bouton « Se connecter » reste grisé, sous « Vérification anti-robot en cours… », jusqu'au « Succès ! » du widget ;
+    2. connexion d'un compte de recette candidat, recruteur, puis administrateur : l'espace s'ouvre (pour l'administrateur, le code de l'application d'authentification est ensuite demandé) ;
+    3. « Mot de passe oublié » et inscription vers **ton** adresse. Sans SMTP, Supabase n'envoie qu'aux membres de ton équipe, au plus 2 e-mails par heure ([EMAIL.md](EMAIL.md) § 3.3).
+  - **En cas de refus**, la préproduction (jamais la production) ajoute au message le code renvoyé par Cloudflare :
 
-     Tout doit passer.
-  4. En cas de refus (« La vérification anti-robot a échoué ») : désactiver l'option dans Supabase, ce qui prend effet immédiatement, puis le signaler.
+    | Code après « Détail technique » | Cause | Que faire |
+    | --- | --- | --- |
+    | `invalid-input-response` | jeton refusé avec le secret enregistré dans Supabase : ce n'est pas le secret du widget affiché | coller dans Supabase la clé secrète du widget `0x4AAAAAAG…` |
+    | `invalid-input-secret` | le secret enregistré dans Supabase n'est pas une clé secrète Turnstile valide | idem |
+    | `timeout-or-duplicate` (message « a expiré ou a déjà servi ») | jeton de plus de 300 secondes, ou déjà utilisé | rien : le widget se relance seul, réessayer au « Succès ! » |
+    | message « Attendez la fin de la vérification » | aucun jeton dans le formulaire | attendre le « Succès ! » |
 
-  Les tests automatiques `tests/preprod/turnstile.spec.ts` ne peuvent pas faire ces vérifications avec les vraies clés. Cloudflare présente un défi interactif aux navigateurs automatisés, par conception. Les lancer avec `PREPROD_TURNSTILE_KEYS=real` pour les ignorer proprement.
+  - Si la connexion reste bloquée, la protection peut être désactivée **temporairement** dans Supabase (effet immédiat), le temps de corriger le secret, puis réactivée.
+  - Contrôle automatique sur la préproduction réelle : `tests/preprod/captcha-enforced.spec.ts`. Il vérifie que, sans jeton, aucun envoi n'est possible. Avec un jeton forgé, Supabase doit le refuser après avoir interrogé Cloudflare, avec le code `invalid-input-response`. Le code `invalid-input-secret` signalerait un secret invalide dans Supabase. Le vrai défi de Cloudflare n'est jamais résolu automatiquement : le parcours réussi reste une vérification manuelle.

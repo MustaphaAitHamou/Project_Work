@@ -19,9 +19,12 @@ export async function verifyTurnstile(token: string | null | undefined): Promise
       body,
       signal: AbortSignal.timeout(5000),
     });
-    const json = (await res.json()) as { success?: boolean };
+    const json = (await res.json()) as { success?: boolean; "error-codes"?: string[] };
+    // Cloudflare's reason (e.g. timeout-or-duplicate, invalid-input-secret), never the token or key.
+    if (json.success !== true) console.warn(`[captcha] application check refused: ${(json["error-codes"] ?? []).join(", ") || "unknown"}`);
     return json.success === true;
   } catch {
+    console.warn("[captcha] application check: Cloudflare unreachable");
     return false;
   }
 }

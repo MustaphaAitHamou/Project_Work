@@ -11,6 +11,11 @@ CV et profils des candidats, justificatifs de vérification des entreprises, don
 ### Authentification et comptes
 - Supabase Auth : confirmation d'e-mail obligatoire, mot de passe de 10 caractères minimum avec minuscules, majuscules et chiffres, changement d'adresse doublement confirmé.
 - Limitation des tentatives (connexion, inscription, réinitialisation, signalements, candidatures) côté base de données ; anti-robot Cloudflare Turnstile lorsqu'il est configuré.
+- Turnstile : chaque jeton n'est vérifié **qu'une fois**, car Cloudflare refuse un jeton déjà utilisé ou de plus de 300 secondes :
+  - par Supabase Auth pour la connexion, l'inscription, le mot de passe oublié et le renvoi de confirmation ;
+  - par l'application (`verifyTurnstile`) pour le signalement anonyme.
+
+  Le bouton d'envoi reste inactif tant que le widget n'a pas émis de jeton. Le jeton est retiré dès l'envoi, et le widget relancé pour la tentative suivante. Un formulaire arrivé sans jeton est refusé sans appeler Supabase. La cause d'un refus (codes de Cloudflare, jamais le jeton ni l'adresse) est journalisée. Hors production, elle est aussi affichée. Une seule paire de clés : la clé secrète du widget va dans Vercel **et** dans Supabase (voir RECETTE.md, T-10).
 - Comptes suspendus ou supprimés : accès coupé (contrôlé à chaque requête et dans les fonctions SQL).
 - Aucun compte administrateur par défaut ; le premier super-administrateur est attribué explicitement à un compte confirmé (`scripts/grant-admin.mjs`), les suivants depuis le back-office avec journalisation. Le dernier super-administrateur ne peut pas être retiré.
 

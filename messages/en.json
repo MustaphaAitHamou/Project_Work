@@ -50,7 +50,9 @@
   "copy": "Copy",
   "copied": "Copied",
   "unknown": "Not provided",
-  "theme": "Theme"
+  "theme": "Theme",
+  "captchaPending": "Anti-robot check in progress…",
+  "captchaError": "The anti-robot check could not complete. Reload the page; if the problem persists, allow challenges.cloudflare.com in your content blocker."
  },
  "nav": {
   "home": "Home",
@@ -152,6 +154,9 @@
   "tooManyAttempts": "Too many attempts. Wait a few minutes before trying again.",
   "rateLimited": "Too many requests. Try again in a few minutes.",
   "captchaFailed": "The anti-bot check failed. Please try again.",
+  "captchaMissing": "Wait for the anti-robot check just above the button to finish, then try again.",
+  "captchaExpired": "The anti-robot check expired or was already used. It has just been restarted: try again in a moment.",
+  "captchaUnavailable": "The anti-robot service is not responding. Try again in a moment.",
   "suspendedTitle": "Account suspended",
   "suspendedText": "Your account has been suspended. If you think this is a mistake, contact support by replying to the notification e-mail.",
   "validation": {

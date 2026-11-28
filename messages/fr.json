@@ -50,7 +50,9 @@
   "copy": "Copier",
   "copied": "Copié",
   "unknown": "Non renseigné",
-  "theme": "Thème"
+  "theme": "Thème",
+  "captchaPending": "Vérification anti-robot en cours…",
+  "captchaError": "La vérification anti-robot n'a pas pu aboutir. Rechargez la page ; si le problème persiste, autorisez challenges.cloudflare.com dans votre bloqueur de contenu."
  },
  "nav": {
   "home": "Accueil",
@@ -152,6 +154,9 @@
   "tooManyAttempts": "Trop de tentatives. Patientez quelques minutes avant de réessayer.",
   "rateLimited": "Trop de demandes. Réessayez dans quelques minutes.",
   "captchaFailed": "La vérification anti-robot a échoué. Réessayez.",
+  "captchaMissing": "Attendez la fin de la vérification anti-robot, juste au-dessus du bouton, puis réessayez.",
+  "captchaExpired": "La vérification anti-robot a expiré ou a déjà servi. Elle vient d'être relancée : réessayez dans un instant.",
+  "captchaUnavailable": "Le service anti-robot ne répond pas. Réessayez dans un instant.",
   "suspendedTitle": "Compte suspendu",
   "suspendedText": "Votre compte a été suspendu. Si vous pensez qu'il s'agit d'une erreur, contactez le support en répondant à l'e-mail de notification.",
   "validation": {
