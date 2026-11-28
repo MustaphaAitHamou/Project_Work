@@ -42,29 +42,87 @@ Pour que je puisse tester l'envoi réel depuis cette session, la même clé est 
 
 **Préproduction sans domaine vérifié.** Resend n'envoie alors que depuis `onboarding@resend.dev` et vers l'adresse du titulaire du compte. Ça suffit pour une recette par une seule personne, pas pour tester l'inscription d'autres adresses.
 
-## 3. Réglages d'authentification Supabase (chaque projet)
+## 3. E-mails d'authentification Supabase
 
-| Réglage (Authentication) | Préproduction | Production |
+### 3.1 Modèles (état au 28/11)
+
+| Modèle Supabase | Fichier | Utilisé par Tamurt Jobs | Préproduction aujourd'hui |
+| --- | --- | --- | --- |
+| Confirm signup | `confirmation.html` | inscription, renvoi de confirmation | modèle par défaut de Supabase (anglais) |
+| Reset password | `recovery.html` | mot de passe oublié, changement de mot de passe | idem |
+| Change email address | `email_change.html` | changement d'adresse (confirmé depuis l'ancienne **et** la nouvelle) | idem |
+| Reauthentication | `reauthentication.html` | code pour une opération sensible | idem |
+| Magic link, Invite user | `magic_link.html`, `invite.html` | non utilisés (prêts au cas où) | idem |
+| Notifications : Password changed, Email address changed, MFA method added / removed | `*_notification.html` | alertes de sécurité | **désactivées** |
+
+- Les 10 modèles sont générés par `node scripts/generate-auth-email-templates.mjs` (texte, mise en page, 4 langues, objets dans `supabase/templates/subjects.json`) à l'identité Tamurt Jobs : bandeau bleu nuit, filet jaune, bouton bleu roi, sans image ni police externe.
+- **Langue** : lue dans le profil (`locale`, enregistrée à l'inscription et dans les paramètres), français si absente. L'objet est traduit aussi.
+- **Liens** : `{{ .SiteURL }}/auth/confirm?token_hash=…&type=…&locale=…`. La page ouverte demande **un clic** avant d'utiliser le jeton à usage unique : les filtres de messagerie (Microsoft Defender Safe Links, antivirus) qui ouvrent les liens avant la personne ne le consomment plus. Redirections : inscription → espace candidat ou création d'entreprise (recruteur) ; mot de passe → page « nouveau mot de passe » ; lien expiré ou déjà utilisé → connexion avec un message clair.
+- **Vérifié** (`tests/integration/auth/auth-email-templates.test.ts`, vrai serveur Auth local + boîte de test) : chaque modèle déclenché pour de vrai, langue (dont l'arabe de droite à gauche et le français par défaut), objet, identité, lien et type, aucune variable non remplie.
+
+### 3.2 Appliquer les modèles en préproduction puis en production
+
+**Option A (recommandée) : jeton temporaire, 2 minutes.**
+1. Supabase → avatar → **Account preferences → Access Tokens → Generate new token**. Nom `tamurt-templates-temp`, **expiration 1 jour**, permissions : *Auth* en lecture-écriture **et** *Project admin* en écriture, **limitées au projet `tamurt-jobs-preprod`**.
+2. Me le transmettre par le formulaire sécurisé (jamais dans la conversation). Je lance :
+   `node scripts/supabase-auth-config.mjs --project-ref <ref> --site-url https://tamurt-jobs-preprod.vercel.app --templates-only`
+   Le script ne touche qu'aux e-mails (ni captcha, ni SMTP, ni URL), puis relit et compare.
+3. Révoquer le jeton aussitôt après.
+
+**Option B : à la main** (10 modèles, environ 15 minutes). Supabase → projet → **Authentication → Emails**.
+1. Onglet **Templates**. Pour *Confirm signup*, *Invite user*, *Magic Link*, *Change Email Address*, *Reset Password*, *Reauthentication* :
+   - **Subject** : la valeur correspondante de `supabase/templates/subjects.json`, entre les guillemets, à recopier telle quelle (elle commence par `{{ $l := "fr" }}`) ;
+   - **Body** (onglet *Source*) : tout le contenu du fichier `.html` correspondant ;
+   - **Save**.
+2. Onglet des notifications de sécurité : activer *Password changed*, *Email address changed*, *MFA method added*, *MFA method removed*, avec les fichiers `*_notification.html` et leurs objets (`password_changed_notification`, etc.).
+3. Contrôle : demander « Mot de passe oublié » pour un compte de recette dont vous lisez la boîte. Objet attendu : « Réinitialisez votre mot de passe · Tamurt Jobs ».
+
+### 3.3 Autres réglages Supabase (Authentication)
+
+| Réglage | Préproduction (constaté le 28/11) | À faire |
 | --- | --- | --- |
-| URL Configuration → Site URL | `https://preprod.<domaine>` | `https://<domaine>` |
-| URL Configuration → Redirect URLs | `https://preprod.<domaine>/**` | `https://<domaine>/**` |
-| Emails → Confirm email | activé | activé |
-| Emails → modèles *Confirm signup*, *Reset password*, *Change email address* | contenu de `supabase/templates/*.html`, sujets de `supabase/config.toml` | idem |
-| Multi-Factor → TOTP | activé (back-office) | activé |
-| Rate limits → e-mails par heure | 30 au moins (préproduction) | selon le trafic (le SMTP Resend lève la limite par défaut) |
+| URL Configuration → Site URL / Redirect URLs | `https://tamurt-jobs-preprod.vercel.app` (+ `/**`) | production : `https://tamurtjobs.com` et `https://tamurtjobs.com/**` |
+| Attack Protection → Captcha | activé (Turnstile) | garder ; même clé secrète que `TURNSTILE_SECRET_KEY` |
+| Emails → **SMTP Settings** | **non configuré** : Supabase n'envoie qu'aux membres de l'équipe, 2 e-mails par heure. L'inscription d'une adresse extérieure échoue | configurer Resend (3.4) **avant l'ouverture** |
+| Rate Limits → e-mails envoyés par heure | 2 | 100 après le SMTP Resend (ajuster au trafic) |
+| Confirm email, mot de passe 10 caractères (minuscules, majuscules, chiffres), TOTP | conformes | — |
 
-- Les liens des modèles pointent vers `{{ .SiteURL }}/auth/confirm?token_hash=…`. Ils fonctionnent même si l'e-mail est ouvert sur un autre appareil, et ramènent la personne dans sa langue.
-- `scripts/supabase-auth-config.mjs` applique ces réglages et les trois modèles par l'API.
-  - Il exige un jeton portant **deux** permissions, `auth_config_write` **et** `project_admin_write`. Cette dernière est large : elle permet aussi de mettre en pause, restaurer ou supprimer le projet. Constaté le 26/11 : un jeton « Auth » seul est refusé.
-  - Sinon, saisir les réglages à la main dans le tableau de bord (tableau ci-dessus).
-  - Le mot de passe SMTP reste saisi par toi dans le tableau de bord.
+### 3.4 SMTP Resend dans Supabase
+
+Supabase → **Authentication → Emails → SMTP Settings → Enable Custom SMTP** :
+
+| Champ | Valeur |
+| --- | --- |
+| Sender email | `no-reply@<domaine vérifié dans Resend>` |
+| Sender name | `Tamurt Jobs` |
+| Host | `smtp.resend.com` |
+| Port | `465` |
+| Username | `resend` |
+| Password | une clé API Resend (*Sending access*, limitée au domaine), saisie **uniquement** dans ce champ |
+
+Puis **Rate Limits** → e-mails par heure : 100. Tester avec « Mot de passe oublié » sur un compte de recette dont vous lisez la boîte.
+
+### 3.5 DNS nécessaires (domaine d'envoi)
+
+À créer chez le gestionnaire DNS de `tamurtjobs.com`, **avec les valeurs exactes affichées par Resend** (Domains → le domaine → Records) :
+
+| Type | Nom | Rôle |
+| --- | --- | --- |
+| TXT | `resend._domainkey` (ou `resend._domainkey.<sous-domaine>`) | DKIM : signature des e-mails |
+| MX | `send` (ou `send.<sous-domaine>`) | SPF / retours de Resend |
+| TXT | `send` (ou `send.<sous-domaine>`) | SPF (`v=spf1 include:… ~all`, valeur donnée par Resend) |
+| TXT | `_dmarc` | DMARC, d'abord `v=DMARC1; p=none; rua=mailto:<adresse de suivi>`, puis `p=quarantine` quand les rapports sont propres |
+
+Conseil : un sous-domaine dédié (par exemple `notifications.tamurtjobs.com`) protège la réputation du domaine principal. Aucun enregistrement n'est encore créé ; c'est à faire par le propriétaire du domaine.
 
 ## 4. Ce qui est vérifié
 
 | Vérification | Comment | État |
 | --- | --- | --- |
-| Lien de confirmation d'inscription reçu et fonctionnel | E2E « a new address leads to the e-mail check, and the link confirms the account », avec la boîte de test locale (Mailpit) | ✅ automatique |
-| Réinitialisation du mot de passe | recette manuelle C-03 | en préprod |
+| Lien de confirmation d'inscription reçu et fonctionnel, y compris quand un filtre de messagerie ouvre le lien d'abord | E2E « a new address leads to the e-mail check, and the link confirms the account », avec la boîte de test locale (Mailpit) | ✅ automatique |
+| Les 10 modèles d'authentification (langue, identité, liens, alertes de sécurité) | `tests/integration/auth/auth-email-templates.test.ts` | ✅ automatique (local) ; préproduction : modèles à appliquer (3.2) |
+| Réinitialisation du mot de passe de bout en bout | E2E `recette` (Mailpit) ; en préproduction après SMTP | ✅ local, ⏳ préproduction |
+| Aucun envoi réel vers les adresses de test (`@example.test`, etc.) | test unitaire `email-provider` | ✅ automatique |
 | E-mails de l'application : rendu, langue, liens absolus vers le site | tests unitaires `email-render`, E2E du back-office (personnalisation, restauration) | ✅ automatique |
 | File d'envoi, reprise après échec | tests d'intégration et tâche planifiée `emails` | ✅ automatique |
 | Délivrabilité réelle (SPF, DKIM, DMARC, indésirables) | envoi réel vers une boîte Gmail et une boîte Outlook, puis contrôle des en-têtes `spf=pass`, `dkim=pass`, `dmarc=pass` | ⏳ dès que le domaine et la clé Resend existent |

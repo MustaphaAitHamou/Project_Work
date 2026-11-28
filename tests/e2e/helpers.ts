@@ -36,5 +36,12 @@ export async function signUpAndConfirm(page: Page, opts: { email: string; firstN
   await page.getByRole("button", { name: "Créer mon compte" }).click();
   await expect(page).toHaveURL(/check-email/);
   const link = await linkFromEmail(opts.email, /auth\/confirm/);
+  await openConfirmationLink(page, link);
+}
+
+/** Follows an Auth e-mail link: the page asks for one click before using the one-time token. */
+export async function openConfirmationLink(page: Page, link: string, button = /Activer mon compte|Choisir un nouveau mot de passe|Confirmer le changement/) {
   await page.goto(link);
+  await expect(page).toHaveURL(/\/confirm\?/);
+  await page.getByRole("button", { name: button }).click();
 }

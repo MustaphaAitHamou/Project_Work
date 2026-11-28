@@ -49,7 +49,8 @@
   "details": "Detalles",
   "copy": "Copiar",
   "copied": "Copiado",
-  "unknown": "No indicado"
+  "unknown": "No indicado",
+  "theme": "Tema"
  },
  "nav": {
   "home": "Inicio",
@@ -178,7 +179,17 @@
    "server": "Se ha producido un error técnico. Vuelve a intentarlo más tarde.",
    "technicalDetail": "Detalle técnico (solo fuera de producción): {code}"
   },
-  "employerFreeLaunch": "La creación de la cuenta y la verificación son gratuitas. Oferta de lanzamiento: publicación de anuncios gratuita hasta el {lastDay}."
+  "employerFreeLaunch": "La creación de la cuenta y la verificación son gratuitas. Oferta de lanzamiento: publicación de anuncios gratuita hasta el {lastDay}.",
+  "confirmEmailTitle": "Confirme su dirección de correo",
+  "confirmEmailText": "Un último clic para activar su cuenta de Tamurt Jobs.",
+  "confirmEmailButton": "Activar mi cuenta",
+  "confirmRecoveryTitle": "Restablezca su contraseña",
+  "confirmRecoveryText": "Continúe para elegir una nueva contraseña.",
+  "confirmRecoveryButton": "Elegir una nueva contraseña",
+  "confirmChangeTitle": "Confirme su nueva dirección",
+  "confirmChangeText": "Confirme el cambio de dirección de correo de su cuenta.",
+  "confirmChangeButton": "Confirmar el cambio",
+  "confirmWhy": "Este enlace solo funciona una vez. Este clic evita que un filtro de correo lo use en su lugar."
  },
  "forms": {
   "selected": "Elementos seleccionados",
@@ -1893,6 +1904,13 @@
   "stepText": "Hasta el {lastDay}, el anuncio se publica sin pago tras los controles; después, pago seguro con Stripe.",
   "faqQ": "¿Qué ocurre al final de la oferta de lanzamiento?",
   "faqA": "La publicación es gratuita hasta el {lastDay} inclusive. A partir del {startDay} a las 0:00 (hora de París), un nuevo anuncio requiere una suscripción de {price} al mes. Sus anuncios gratuitos pueden convertirse en cualquier momento: la suscripción toma entonces el relevo sin interrupción y el primer cobro solo se produce al final del periodo gratuito. Sin suscripción, se ponen en pausa (no se eliminan) y pueden reactivarse en cualquier momento."
+ },
+ "notifications": {
+  "title": "Notificaciones",
+  "unread": "{count, plural, one {# nueva} other {# nuevas}}",
+  "unreadLabel": "No leída:",
+  "markAllRead": "Marcar todo como leído",
+  "empty": "Aún no hay notificaciones."
  },
  "admin": {
   "nav": {

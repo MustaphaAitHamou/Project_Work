@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { createTestUser, resetRateLimits, uniqueEmail } from "../helpers/supabase";
-import { linkFromEmail } from "./helpers";
+import { linkFromEmail, openConfirmationLink } from "./helpers";
 
 test.beforeEach(async () => {
   await resetRateLimits();
@@ -39,7 +39,7 @@ test("the check-email page moves on by itself once the link is opened in another
 
   const link = await linkFromEmail(email, /auth\/confirm/);
   const mailTab = await context.newPage();
-  await mailTab.goto(link);
+  await openConfirmationLink(mailTab, link);
   await expect(mailTab).toHaveURL(/\/fr\/candidate/);
 
   // The first tab notices the session without any action from the user.
@@ -145,8 +145,16 @@ test.describe("Sign-up checks", () => {
     await fill(page, email, "Str0ngPassw0rd", "Str0ngPassw0rd");
     await expect(page).toHaveURL(/check-email/);
     const link = await linkFromEmail(email, /auth\/confirm/);
-    await page.goto(link);
+    // A mail filter opens the link first (as Outlook Safe Links does): the token is not used up.
+    const scanner = await page.request.get(link, { maxRedirects: 0 });
+    expect(scanner.status()).toBe(307);
+    expect(scanner.headers()["location"]).toMatch(/^\/fr\/confirm\?token_hash=/);
+    await page.request.get(link);
+    await openConfirmationLink(page, link);
     await expect(page).toHaveURL(/\/fr\/candidate/);
+    // The same link a second time: clearly expired, never a technical error.
+    await openConfirmationLink(page, link);
+    await expect(page).toHaveURL(/\/fr\/login\?error=link_invalid/);
   });
 });
 

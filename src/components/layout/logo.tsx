@@ -17,8 +17,8 @@ export function Logo({ className, label = "Tamurt Jobs", onDark = false }: { cla
   }
   return (
     <span className={cn("inline-flex items-center", className)}>
-      <Image src="/brand/wordmark.svg" alt={label} width={112} height={32} unoptimized priority className="h-8 w-auto dark:hidden" />
-      <Image src="/brand/wordmark-sombre.svg" alt={label} width={112} height={32} unoptimized className="hidden h-8 w-auto dark:block" />
+      <Image src="/brand/wordmark.svg" alt={label} width={112} height={32} unoptimized priority className="h-7 w-auto min-[380px]:h-8 dark:hidden" />
+      <Image src="/brand/wordmark-sombre.svg" alt={label} width={112} height={32} unoptimized className="hidden h-7 w-auto min-[380px]:h-8 dark:block" />
     </span>
   );
 }

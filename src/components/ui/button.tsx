@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 export const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg text-[15px] font-semibold tracking-[-0.005em] transition-[color,background-color,border-color,box-shadow,transform] duration-150 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 motion-reduce:active:translate-y-0 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex max-w-full shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg text-center max-sm:whitespace-normal text-[15px] font-semibold tracking-[-0.005em] transition-[color,background-color,border-color,box-shadow,transform] duration-150 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 motion-reduce:active:translate-y-0 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -22,9 +22,10 @@ export const buttonVariants = cva(
         highlight: "bg-highlight text-highlight-foreground shadow-sm hover:bg-[#f9d36e]",
       },
       size: {
-        sm: "h-9 rounded-md px-3 text-sm",
-        default: "h-11 px-5",
-        lg: "h-12 px-6 text-base",
+        // Minimum heights: a long label may wrap on a phone instead of overflowing.
+        sm: "min-h-9 rounded-md px-3 py-1.5 text-sm",
+        default: "min-h-11 px-5 py-2",
+        lg: "min-h-12 px-6 py-2.5 text-base",
         icon: "size-10",
       },
     },

@@ -54,7 +54,7 @@ export default async function AdminEmailsPage({ params, searchParams }: { params
           {t("open")}
         </Button>
       </form>
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

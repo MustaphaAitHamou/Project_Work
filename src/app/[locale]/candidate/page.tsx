@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { NotificationsPanel } from "@/components/notifications/notifications-panel";
 
 const STEPS = [
   { key: "identity", fields: ["first_name", "last_name"], href: "/candidate/profile" },
@@ -116,6 +117,7 @@ export default async function CandidateHome({ params, searchParams }: { params: 
           )}
         </CardContent>
       </Card>
+      <NotificationsPanel />
     </div>
   );
 }

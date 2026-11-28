@@ -60,6 +60,8 @@ export default async function HomePage({
   // Launch offer (free publication): shown while the database accepts it.
   const launch = offer?.open ? { lastDay: offerLastDay(offer.freeUntil, locale), startDay: offerFirstPaidDay(offer.freeUntil, locale) } : null;
   const now = new Date();
+  const title = t("title");
+  const titleEnd = locale !== "ar" && /[.!?]$/.test(title) ? title.slice(-1) : "";
   // Signed-in users are never sent to the sign-up page: they go to their own space.
   const candidateCta = !user
     ? { href: "/signup", label: t("ctaCandidate") }
@@ -127,24 +129,27 @@ export default async function HomePage({
               {t("badge")}
             </p>
             <h1 className="text-[2.4rem] leading-[1.06] font-extrabold sm:text-5xl lg:text-[3.6rem]">
-              {t("title")}
+              {titleEnd ? title.slice(0, -1) : title}
+              {/* The heading face draws its full stop far from the last letter: brought closer. */}
+              {titleEnd && <span className="-ms-[0.09em]">{titleEnd}</span>}
             </h1>
-            <div aria-hidden className="mt-5 h-1 w-16 rounded-full bg-highlight" />
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/85">{t("subtitle")}</p>
-            <nav
-              aria-label={t("countriesLabel")}
-              className="-mx-4 mt-8 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
-            >
-              {MARKETS.map((c) => (
-                <Link
-                  key={c}
-                  href={`/jobs?country=${c}`}
-                  className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-sm font-medium backdrop-blur-sm transition-colors hover:border-white/50 hover:bg-white/20"
-                >
-                  <CountryFlag code={c} />
-                  {countryName(c)}
-                </Link>
-              ))}
+            {/* The nine markets: flags only on phones (all nine on one line), flag and name above. */}
+            <nav aria-label={t("countriesLabel")} className="mt-8">
+              <ul className="grid grid-cols-9 gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
+                {MARKETS.map((c) => (
+                  <li key={c}>
+                    <Link
+                      href={`/jobs?country=${c}`}
+                      title={countryName(c)}
+                      className="flex h-10 items-center justify-center rounded-full border border-white/20 bg-white/10 backdrop-blur-sm transition-colors hover:border-white/50 hover:bg-white/20 sm:h-auto sm:gap-2 sm:px-3.5 sm:py-1.5 sm:text-sm sm:font-medium"
+                    >
+                      <CountryFlag code={c} />
+                      <span className="sr-only sm:not-sr-only">{countryName(c)}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </nav>
           </div>
           <HeroIllustration className="hidden w-full max-w-[540px] justify-self-end lg:block" />
@@ -281,7 +286,7 @@ export default async function HomePage({
         className="container-page py-16 sm:py-20"
         aria-labelledby="recruiters"
       >
-        <div className="grid items-center gap-10 rounded-3xl border bg-card p-6 shadow-sm sm:p-10 lg:grid-cols-[1fr_1.05fr]">
+        <div className="grid items-center gap-10 rounded-3xl border bg-card p-6 shadow-sm sm:p-10 lg:grid-cols-[1fr_1.05fr] [&>*]:min-w-0">
           <div>
             <h2 id="recruiters" className="text-3xl font-extrabold">
               {t("recruitersTitle")}

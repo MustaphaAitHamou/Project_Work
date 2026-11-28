@@ -1,0 +1,36 @@
+{{ $l := "fr" }}{{ with .Data }}{{ with .locale }}{{ $l = printf "%v" . }}{{ end }}{{ end }}<!doctype html>
+<html lang="{{ $l }}" dir="{{ if eq $l "ar" }}rtl{{ else }}ltr{{ end }}">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>Tamurt Jobs</title></head>
+<body style="margin:0;padding:0;background:#f6f8fc;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f8fc;padding:28px 12px;">
+<tr><td align="center">
+<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="width:100%;max-width:560px;background:#ffffff;border:1px solid #e1e6f0;border-radius:16px;overflow:hidden;">
+<tr><td style="background:#0b1640;padding:20px 28px;text-align:{{ if eq $l "ar" }}right{{ else }}left{{ end }};" dir="ltr"><span style="color:#ff4d5e;font-size:17px;font-weight:800;letter-spacing:2px;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">TAMURT</span><span style="color:#8ca6ff;font-size:20px;font-weight:800;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;"> Jobs</span></td></tr>
+<tr><td style="height:4px;line-height:4px;font-size:0;background:#f6c445;">&nbsp;</td></tr>
+<tr><td style="padding:30px 28px 26px;text-align:{{ if eq $l "ar" }}right{{ else }}left{{ end }};">
+{{ if eq $l "en" }}<h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;font-weight:800;color:#0d1430;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">Your verification code</h1>
+<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#0d1430;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">Enter this code to confirm the operation in progress on your Tamurt Jobs account:</p>
+<p style="margin:8px 0 18px;"><span style="display:inline-block;padding:14px 22px;border-radius:12px;background:#ebf0ff;color:#172c82;font-size:28px;font-weight:800;letter-spacing:6px;font-family:'SFMono-Regular',Consolas,'Liberation Mono',monospace;">{{ .Token }}</span></p>
+<p style="margin:0 0 14px;font-size:14px;line-height:1.6;color:#4a5470;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">This code is valid for 1 hour.</p>
+<p style="margin:18px 0 0;padding-top:16px;border-top:1px solid #e1e6f0;font-size:13px;line-height:1.6;color:#4a5470;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">Didn't ask for this? Change your password right away.</p>{{ else if eq $l "es" }}<h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;font-weight:800;color:#0d1430;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">Su código de verificación</h1>
+<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#0d1430;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">Introduzca este código para confirmar la operación en curso en su cuenta de Tamurt Jobs:</p>
+<p style="margin:8px 0 18px;"><span style="display:inline-block;padding:14px 22px;border-radius:12px;background:#ebf0ff;color:#172c82;font-size:28px;font-weight:800;letter-spacing:6px;font-family:'SFMono-Regular',Consolas,'Liberation Mono',monospace;">{{ .Token }}</span></p>
+<p style="margin:0 0 14px;font-size:14px;line-height:1.6;color:#4a5470;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">Este código es válido durante 1 hora.</p>
+<p style="margin:18px 0 0;padding-top:16px;border-top:1px solid #e1e6f0;font-size:13px;line-height:1.6;color:#4a5470;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">¿No lo ha solicitado? Cambie su contraseña de inmediato.</p>{{ else if eq $l "ar" }}<h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;font-weight:800;color:#0d1430;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">رمز التحقق الخاص بكم</h1>
+<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#0d1430;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">أدخلوا هذا الرمز لتأكيد العملية الجارية على حسابكم في Tamurt Jobs:</p>
+<p style="margin:8px 0 18px;"><span style="display:inline-block;padding:14px 22px;border-radius:12px;background:#ebf0ff;color:#172c82;font-size:28px;font-weight:800;letter-spacing:6px;font-family:'SFMono-Regular',Consolas,'Liberation Mono',monospace;">{{ .Token }}</span></p>
+<p style="margin:0 0 14px;font-size:14px;line-height:1.6;color:#4a5470;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">هذا الرمز صالح لمدة ساعة واحدة.</p>
+<p style="margin:18px 0 0;padding-top:16px;border-top:1px solid #e1e6f0;font-size:13px;line-height:1.6;color:#4a5470;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">لم تطلبوا ذلك؟ غيّروا كلمة المرور فورًا.</p>{{ else }}<h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;font-weight:800;color:#0d1430;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">Votre code de vérification </h1>
+<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:#0d1430;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">Saisissez ce code pour confirmer l'opération en cours sur votre compte Tamurt Jobs :</p>
+<p style="margin:8px 0 18px;"><span style="display:inline-block;padding:14px 22px;border-radius:12px;background:#ebf0ff;color:#172c82;font-size:28px;font-weight:800;letter-spacing:6px;font-family:'SFMono-Regular',Consolas,'Liberation Mono',monospace;">{{ .Token }}</span></p>
+<p style="margin:0 0 14px;font-size:14px;line-height:1.6;color:#4a5470;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">Ce code est valable 1 heure.</p>
+<p style="margin:18px 0 0;padding-top:16px;border-top:1px solid #e1e6f0;font-size:13px;line-height:1.6;color:#4a5470;font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">Vous n'êtes pas à l'origine de cette demande ? Changez votre mot de passe sans attendre.</p>{{ end }}
+</td></tr>
+<tr><td style="padding:18px 28px;background:#f6f8fc;border-top:1px solid #e1e6f0;font-size:12px;line-height:1.6;color:#4a5470;text-align:{{ if eq $l "ar" }}right{{ else }}left{{ end }};font-family:Inter,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+{{ if eq $l "en" }}You are receiving this e-mail because of an action on your Tamurt Jobs account. Jobs from verified companies, free to apply.{{ else if eq $l "es" }}Recibe este correo por una acción en su cuenta de Tamurt Jobs. Ofertas de empresas verificadas, candidatura gratuita.{{ else if eq $l "ar" }}تصلكم هذه الرسالة بسبب إجراء على حسابكم في Tamurt Jobs. وظائف لدى شركات موثّقة، والتقديم مجاني.{{ else }}Vous recevez cet e-mail à la suite d'une action sur votre compte Tamurt Jobs. Offres d'emploi d'entreprises vérifiées, candidature gratuite.{{ end }}
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>

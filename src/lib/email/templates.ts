@@ -222,3 +222,22 @@ export function buildEmail(
     footer: t("footer"),
   });
 }
+
+/**
+ * Short form of a notification for the in-app list: the e-mail's subject as title and its
+ * button as link (a path of this site, in the visitor's language). Null for unknown types.
+ */
+export function describeNotification(template: string, localeInput: string, payload: Payload): { title: string; href: string | null; action: string | null } | null {
+  if (!isEmailTemplate(template)) return null;
+  const locale: Locale = (localeInput in MESSAGES ? localeInput : "fr") as Locale;
+  const messages = MESSAGES[locale] as typeof fr;
+  const t = createTranslator({ locale, messages, namespace: "emails" });
+  const te = createTranslator({ locale, messages, namespace: "enums" });
+  const url = (path: string) => `/${locale}${path.startsWith("/") ? path : `/${path}`}`;
+  try {
+    const def = DEFINITIONS[template]({ t, te, p: payload, url, locale });
+    return { title: def.subject, href: def.cta?.url ?? null, action: def.cta?.label ?? null };
+  } catch {
+    return null;
+  }
+}

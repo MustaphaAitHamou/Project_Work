@@ -17,7 +17,8 @@ import { SiteFooter } from "@/components/layout/site-footer";
 // Kabyle letters: Inter covers ɛ ɣ ḍ ṛ ẓ ǧ č; Plus Jakarta Sans lacks ɛ and ɣ, which then come from Inter.
 const inter = Inter({ subsets: ["latin", "latin-ext"], variable: "--font-inter", display: "swap" });
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin", "latin-ext"], variable: "--font-jakarta", display: "swap" });
-// Arabic locale only: downloaded when Arabic characters are displayed.
+// Arabic locale only (its variable is set on Arabic pages only): never downloaded for the other
+// languages, even when a page shows a word in Arabic (e.g. the language menu).
 const arabic = Noto_Sans_Arabic({ subsets: ["arabic"], variable: "--font-arabic", display: "swap", preload: false });
 
 export function generateStaticParams() {
@@ -64,7 +65,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   const [user, t] = await Promise.all([getSessionUser(), getTranslations("common")]);
   const dir = isRtl(locale) ? "rtl" : "ltr";
   return (
-    <html lang={locale} dir={dir} data-scroll-behavior="smooth" suppressHydrationWarning className={`${inter.variable} ${jakarta.variable} ${arabic.variable}`}>
+    <html lang={locale} dir={dir} data-scroll-behavior="smooth" suppressHydrationWarning className={`${inter.variable} ${jakarta.variable}${locale === "ar" ? ` ${arabic.variable}` : ""}`}>
       <body className="flex min-h-dvh flex-col">
         <NextIntlClientProvider>
           <Providers dir={dir}>

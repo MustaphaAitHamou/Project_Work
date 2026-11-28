@@ -56,7 +56,7 @@ export function CompanyProfileForm({
         <CardDescription>{t("publicProfileHint")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <CompanyAvatar name={company.display_name ?? company.legal_name} logoPath={company.logo_path} className="size-16" />
           {canEdit && (
             <>
@@ -65,7 +65,7 @@ export function CompanyProfileForm({
                 {uploading ? <Loader2 className="animate-spin" aria-hidden /> : <ImageUp aria-hidden />}
                 {t("changeLogo")}
               </Button>
-              <p className="text-xs text-muted-foreground">{t("logoHint")}</p>
+              <p className="min-w-0 text-xs text-muted-foreground">{t("logoHint")}</p>
             </>
           )}
         </div>

@@ -36,8 +36,8 @@ export default async function AdminUsersPage({ params, searchParams }: { params:
         {(data ?? []).map((u) => (
           <li key={u.id}>
             <Card>
-              <CardContent className="grid gap-4 pt-5 lg:grid-cols-[1fr_auto]">
-                <div className="space-y-1 text-sm">
+              <CardContent className="grid gap-4 pt-5 lg:grid-cols-[1fr_auto] [&>*]:min-w-0">
+                <div className="min-w-0 space-y-1 text-sm">
                   <p className="flex flex-wrap items-center gap-2 font-medium">
                     {u.first_name} {u.last_name}
                     <Badge variant="outline">{t(`types.${u.account_type}`)}</Badge>
@@ -48,18 +48,18 @@ export default async function AdminUsersPage({ params, searchParams }: { params:
                       </Badge>
                     ))}
                   </p>
-                  <p className="text-muted-foreground">
+                  <p className="text-muted-foreground [overflow-wrap:anywhere]">
                     {u.email} {u.company_name ? `· ${u.company_name}` : ""} · {t("since", { date: formatDate(u.created_at, locale) })}
                   </p>
                 </div>
                 <div className="flex flex-wrap items-start gap-3">
                   {canSuspend && u.id !== me.id && u.status !== "deleted" && (
-                    <AdminForm action={setUserStatusAction} hidden={{ userId: u.id, status: u.status === "active" ? "suspended" : "active" }} submitLabel={u.status === "active" ? t("suspend") : t("reactivate")} variant={u.status === "active" ? "destructive" : "outline"} size="sm" className="flex items-end gap-2">
-                      <Input name="reason" placeholder={t("reason")} aria-label={t("reason")} required className="h-8 w-48" />
+                    <AdminForm action={setUserStatusAction} hidden={{ userId: u.id, status: u.status === "active" ? "suspended" : "active" }} submitLabel={u.status === "active" ? t("suspend") : t("reactivate")} variant={u.status === "active" ? "destructive" : "outline"} size="sm" className="flex flex-wrap items-end gap-2">
+                      <Input name="reason" placeholder={t("reason")} aria-label={t("reason")} required className="h-8 w-48 max-w-full" />
                     </AdminForm>
                   )}
                   {canRoles && u.status === "active" && (
-                    <AdminForm action={setRoleAction} hidden={{ userId: u.id }} submitLabel={t("applyRole")} size="sm" className="flex items-end gap-2">
+                    <AdminForm action={setRoleAction} hidden={{ userId: u.id }} submitLabel={t("applyRole")} size="sm" className="flex flex-wrap items-end gap-2">
                       <NativeSelect name="role" aria-label={t("role")} className="w-52" selectClassName="h-8">
                         {ADMIN_ROLES.map((r) => (
                           <option key={r} value={r}>

@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { env } from "@/lib/env";
 import { getEmailProvider } from "./provider";
 import { buildEmail, isEmailTemplate, type TemplateOverride } from "./templates";
+import { isReservedAddress } from "./reserved";
 
 export interface OutboxRunResult {
   claimed: number;
@@ -36,6 +37,12 @@ export async function processEmailOutbox(limit = 25): Promise<OutboxRunResult> {
   let sent = 0;
   let failed = 0;
   for (const row of batch) {
+    // Real delivery (Resend): never to reserved test domains (acceptance accounts @example.test).
+    // The local SMTP test mailbox (Mailpit) receives them all.
+    if (provider.name === "resend" && isReservedAddress(row.to_email)) {
+      await admin.from("email_outbox").update({ status: "cancelled", last_error: "reserved_test_address", locked_at: null }).eq("id", row.id);
+      continue;
+    }
     try {
       if (!isEmailTemplate(row.template)) throw new Error(`unknown template ${row.template}`);
       const email = buildEmail(row.template, row.locale, (row.payload ?? {}) as Record<string, unknown>, {

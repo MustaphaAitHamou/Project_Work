@@ -49,7 +49,8 @@
   "details": "Details",
   "copy": "Copy",
   "copied": "Copied",
-  "unknown": "Not provided"
+  "unknown": "Not provided",
+  "theme": "Theme"
  },
  "nav": {
   "home": "Home",
@@ -178,7 +179,17 @@
    "server": "A technical error occurred. Please try again later.",
    "technicalDetail": "Technical detail (shown outside production only): {code}"
   },
-  "employerFreeLaunch": "Creating the account and verification are free. Launch offer: job ads are free to publish until {lastDay}."
+  "employerFreeLaunch": "Creating the account and verification are free. Launch offer: job ads are free to publish until {lastDay}.",
+  "confirmEmailTitle": "Confirm your e-mail address",
+  "confirmEmailText": "One last click to activate your Tamurt Jobs account.",
+  "confirmEmailButton": "Activate my account",
+  "confirmRecoveryTitle": "Reset your password",
+  "confirmRecoveryText": "Continue to choose a new password.",
+  "confirmRecoveryButton": "Choose a new password",
+  "confirmChangeTitle": "Confirm your new address",
+  "confirmChangeText": "Confirm the change of e-mail address for your account.",
+  "confirmChangeButton": "Confirm the change",
+  "confirmWhy": "This link works only once. This click prevents an e-mail filter from using it in your place."
  },
  "forms": {
   "selected": "Selected items",
@@ -1893,6 +1904,13 @@
   "stepText": "Until {lastDay}, the job ad is published without payment after the checks; then, secure payment by Stripe.",
   "faqQ": "What happens when the launch offer ends?",
   "faqA": "Publishing is free until {lastDay} inclusive. From {startDay} at 00:00 (Paris time), a new job ad requires a subscription at {price} per month. Your free job ads can be converted at any time: the subscription then takes over without interruption and the first charge only happens when the free period ends. Without a subscription, they are paused (not deleted) and can be reactivated at any time."
+ },
+ "notifications": {
+  "title": "Notifications",
+  "unread": "{count, plural, one {# new} other {# new}}",
+  "unreadLabel": "Unread:",
+  "markAllRead": "Mark all as read",
+  "empty": "No notifications yet."
  },
  "admin": {
   "nav": {

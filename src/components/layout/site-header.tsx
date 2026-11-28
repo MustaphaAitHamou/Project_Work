@@ -32,9 +32,11 @@ export async function SiteHeader({ user }: { user: SessionUser | null }) {
             </NavLink>
           ))}
         </nav>
-        <div className="ms-auto flex items-center gap-1">
+        <div className="ms-auto flex items-center gap-0.5 min-[380px]:gap-1">
           <LocaleSwitcher />
-          <ThemeToggle />
+          <span className="hidden min-[380px]:contents">
+            <ThemeToggle />
+          </span>
           {user ? (
             <UserMenu
               user={{

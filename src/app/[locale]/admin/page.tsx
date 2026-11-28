@@ -193,7 +193,7 @@ export default async function AdminDashboard({
           </div>
         </section>
       )}
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2 [&>*]:min-w-0">
         {(
           [
             ["candidates", t("chartCandidates")],
@@ -218,7 +218,7 @@ export default async function AdminDashboard({
             </Card>
           ))}
       </div>
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2 [&>*]:min-w-0">
         <Card>
           <CardHeader>
             <CardTitle>{t("byCountry")}</CardTitle>

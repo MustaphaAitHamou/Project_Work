@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { ThemeToggle } from "./theme-toggle";
 
 export function MobileNav({ links, loggedIn }: { links: { href: string; label: string }[]; loggedIn: boolean }) {
   const t = useTranslations("nav");
@@ -25,6 +26,11 @@ export function MobileNav({ links, loggedIn }: { links: { href: string; label: s
               {l.label}
             </Link>
           ))}
+          {/* On the narrowest phones the header has no room for the theme switch: it is here. */}
+          <div className="mt-2 flex items-center justify-between rounded-xl px-3.5 py-2 min-[380px]:hidden">
+            <span className="text-[15px] font-medium">{tc("theme")}</span>
+            <ThemeToggle />
+          </div>
           {!loggedIn && (
             <Button asChild className="mt-4">
               <Link href="/login" onClick={() => setOpen(false)}>

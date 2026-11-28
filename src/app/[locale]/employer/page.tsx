@@ -13,6 +13,7 @@ import { LaunchOfferBanner } from "@/components/billing/launch-offer-banner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { NotificationsPanel } from "@/components/notifications/notifications-panel";
 
 export default async function EmployerHome({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -82,6 +83,7 @@ export default async function EmployerHome({ params }: { params: Promise<{ local
           )}
         </CardContent>
       </Card>
+      <NotificationsPanel />
     </div>
   );
 }
