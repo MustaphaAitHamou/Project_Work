@@ -4,6 +4,7 @@ import en from "../../../messages/en.json";
 import es from "../../../messages/es.json";
 import ar from "../../../messages/ar.json";
 import { interpolate, renderEmail, type EmailContent, type RenderedEmail } from "./render";
+import { offerFirstPaidDay, offerLastDay } from "../billing/offer";
 
 const MESSAGES = { fr, en, es, ar } as const;
 type Locale = keyof typeof MESSAGES;
@@ -19,6 +20,8 @@ export const EMAIL_TEMPLATES = [
   "payment_failed",
   "job_suspended_payment",
   "job_expired",
+  "free_period_ending",
+  "free_period_ended",
   "account_suspended",
   "company_suspension",
   "privacy_request_update",
@@ -42,6 +45,7 @@ interface Ctx {
   te: Enums;
   p: Payload;
   url: (path: string) => string;
+  locale: Locale;
 }
 
 const s = (v: unknown) => (v === null || v === undefined ? "" : String(v));
@@ -114,6 +118,23 @@ const DEFINITIONS: Record<EmailTemplate, (c: Ctx) => Omit<EmailContent, "locale"
     paragraphs: [t("job_expired.body", { job: s(p.job_title) })],
     cta: { label: t("job_expired.cta"), url: url("/employer/jobs") },
   }),
+  // Offre de lancement : rappel J-30 / J-7 (date de fin de la gratuité dans la charge utile).
+  free_period_ending: ({ t, p, url, locale }) => {
+    const until = s(p.free_until) || "2027-01-01T00:00:00+01:00";
+    const lastDay = offerLastDay(until, locale);
+    const startDay = offerFirstPaidDay(until, locale);
+    return {
+      subject: t("free_period_ending.subject", { lastDay }),
+      paragraphs: [t("free_period_ending.body", { lastDay, days: Math.max(1, Number(p.days_left ?? 1)) }), t("free_period_ending.body2", { startDay })],
+      cta: { label: t("free_period_ending.cta"), url: url("/employer/jobs") },
+    };
+  },
+  // Offre de lancement terminée : l'annonce est en pause (ni supprimée, ni prélevée).
+  free_period_ended: ({ t, p, url }) => ({
+    subject: t("free_period_ended.subject", { job: s(p.job_title) }),
+    paragraphs: [t("free_period_ended.body", { job: s(p.job_title) }), t("free_period_ended.body2")],
+    cta: { label: t("free_period_ended.cta"), url: url(`/employer/jobs/${s(p.job_id)}`) },
+  }),
   account_suspended: ({ t, p }) => ({
     subject: t("account_suspended.subject"),
     paragraphs: [t("account_suspended.body"), ...(p.reason ? [t("account_suspended.reason", { reason: s(p.reason) })] : [])],
@@ -179,7 +200,7 @@ export function buildEmail(
   const t = createTranslator({ locale, messages, namespace: "emails" });
   const te = createTranslator({ locale, messages, namespace: "enums" });
   const url = (path: string) => new URL(`/${locale}${path.startsWith("/") ? path : `/${path}`}`, opts.siteUrl).toString();
-  const def = DEFINITIONS[template]({ t, te, p: payload, url });
+  const def = DEFINITIONS[template]({ t, te, p: payload, url, locale });
   const greeting = opts.firstName ? t("greeting", { name: opts.firstName }) : t("greetingNoName");
 
   let subject = def.subject;

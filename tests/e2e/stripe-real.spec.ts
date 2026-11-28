@@ -1,6 +1,14 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import Stripe from "stripe";
-import { createCompany, createDraftJob, createTestUser, grantAdminRole, resetRateLimits, serviceClient, sql, type TestCompany } from "../helpers/supabase";
+import { createCompany, createDraftJob, createTestUser, grantAdminRole, resetRateLimits, serviceClient, sql, endFreePeriod, restoreFreePeriod, setFreePublicationUntil, type TestCompany } from "../helpers/supabase";
+
+// Paid model (from 1 January 2027): the launch offer is simulated as over for this file.
+test.beforeAll(async () => {
+  await endFreePeriod();
+});
+test.afterAll(async () => {
+  await restoreFreePeriod();
+});
 
 /**
  * Real Stripe test-mode journeys (no mock): prices, Checkout Sessions, customers,
@@ -323,5 +331,92 @@ test("customer portal: opened from the recruiter area, one subscription per adve
     expect((await jobRow(second.id)).status).toBe("active");
   } finally {
     await stripe.testHelpers.testClocks.del(clock.id).catch(() => undefined);
+  }
+});
+
+/**
+ * Offre de lancement : conversion d'une annonce gratuite. Horloge simulée des deux côtés :
+ * la fin de l'offre (réglage en base) dans 10 jours, et une horloge de test Stripe qu'on
+ * avance au-delà de cette fin. Ni l'heure du serveur ni celle de Stripe ne sont modifiées.
+ */
+test("launch offer: conversion with a trial until the end of the free period — nothing charged before, 5,95 € at the end; cancelled during the trial or declined at the end", async ({ page }) => {
+  const freeEnd = new Date(Math.floor(Date.now() / 1000 + 10 * 86400) * 1000);
+  await setFreePublicationUntil(freeEnd);
+  const clocks: string[] = [];
+  try {
+    const company = await createCompany({ verified: true });
+    const freeAdvert = async (title: string) => {
+      const draft = await createDraftJob(company, { title });
+      const submitted = await company.owner.client.rpc("submit_job", { p_job_id: draft.id });
+      if (submitted.error) throw submitted.error;
+      expect(submitted.data).toMatchObject({ status: "active" }); // online for free, no payment
+      return draft.id;
+    };
+    const jobId = await freeAdvert("Développeur React / TypeScript");
+
+    // Recruiter: conversion page; Stripe accepts the session with its trial and shows the first charge date.
+    await login(page, company.owner.email, company.owner.password);
+    await page.goto(`/fr/employer/checkout/${jobId}`);
+    await page.getByRole("checkbox", { name: /conditions commerciales recruteurs/ }).check();
+    const subscribeButton = page.getByRole("button", { name: "Souscrire l'abonnement" });
+    await subscribeButton.click();
+    await expect(page).toHaveURL(new RegExp(`/fr/employer/checkout/${jobId}`)); // charge not authorised: no redirection
+    await page.getByRole("checkbox", { name: /J'autorise le prélèvement/ }).check();
+    await subscribeButton.click();
+    await page.waitForURL(/checkout\.stripe\.com/, { timeout: 60_000 });
+    const sessionId = (await subRow(jobId)).stripe_checkout_session_id!;
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    expect(session).toMatchObject({ mode: "subscription", status: "open", payment_method_collection: "always", amount_total: 0 });
+    expect(session.custom_text?.submit?.message).toContain("Aucun prélèvement avant le");
+
+    // What Checkout creates once the card is saved: a subscription in trial until the end of the free period.
+    const plan = await defaultPlan();
+    const trialSubscription = async (card: string, advert: string, label: string) => {
+      const { clock, customer } = await clockCustomer(company, label);
+      clocks.push(clock.id);
+      const pm = await stripe.paymentMethods.attach(card, { customer: customer.id });
+      const sub = await stripe.subscriptions.create({
+        customer: customer.id,
+        items: [{ price: plan.stripe_price_id! }],
+        default_payment_method: pm.id,
+        trial_end: Math.floor(freeEnd.getTime() / 1000),
+        trial_settings: { end_behavior: { missing_payment_method: "cancel" } },
+        metadata: { job_id: advert, company_id: company.companyId, plan_id: plan.id },
+      });
+      expect(sub.status).toBe("trialing");
+      await waitFor("trial recorded", () => subRow(advert), (s) => s?.status === "trialing");
+      return { clock, sub };
+    };
+    const charged = async (subscriptionId: string) => (await payments(subscriptionId)).filter((p) => p.status === "succeeded" && p.amount > 0);
+
+    // 1. Card 4242: still online during the trial, nothing charged; charged 5,95 € once the free period is over.
+    const ok = await trialSubscription("pm_card_visa", jobId, `trial ok ${jobId.slice(0, 8)}`);
+    expect(await jobRow(jobId)).toMatchObject({ status: "active" });
+    expect(new Date((await jobRow(jobId)).paid_through!).getTime()).toBe(freeEnd.getTime());
+    expect(await charged(ok.sub.id)).toEqual([]);
+    await advanceClock(ok.clock.id, Math.floor(freeEnd.getTime() / 1000) + 2 * 3600);
+    await waitFor("first charge at the end of the free period", () => charged(ok.sub.id), (p) => p.length === 1 && p[0].amount === 595);
+    await waitFor("subscription active", () => subRow(jobId), (s) => s.status === "active");
+    expect((await jobRow(jobId)).status).toBe("active");
+
+    // 2. Cancelled during the trial (customer portal): never charged, the advert ends with it.
+    const cancelledJob = await freeAdvert("Comptable confirmé");
+    const cancelled = await trialSubscription("pm_card_visa", cancelledJob, `trial cancel ${cancelledJob.slice(0, 8)}`);
+    await stripe.subscriptions.update(cancelled.sub.id, { cancel_at_period_end: true });
+    await waitFor("cancellation recorded", () => subRow(cancelledJob), (s) => s.cancel_at_period_end);
+    await advanceClock(cancelled.clock.id, Math.floor(freeEnd.getTime() / 1000) + 2 * 3600);
+    await waitFor("advert expired with its subscription", () => jobRow(cancelledJob), (j) => j.status === "expired");
+    expect(await charged(cancelled.sub.id)).toEqual([]);
+
+    // 3. Card declined at the end of the trial: past due with a grace period (then the usual suspension).
+    const declinedJob = await freeAdvert("Chargé de clientèle");
+    const declined = await trialSubscription("pm_card_chargeCustomerFail", declinedJob, `trial declined ${declinedJob.slice(0, 8)}`);
+    await advanceClock(declined.clock.id, Math.floor(freeEnd.getTime() / 1000) + 2 * 3600);
+    await waitFor("subscription past_due", () => subRow(declinedJob), (s) => s.status === "past_due" && s.grace_until !== null);
+    expect(await charged(declined.sub.id)).toEqual([]);
+    expect((await jobRow(declinedJob)).status).toBe("active");
+  } finally {
+    for (const id of clocks) await stripe.testHelpers.testClocks.del(id).catch(() => undefined);
+    await setFreePublicationUntil(new Date(Date.now() - 3600_000)); // back to the paid model of this file
   }
 });

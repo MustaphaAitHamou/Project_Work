@@ -2828,6 +2828,7 @@ export type Database = {
           eligibility_notes: string | null;
           experience_level: Database["public"]["Enums"]["experience_level"];
           expired_at: string | null;
+          free_until: string | null;
           id: string;
           industry: string | null;
           is_open: boolean | null;

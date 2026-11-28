@@ -18,9 +18,9 @@ export default async function AdminJobsPage({ params, searchParams }: { params: 
   await requirePermission(locale, "jobs.view");
   const sp = await searchParams;
   const status = (STATUSES as string[]).includes(sp.status ?? "") ? (sp.status as JobStatus) : "in_review";
-  const [t, te, tf] = await Promise.all([getTranslations("admin.jobs"), getTranslations("enums"), getTranslations("employer.jobForm.flags")]);
+  const [t, te, tf, tj] = await Promise.all([getTranslations("admin.jobs"), getTranslations("enums"), getTranslations("employer.jobForm.flags"), getTranslations("employer.jobs")]);
   const supabase = await createClient();
-  const { data } = await supabase.from("jobs").select("id, title, status, moderation_flags, updated_at, companies(legal_name)").eq("status", status).order("updated_at", { ascending: true }).limit(200);
+  const { data } = await supabase.from("jobs").select("id, title, status, moderation_flags, updated_at, free_until, suspension_reason, companies(legal_name)").eq("status", status).order("updated_at", { ascending: true }).limit(200);
   return (
     <div className="space-y-4">
       <PageHeader title={t("title")} description={t("description")} />
@@ -61,6 +61,8 @@ export default async function AdminJobsPage({ params, searchParams }: { params: 
                 <TD className="text-xs">{j.moderation_flags.map((f) => tf(f as never)).join(", ") || "—"}</TD>
                 <TD>
                   <Badge variant={JOB_STATUS_VARIANT[j.status]}>{te(`jobStatus.${j.status}`)}</Badge>
+                  {j.free_until && <p className="mt-1 text-xs text-muted-foreground">{t("freeUntil", { date: formatDate(j.free_until, locale, { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Paris" }) })}</p>}
+                  {j.suspension_reason && <p className="mt-1 text-xs text-muted-foreground">{tj(`suspension.${j.suspension_reason}` as never)}</p>}
                 </TD>
                 <TD className="text-muted-foreground">{formatDate(j.updated_at, locale)}</TD>
               </TR>

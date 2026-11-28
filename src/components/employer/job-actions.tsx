@@ -1,6 +1,6 @@
 "use client";
 import { useState, useTransition } from "react";
-import { Ban, CreditCard, Eye, Inbox, RotateCcw, Trash2 } from "lucide-react";
+import { Ban, CreditCard, Eye, Inbox, RefreshCcw, RotateCcw, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -9,9 +9,16 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { closeJobAction, deleteDraftAction, reopenJobAction } from "@/app/[locale]/employer/actions";
 import type { JobStatus } from "@/lib/domain";
 
+/**
+ * `billingAction`: what the advert needs to be (or stay) online — pay to publish, subscribe to
+ * keep it online after the launch offer, or subscribe to reactivate it once the offer is over.
+ * `freeReopenUntil`: last day of the launch offer, while a closed advert reopens for free.
+ */
 export function JobActions({
   jobId,
   status,
+  billingAction = status === "pending_payment" ? "pay" : null,
+  freeReopenUntil = null,
   canReopen,
   paidThroughLabel,
   publicHref,
@@ -19,6 +26,8 @@ export function JobActions({
 }: {
   jobId: string;
   status: JobStatus;
+  billingAction?: "pay" | "convert" | "reactivate" | null;
+  freeReopenUntil?: string | null;
   canReopen: boolean;
   paidThroughLabel: string | null;
   publicHref: string | null;
@@ -41,11 +50,11 @@ export function JobActions({
     });
   return (
     <div className="flex flex-wrap gap-2">
-      {status === "pending_payment" && (
-        <Button asChild>
+      {billingAction && (
+        <Button asChild variant={billingAction === "convert" ? "secondary" : "default"}>
           <Link href={`/employer/checkout/${jobId}`}>
-            <CreditCard aria-hidden />
-            {t("payAndPublish")}
+            {billingAction === "reactivate" ? <RefreshCcw aria-hidden /> : <CreditCard aria-hidden />}
+            {billingAction === "pay" ? t("payAndPublish") : billingAction === "convert" ? t("keepOnline") : t("reactivate")}
           </Link>
         </Button>
       )}
@@ -92,7 +101,13 @@ export function JobActions({
         <DialogContent closeLabel={tc("close")}>
           <DialogHeader>
             <DialogTitle>{t("closeTitle")}</DialogTitle>
-            <DialogDescription>{paidThroughLabel ? t("closeTextPaid", { date: paidThroughLabel }) : t("closeText")}</DialogDescription>
+            <DialogDescription>
+              {paidThroughLabel
+                ? t("closeTextPaid", { date: paidThroughLabel })
+                : freeReopenUntil && status === "active"
+                  ? t("closeTextFree", { lastDay: freeReopenUntil })
+                  : t("closeText")}
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmClose(false)}>

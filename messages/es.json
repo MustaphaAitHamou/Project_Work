@@ -177,7 +177,8 @@
    "tooManyAttempts": "Se han realizado demasiados intentos. Vuelve a intentarlo más tarde.",
    "server": "Se ha producido un error técnico. Vuelve a intentarlo más tarde.",
    "technicalDetail": "Detalle técnico (solo fuera de producción): {code}"
-  }
+  },
+  "employerFreeLaunch": "La creación de la cuenta y la verificación son gratuitas. Oferta de lanzamiento: publicación de anuncios gratuita hasta el {lastDay}."
  },
  "forms": {
   "selected": "Elementos seleccionados",
@@ -861,7 +862,8 @@
   "priceFrom": "Precio de catálogo",
   "pricePer": "al mes por anuncio activo",
   "priceTaxes": "impuestos aplicables no incluidos",
-  "ctaRecruiter": "Descubrir el espacio de reclutadores"
+  "ctaRecruiter": "Descubrir el espacio de reclutadores",
+  "recruitersPointLaunch": "Publicación gratuita hasta el {lastDay}, sin tarjeta bancaria"
  },
  "companies": {
   "title": "Empresas que contratan",
@@ -909,6 +911,7 @@
   "perJobPerMonth": "al mes por anuncio activo, renovación automática",
   "taxExclusive": "Precio sin impuestos. El importe exacto, con los impuestos aplicables, se muestra en la página de pago antes de confirmar.",
   "taxInclusive": "Precio con todos los impuestos incluidos.",
+  "taxShort": "sin impuestos",
   "f1": "Candidaturas ilimitadas en el anuncio",
   "f2": "CV descargables de forma segura",
   "f3": "Sin compromiso: cancelable en cualquier momento",
@@ -1061,6 +1064,18 @@
    "subject": "Anuncio caducado: {job}",
    "body": "La suscripción del anuncio «{job}» ha terminado: ya no está publicado. El historial de candidaturas sigue disponible en su espacio.",
    "cta": "Mis anuncios"
+  },
+  "free_period_ended": {
+   "subject": "Anuncio en pausa: {job}",
+   "body": "La oferta de lanzamiento ha terminado: el anuncio «{job}» ya no es visible ni acepta candidaturas. El anuncio y sus candidaturas se conservan en su espacio.",
+   "body2": "Para volver a publicarlo, contrate la suscripción desde la página del anuncio: se reactiva en cuanto se confirma el pago. No se cobra nada sin su suscripción.",
+   "cta": "Reactivar el anuncio"
+  },
+  "free_period_ending": {
+   "subject": "Oferta de lanzamiento: gratis hasta el {lastDay}",
+   "body": "La oferta de lanzamiento de Tamurt Jobs termina el {lastDay} a medianoche, hora de París (dentro de {days, plural, one {# día} other {# días}}).",
+   "body2": "Para que un anuncio siga en línea después, contrate su suscripción desde su espacio: no se cobra nada antes del {startDay}. Sin suscripción, sus anuncios gratuitos se pondrán en pausa el {startDay}: dejarán de ser visibles, pero ni ellos ni sus candidaturas se eliminarán, y podrá reactivarlos en cualquier momento.",
+   "cta": "Gestionar mis anuncios"
   },
   "account_suspended": {
    "subject": "Su cuenta de Tamurt Jobs está suspendida",
@@ -1624,8 +1639,23 @@
     "payment_failed": "pago fallido",
     "moderation": "moderación",
     "company_suspended": "empresa suspendida",
-    "admin": "administración"
-   }
+    "admin": "administración",
+    "free_period_ended": "fin de la oferta de lanzamiento"
+   },
+   "freeBadge": "Gratis hasta el {lastDay}",
+   "pausedBadge": "En pausa desde el final de la oferta",
+   "publishedFreeTitle": "Anuncio publicado gratis",
+   "publishedFreeText": "Su anuncio está en línea y puede recibir candidaturas. Es gratuito hasta el {lastDay} (oferta de lanzamiento).",
+   "freeActiveTitle": "En línea gratis hasta el {lastDay}",
+   "freeActiveText": "Para que siga en línea después de esa fecha, contrate la suscripción: no se cobra nada antes del {startDay}. Sin suscripción, se pondrá en pausa el {startDay} (ni el anuncio ni sus candidaturas se eliminarán).",
+   "freeEndedTitle": "Anuncio en pausa: la oferta de lanzamiento ha terminado",
+   "freeEndedText": "Ya no es visible ni acepta candidaturas. El anuncio y sus candidaturas se conservan. Contrate la suscripción para volver a publicarlo en cuanto se confirme el pago.",
+   "keepOnline": "Mantener en línea tras la oferta",
+   "reactivate": "Reactivar el anuncio",
+   "firstChargeOn": "Suscripción contratada: primer cobro el {date}",
+   "closeTextFree": "El anuncio se retirará y dejará de aceptar candidaturas. Podrá reabrirlo gratis hasta el {lastDay}.",
+   "reopenedFree": "Anuncio reabierto: gratuito hasta el {lastDay}.",
+   "inReviewTextLaunch": "El control automático ha detectado formulaciones que revisar. Un moderador examinará el anuncio; se le avisará por correo electrónico. Durante la oferta de lanzamiento, se publicará gratis tras su validación."
   },
   "jobForm": {
    "newTitle": "Nuevo anuncio",
@@ -1713,7 +1743,8 @@
     "salary_currency": "Indique la moneda y el periodo del salario.",
     "remote_scope": "Indique desde dónde se permite el teletrabajo.",
     "remote_countries": "Elija al menos un país."
-   }
+   },
+   "newDescriptionLaunch": "Guarde un borrador en cualquier momento. Oferta de lanzamiento: publicación gratuita hasta el {lastDay}, tras los controles habituales."
   },
   "applications": {
    "title": "Candidaturas — {job}",
@@ -1826,7 +1857,42 @@
   "pendingTitle": "Confirmando…",
   "pendingText": "Estamos esperando la confirmación de Stripe (normalmente unos segundos).",
   "pendingLong": "La confirmación está tardando más de lo previsto. Recibirá un correo en cuanto se publique; puede cerrar esta página.",
-  "goToJob": "Ver el anuncio"
+  "goToJob": "Ver el anuncio",
+  "priceExclTax": "{price} sin impuestos",
+  "priceInclTax": "{price} impuestos incluidos",
+  "convertTitle": "Mantener el anuncio en línea tras la oferta de lanzamiento",
+  "convertDescription": "El anuncio sigue siendo gratuito hasta el {lastDay}; después, la suscripción toma el relevo, sin interrupción.",
+  "convertFirstCharge": "No se cobra nada antes del {firstCharge}. Primer cobro en esa fecha y luego cada mes en la misma fecha, hasta su cancelación.",
+  "convertTrialNote": "En la página de pago, Stripe presenta el periodo restante como una «prueba gratuita»: es el final de la oferta de lanzamiento.",
+  "convertActivation": "El anuncio permanece en línea durante todo el proceso.",
+  "convertConsent": "Autorizo el cobro de la suscripción ({price} al mes) a partir del {firstCharge}. Puedo cancelarla antes de esa fecha sin pagar nada.",
+  "convertConsentRequired": "Marque la autorización de cobro para continuar.",
+  "convertButton": "Contratar la suscripción",
+  "reactivateTitle": "Reactivar el anuncio",
+  "reactivateDescription": "La oferta de lanzamiento ha terminado: la suscripción vuelve a publicar el anuncio en cuanto Stripe confirma el pago.",
+  "reactivateButton": "Pagar y reactivar",
+  "trialActiveTitle": "Suscripción registrada",
+  "trialActiveText": "Su anuncio sigue en línea. No se cobra nada antes del {date}; puede cancelar hasta entonces desde la facturación."
+ },
+ "launchOffer": {
+  "badge": "Oferta de lanzamiento",
+  "banner": "Oferta de lanzamiento: publique sus anuncios gratis hasta el {lastDay}.",
+  "bannerPrice": "Tarifa normal a partir del {startDay}: {price} sin impuestos al mes por anuncio activo.",
+  "bannerPriceInclusive": "Tarifa normal a partir del {startDay}: {price} impuestos incluidos al mes por anuncio activo.",
+  "bannerCta": "Publicar un anuncio",
+  "free": "Gratis",
+  "freeUntil": "hasta el {lastDay}",
+  "fromDay": "A partir del {startDay}",
+  "noCard": "No se pide tarjeta bancaria durante la oferta.",
+  "then": "Después, {price} sin impuestos al mes por anuncio activo a partir del {startDay}.",
+  "thenInclusive": "Después, {price} impuestos incluidos al mes por anuncio activo a partir del {startDay}.",
+  "afterEnd": "El {startDay}, un anuncio gratuito sin suscripción se pone en pausa: deja de ser visible y de aceptar candidaturas, pero no se elimina. Vuelve a publicarlo contratando la suscripción.",
+  "noAutoCharge": "Ningún cobro automático al final de la oferta: solo se crea una suscripción si usted la contrata.",
+  "compliance": "La verificación de la empresa, la conformidad del país y la moderación se aplican igual que para un anuncio de pago.",
+  "stepTitle": "Publique gratis",
+  "stepText": "Hasta el {lastDay}, el anuncio se publica sin pago tras los controles; después, pago seguro con Stripe.",
+  "faqQ": "¿Qué ocurre al final de la oferta de lanzamiento?",
+  "faqA": "La publicación es gratuita hasta el {lastDay} inclusive. A partir del {startDay} a las 0:00 (hora de París), un nuevo anuncio requiere una suscripción de {price} al mes. Sus anuncios gratuitos pueden convertirse en cualquier momento: la suscripción toma entonces el relevo sin interrupción y el primer cobro solo se produce al final del periodo gratuito. Sin suscripción, se ponen en pausa (no se eliminan) y pueden reactivarse en cualquier momento."
  },
  "admin": {
   "nav": {
@@ -1993,7 +2059,8 @@
    "record": "Guardar",
    "rejectNotice": "Un rechazo o una suspensión detiene la renovación de la suscripción al final del periodo. Los posibles reembolsos se realizan desde Pagos.",
    "reports": "Denuncias",
-   "internalNotes": "Notas internas"
+   "internalNotes": "Notas internas",
+   "freeUntil": "gratis hasta el {date}"
   },
   "reports": {
    "title": "Denuncias",

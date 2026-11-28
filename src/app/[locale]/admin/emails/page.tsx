@@ -3,6 +3,7 @@ import { requirePermission } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { EMAIL_TEMPLATES, buildEmail } from "@/lib/email/templates";
 import { env } from "@/lib/env";
+import { getLaunchOffer } from "@/lib/billing/launch-offer";
 import { PageHeader } from "@/components/layout/dashboard-shell";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { AdminForm } from "@/components/admin/admin-form";
 import { deleteEmailTemplateAction, upsertEmailTemplateAction } from "../actions";
 
-const SAMPLE = { job_title: "Comptable", company_name: "ACME", status: "shortlisted", outcome: "verified", decision: "approve", alert_name: "Comptable Lyon", jobs: [], grace_days: 3, type: "export", suspended: true, reason: "Annonce non conforme" };
+const SAMPLE = { job_title: "Comptable", company_name: "ACME", status: "shortlisted", outcome: "verified", decision: "approve", alert_name: "Comptable Lyon", jobs: [], grace_days: 3, type: "export", suspended: true, reason: "Annonce non conforme", days_left: 7 };
 
 export default async function AdminEmailsPage({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ template?: string; lang?: string }> }) {
   const { locale } = await params;
@@ -27,7 +28,9 @@ export default async function AdminEmailsPage({ params, searchParams }: { params
   const supabase = await createClient();
   const { data: overrides } = await supabase.from("email_templates").select("*");
   const current = (overrides ?? []).find((o) => o.template === template && o.locale === lang);
-  const preview = buildEmail(template, lang, SAMPLE, { siteUrl: env().NEXT_PUBLIC_SITE_URL, firstName: "Lina", override: current?.is_active ? { subject: current.subject, body: current.body } : null });
+  // Aperçu de l'offre de lancement avec sa vraie date de fin.
+  const offer = await getLaunchOffer();
+  const preview = buildEmail(template, lang, { ...SAMPLE, free_until: offer?.freeUntil }, { siteUrl: env().NEXT_PUBLIC_SITE_URL, firstName: "Lina", override: current?.is_active ? { subject: current.subject, body: current.body } : null });
   return (
     <div className="space-y-6">
       <PageHeader title={t("title")} description={t("description")} />

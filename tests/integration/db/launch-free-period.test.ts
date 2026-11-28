@@ -7,7 +7,7 @@
  * scheduled maintenance has not run yet". The server clock is never changed.
  */
 import { randomUUID } from "node:crypto";
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
   createCompany,
   createDraftJob,
@@ -79,7 +79,15 @@ describe("launch offer: free publication until 31/12/2026 23:59:59 Paris", () =>
     company = await createCompany({ verified: true });
     await restoreFreePeriod();
   });
-  afterAll(restoreFreePeriod);
+  // Admin calls below run without MFA (local seed); the previous value is restored.
+  let mfaRequired: unknown;
+  beforeAll(async () => {
+    mfaRequired = (await sql(`select value from public.platform_settings where key = 'security.admin_mfa_required'`))[0]?.value;
+  });
+  afterAll(async () => {
+    await restoreFreePeriod();
+    await sql(`update public.platform_settings set value = $1::jsonb where key = 'security.admin_mfa_required'`, [JSON.stringify(mfaRequired ?? false)]);
+  });
 
   it("ends exactly at midnight, Paris time (31/12 23:59:59 free, 01/01 00:00 paid)", async () => {
     const [r] = await sql<{
@@ -293,6 +301,24 @@ describe("launch offer: free publication until 31/12/2026 23:59:59 Paris", () =>
     expect(await isPublic(advert.id)).toEqual([{ id: advert.id, is_open: true }]);
   });
 
+  it("just after the end, before the maintenance: the subscription can be taken at once and puts the advert back online", async () => {
+    const advert = await freeAdvert(company);
+    await passEnd(advert.id);
+    const prep = await serviceClient.rpc("billing_prepare_checkout", { p_actor: company.owner.id, p_job_id: advert.id });
+    expect(prep.error).toBeNull();
+    expect((prep.data as { trial_until: string | null }).trial_until).toBeNull();
+    const plan = (prep.data as { plan: { id: string } }).plan;
+    const session = sid("cs_test");
+    await serviceClient.rpc("billing_register_checkout", { p_job_id: advert.id, p_plan_id: plan.id, p_session_id: session, p_customer_id: sid("cus") });
+    await serviceClient.rpc("billing_checkout_completed", {
+      p: { session_id: session, subscription_id: sid("sub"), payment_status: "paid", job_id: advert.id, livemode: false },
+    });
+    expect(await job(advert.id)).toMatchObject({ status: "active", free_until: null });
+    expect(await isPublic(advert.id)).toEqual([{ id: advert.id, is_open: true }]);
+    await serviceClient.rpc("run_maintenance");
+    expect((await job(advert.id)).status).toBe("active");
+  });
+
   it("converted before the end (trial until the end, no charge before): stays online after the end", async () => {
     const advert = await freeAdvert(company);
     const freeUntil = (await job(advert.id)).free_until!;
@@ -322,6 +348,8 @@ describe("launch offer: free publication until 31/12/2026 23:59:59 Paris", () =>
         livemode: false,
       },
     });
+    // Nothing paid now: recorded as a trial (the recruiter is told when the first charge happens).
+    expect(await sql(`select status from public.subscriptions where stripe_checkout_session_id = $1`, [session])).toEqual([{ status: "trialing" }]);
     // Duplicated and out-of-order subscription events (the older one arrives last).
     const sync = (created: string) =>
       serviceClient.rpc("billing_sync_subscription", {
@@ -387,15 +415,44 @@ describe("launch offer: free publication until 31/12/2026 23:59:59 Paris", () =>
   });
 
   it("reminders 30 and 7 days before the end: once per company and milestone", async () => {
-    await freeAdvert(company);
-    await setFreePublicationUntil(new Date(Date.now() + 20 * 24 * HOUR));
+    const advert = await freeAdvert(company);
+    const endsIn = (days: number) =>
+      sql(`update public.jobs set free_until = date_trunc('second', now()) + make_interval(days => $2) where id = $1`, [advert.id, days]);
+    await endsIn(45);
+    await serviceClient.rpc("run_maintenance");
+    expect(await outbox("free_period_ending", company.companyId)).toBe(0);
+    await endsIn(20);
     await serviceClient.rpc("run_maintenance");
     await serviceClient.rpc("run_maintenance");
     expect(await outbox("free_period_ending", company.companyId)).toBe(1);
-    await setFreePublicationUntil(new Date(Date.now() + 3 * 24 * HOUR));
+    await endsIn(3);
     await serviceClient.rpc("run_maintenance");
     await serviceClient.rpc("run_maintenance");
     expect(await outbox("free_period_ending", company.companyId)).toBe(2);
+  });
+
+  it("back-office end date: invalid values refused; an extension extends the adverts online, a shortening does not cut them", async () => {
+    const admin = await (await import("../../helpers/supabase")).createTestUser("candidate", { firstName: "Su", lastName: "Peradmin" });
+    await grantAdminRole(admin.id, "super_admin");
+    await sql(`update public.platform_settings set value = 'false' where key = 'security.admin_mfa_required'`);
+    const advert = await freeAdvert(company);
+    const update = (value: unknown) => admin.client.rpc("admin_update_setting", { p_key: "billing.free_publication_until", p_value: value as never });
+
+    for (const invalid of ["31/12/2026", "2027-01-01", "2027-01-01T00:00:00", "demain", 1798758000, null]) {
+      expect((await update(invalid)).error?.message, String(invalid)).toBe("invalid_input");
+    }
+    expect((await job(advert.id)).free_until!.getTime()).toBeLessThan(Date.now() + 2 * HOUR);
+
+    const extended = new Date(Date.now() + 10 * 24 * HOUR);
+    expect((await update(extended.toISOString())).error).toBeNull();
+    expect((await job(advert.id)).free_until!.toISOString()).toBe(extended.toISOString());
+
+    const shortened = new Date(Date.now() + 2 * HOUR);
+    expect((await update(shortened.toISOString())).error).toBeNull();
+    expect((await job(advert.id)).free_until!.toISOString()).toBe(extended.toISOString());
+    const draft = await createDraftJob(company);
+    expect((await company.owner.client.rpc("submit_job", { p_job_id: draft.id })).data).toMatchObject({ status: "active" });
+    expect((await job(draft.id)).free_until!.toISOString()).toBe(shortened.toISOString());
   });
 
   it("the end date and the per-advert state cannot be changed by a recruiter", async () => {

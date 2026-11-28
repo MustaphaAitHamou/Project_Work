@@ -6,6 +6,8 @@ import { getMyCompany } from "@/lib/employer/queries";
 import { createClient } from "@/lib/supabase/server";
 import { getJobPrice } from "@/lib/jobs/queries";
 import { getStripe } from "@/lib/billing/stripe";
+import { checkoutMode } from "@/lib/billing/checkout-mode";
+import { conversionTrialEnd, offerFirstPaidDay, offerLastDay } from "@/lib/billing/offer";
 import { formatMoneyMinor } from "@/lib/format";
 import { env } from "@/lib/env";
 import { getCountryNamer } from "@/lib/i18n/names-server";
@@ -24,18 +26,33 @@ export default async function CheckoutPage({ params, searchParams }: { params: P
   const sp = await searchParams;
   const supabase = await createClient();
   const [{ data: job }, { data: loc }, t, countryName] = await Promise.all([
-    supabase.from("jobs").select("id, title, status").eq("id", jobId).maybeSingle(),
+    supabase.from("jobs").select("id, title, status, free_until, suspension_reason").eq("id", jobId).maybeSingle(),
     supabase.from("job_locations").select("country_code, city").eq("job_id", jobId).eq("is_primary", true).maybeSingle(),
     getTranslations("billing"),
     getCountryNamer(),
   ]);
   if (!job) notFound();
-  if (job.status !== "pending_payment") redirect(`/${locale}/employer/jobs/${jobId}`);
+  // publish: awaiting payment; convert: online for free (launch offer), the subscription takes
+  // over at the end of the free period; reactivate: paused at the end of the offer.
+  const now = new Date();
+  const mode = checkoutMode(job, now);
+  if (!mode) redirect(`/${locale}/employer/jobs/${jobId}`);
   const price = await getJobPrice(loc?.country_code);
   const billingReady = Boolean(getStripe());
+  const trialEnd = mode === "convert" && job.free_until ? conversionTrialEnd(job.free_until, now) : null;
+  const firstCharge = trialEnd ? offerFirstPaidDay(trialEnd, locale) : null;
+  const priceWithTax = price
+    ? t(price.tax_behavior === "inclusive" ? "priceInclTax" : "priceExclTax", { price: formatMoneyMinor(price.unit_amount, price.currency, locale) })
+    : null;
+  const heading =
+    mode === "convert"
+      ? { title: t("convertTitle"), description: t("convertDescription", { lastDay: job.free_until ? offerLastDay(job.free_until, locale) : "" }) }
+      : mode === "reactivate"
+        ? { title: t("reactivateTitle"), description: t("reactivateDescription") }
+        : { title: t("checkoutTitle"), description: t("checkoutDescription") };
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <PageHeader title={t("checkoutTitle")} description={t("checkoutDescription")} />
+      <PageHeader title={heading.title} description={heading.description} />
       {sp.canceled && (
         <Alert variant="warning">
           <AlertDescription>{t("canceled")}</AlertDescription>
@@ -45,6 +62,12 @@ export default async function CheckoutPage({ params, searchParams }: { params: P
         <Alert variant="destructive">
           <AlertTitle>{t("notConfiguredTitle")}</AlertTitle>
           <AlertDescription>{t("notConfiguredText")}</AlertDescription>
+        </Alert>
+      )}
+      {firstCharge && (
+        <Alert variant="info" data-testid="first-charge">
+          <AlertTitle>{t("convertFirstCharge", { firstCharge })}</AlertTitle>
+          <AlertDescription>{t("convertTrialNote")}</AlertDescription>
         </Alert>
       )}
       <Card>
@@ -80,9 +103,14 @@ export default async function CheckoutPage({ params, searchParams }: { params: P
             <li>{price?.tax_behavior === "inclusive" ? t("taxInclusive") : env().STRIPE_AUTOMATIC_TAX ? t("taxExclusive") : t("taxExclusiveNoAutoTax")}</li>
             <li>{t("renewal")}</li>
             <li>{t("cancellation")}</li>
-            <li>{t("activation")}</li>
+            <li>{mode === "convert" ? t("convertActivation") : t("activation")}</li>
           </ul>
-          <CheckoutForm jobId={job.id} disabled={!billingReady || !price} />
+          <CheckoutForm
+            jobId={job.id}
+            disabled={!billingReady || !price}
+            chargeConsent={firstCharge && priceWithTax ? t("convertConsent", { price: priceWithTax, firstCharge }) : null}
+            submitLabel={mode === "convert" ? t("convertButton") : mode === "reactivate" ? t("reactivateButton") : t("payButton")}
+          />
         </CardContent>
       </Card>
     </div>

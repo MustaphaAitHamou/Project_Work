@@ -6,6 +6,8 @@ import { z } from "zod";
 import { getSessionUser } from "@/lib/auth/session";
 import { getMyCompany } from "@/lib/employer/queries";
 import { createJobCheckout, createPortalSession } from "@/lib/billing/checkout";
+import { checkoutMode } from "@/lib/billing/checkout-mode";
+import { createClient } from "@/lib/supabase/server";
 import { failure, type ActionState } from "@/lib/action-state";
 import { routing } from "@/i18n/routing";
 
@@ -23,8 +25,15 @@ export async function startCheckoutAction(_prev: ActionState, formData: FormData
   const jobId = String(formData.get("jobId") ?? "");
   if (!z.uuid().safeParse(jobId).success) return failure(te("invalid_input"));
   if (formData.get("acceptTerms") !== "on") return failure(t("acceptTermsRequired"), { acceptTerms: t("acceptTermsRequired") });
-  const result = await createJobCheckout({ id: user.id, email: user.email, name: `${user.firstName} ${user.lastName}` }, jobId, locale);
-  if (!result.ok) return failure(te(result.error));
+  // Subscription taken while the advert is free (launch offer): the first charge, at the end
+  // of the free period, needs its own explicit authorisation.
+  const { data: job } = await (await createClient()).from("jobs").select("status, free_until, suspension_reason").eq("id", jobId).maybeSingle();
+  const chargeConsented = formData.get("acceptCharge") === "on";
+  if (job && checkoutMode(job, new Date()) === "convert" && !chargeConsented) {
+    return failure(t("convertConsentRequired"), { acceptCharge: t("convertConsentRequired") });
+  }
+  const result = await createJobCheckout({ id: user.id, email: user.email, name: `${user.firstName} ${user.lastName}` }, jobId, locale, { chargeConsented });
+  if (!result.ok) return failure(result.error === "consent_required" ? t("convertConsentRequired") : te(result.error));
   redirect(result.url);
 }
 

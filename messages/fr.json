@@ -177,7 +177,8 @@
    "tooManyAttempts": "Trop de tentatives ont été effectuées. Veuillez réessayer plus tard.",
    "server": "Une erreur technique est survenue. Veuillez réessayer ultérieurement.",
    "technicalDetail": "Détail technique (affiché seulement hors production) : {code}"
-  }
+  },
+  "employerFreeLaunch": "La création du compte et la vérification sont gratuites. Offre de lancement : publication des annonces gratuite jusqu'au {lastDay}."
  },
  "forms": {
   "selected": "Éléments sélectionnés",
@@ -861,7 +862,8 @@
   "priceFrom": "Prix catalogue",
   "pricePer": "par mois et par annonce active",
   "priceTaxes": "hors taxes éventuelles",
-  "ctaRecruiter": "Découvrir l'espace recruteur"
+  "ctaRecruiter": "Découvrir l'espace recruteur",
+  "recruitersPointLaunch": "Publication gratuite jusqu'au {lastDay}, sans carte bancaire"
  },
  "companies": {
   "title": "Entreprises qui recrutent",
@@ -909,6 +911,7 @@
   "perJobPerMonth": "par mois et par annonce active, renouvellement automatique",
   "taxExclusive": "Prix hors taxes (HT). Le montant exact, taxes éventuelles comprises, est affiché sur la page de paiement avant validation.",
   "taxInclusive": "Prix toutes taxes comprises.",
+  "taxShort": "HT",
   "f1": "Candidatures illimitées sur l'annonce",
   "f2": "CV téléchargeables de manière sécurisée",
   "f3": "Sans engagement : résiliable à tout moment",
@@ -1061,6 +1064,18 @@
    "subject": "Annonce expirée : {job}",
    "body": "L'abonnement de l'annonce « {job} » est terminé : elle n'est plus publiée. L'historique des candidatures reste disponible dans votre espace.",
    "cta": "Mes annonces"
+  },
+  "free_period_ended": {
+   "subject": "Annonce en pause : {job}",
+   "body": "L'offre de lancement est terminée : l'annonce « {job} » n'est plus visible et n'accepte plus de candidatures. L'annonce et ses candidatures sont conservées dans votre espace.",
+   "body2": "Pour la remettre en ligne, souscrivez l'abonnement depuis la page de l'annonce : elle est réactivée dès la confirmation du paiement. Aucun prélèvement n'a lieu sans votre souscription.",
+   "cta": "Réactiver l'annonce"
+  },
+  "free_period_ending": {
+   "subject": "Offre de lancement : gratuité jusqu'au {lastDay}",
+   "body": "L'offre de lancement de Tamurt Jobs se termine le {lastDay} à minuit, heure de Paris (dans {days, plural, one {# jour} other {# jours}}).",
+   "body2": "Pour qu'une annonce reste en ligne ensuite, souscrivez son abonnement depuis votre espace : aucun prélèvement avant le {startDay}. Sans abonnement, vos annonces gratuites seront mises en pause le {startDay} : elles ne seront plus visibles, mais ni elles ni leurs candidatures ne seront supprimées, et vous pourrez les réactiver à tout moment.",
+   "cta": "Gérer mes annonces"
   },
   "account_suspended": {
    "subject": "Votre compte Tamurt Jobs est suspendu",
@@ -1624,8 +1639,23 @@
     "payment_failed": "paiement en échec",
     "moderation": "modération",
     "company_suspended": "entreprise suspendue",
-    "admin": "administration"
-   }
+    "admin": "administration",
+    "free_period_ended": "fin de l'offre de lancement"
+   },
+   "freeBadge": "Gratuite jusqu'au {lastDay}",
+   "pausedBadge": "En pause depuis la fin de l'offre",
+   "publishedFreeTitle": "Annonce publiée gratuitement",
+   "publishedFreeText": "Votre annonce est en ligne et peut recevoir des candidatures. Elle est gratuite jusqu'au {lastDay} (offre de lancement).",
+   "freeActiveTitle": "En ligne gratuitement jusqu'au {lastDay}",
+   "freeActiveText": "Pour qu'elle reste en ligne après cette date, souscrivez l'abonnement : aucun prélèvement avant le {startDay}. Sans abonnement, elle sera mise en pause le {startDay} (ni elle ni ses candidatures ne seront supprimées).",
+   "freeEndedTitle": "Annonce en pause : l'offre de lancement est terminée",
+   "freeEndedText": "Elle n'est plus visible et n'accepte plus de candidatures. L'annonce et ses candidatures sont conservées. Souscrivez l'abonnement pour la remettre en ligne dès la confirmation du paiement.",
+   "keepOnline": "Garder en ligne après l'offre",
+   "reactivate": "Réactiver l'annonce",
+   "firstChargeOn": "Abonnement souscrit : premier prélèvement le {date}",
+   "closeTextFree": "L'annonce sera retirée et n'acceptera plus de candidatures. Vous pourrez la rouvrir gratuitement jusqu'au {lastDay}.",
+   "reopenedFree": "Annonce rouverte : gratuite jusqu'au {lastDay}.",
+   "inReviewTextLaunch": "Le contrôle automatique a relevé des formulations à vérifier. Un modérateur va examiner l'annonce ; vous serez prévenu par e-mail. Pendant l'offre de lancement, elle sera publiée gratuitement après validation."
   },
   "jobForm": {
    "newTitle": "Nouvelle annonce",
@@ -1713,7 +1743,8 @@
     "salary_currency": "Indiquez la devise et la période du salaire.",
     "remote_scope": "Indiquez depuis où le télétravail est autorisé.",
     "remote_countries": "Choisissez au moins un pays."
-   }
+   },
+   "newDescriptionLaunch": "Enregistrez un brouillon à tout moment. Offre de lancement : publication gratuite jusqu'au {lastDay}, après les contrôles habituels."
   },
   "applications": {
    "title": "Candidatures — {job}",
@@ -1826,7 +1857,42 @@
   "pendingTitle": "Confirmation en cours…",
   "pendingText": "Nous attendons la confirmation de Stripe (quelques secondes en général).",
   "pendingLong": "La confirmation prend plus de temps que prévu. Vous recevrez un e-mail dès la publication ; vous pouvez fermer cette page.",
-  "goToJob": "Voir l'annonce"
+  "goToJob": "Voir l'annonce",
+  "priceExclTax": "{price} HT",
+  "priceInclTax": "{price} TTC",
+  "convertTitle": "Garder l'annonce en ligne après l'offre de lancement",
+  "convertDescription": "L'annonce reste gratuite jusqu'au {lastDay}, puis l'abonnement prend le relais, sans interruption.",
+  "convertFirstCharge": "Aucun prélèvement avant le {firstCharge}. Premier prélèvement à cette date, puis chaque mois à la même date, jusqu'à résiliation.",
+  "convertTrialNote": "Sur la page de paiement, Stripe présente la période restante comme un « essai gratuit » : c'est la fin de l'offre de lancement.",
+  "convertActivation": "L'annonce reste en ligne pendant toute l'opération.",
+  "convertConsent": "J'autorise le prélèvement de l'abonnement ({price} par mois) à partir du {firstCharge}. Je peux le résilier avant cette date sans rien payer.",
+  "convertConsentRequired": "Cochez l'autorisation de prélèvement pour continuer.",
+  "convertButton": "Souscrire l'abonnement",
+  "reactivateTitle": "Réactiver l'annonce",
+  "reactivateDescription": "L'offre de lancement est terminée : l'abonnement remet l'annonce en ligne dès que Stripe confirme le paiement.",
+  "reactivateButton": "Payer et réactiver",
+  "trialActiveTitle": "Abonnement enregistré",
+  "trialActiveText": "Votre annonce reste en ligne. Aucun prélèvement avant le {date} ; vous pouvez résilier d'ici là depuis la facturation."
+ },
+ "launchOffer": {
+  "badge": "Offre de lancement",
+  "banner": "Offre de lancement : publiez gratuitement vos annonces jusqu'au {lastDay}.",
+  "bannerPrice": "Tarif normal à compter du {startDay} : {price} HT par mois et par annonce active.",
+  "bannerPriceInclusive": "Tarif normal à compter du {startDay} : {price} TTC par mois et par annonce active.",
+  "bannerCta": "Publier une annonce",
+  "free": "Gratuit",
+  "freeUntil": "jusqu'au {lastDay}",
+  "fromDay": "À compter du {startDay}",
+  "noCard": "Aucune carte bancaire demandée pendant l'offre.",
+  "then": "Puis {price} HT par mois et par annonce active à compter du {startDay}.",
+  "thenInclusive": "Puis {price} TTC par mois et par annonce active à compter du {startDay}.",
+  "afterEnd": "Au {startDay}, une annonce gratuite sans abonnement est mise en pause : elle n'est plus visible ni ouverte aux candidatures, mais elle n'est pas supprimée. Vous la remettez en ligne en souscrivant l'abonnement.",
+  "noAutoCharge": "Aucun prélèvement automatique à la fin de l'offre : un abonnement n'est créé que si vous le souscrivez vous-même.",
+  "compliance": "La vérification de l'entreprise, la conformité du pays et la modération s'appliquent comme pour une annonce payante.",
+  "stepTitle": "Publiez gratuitement",
+  "stepText": "Jusqu'au {lastDay}, l'annonce est publiée sans paiement après les contrôles ; ensuite, paiement sécurisé par Stripe.",
+  "faqQ": "Que se passe-t-il à la fin de l'offre de lancement ?",
+  "faqA": "La publication est gratuite jusqu'au {lastDay} inclus. À partir du {startDay} à 0 h (heure de Paris), une nouvelle annonce nécessite un abonnement à {price} par mois. Vos annonces gratuites peuvent être converties à tout moment : l'abonnement prend alors le relais sans interruption et le premier prélèvement n'a lieu qu'à la fin de la gratuité. Sans abonnement, elles sont mises en pause (non supprimées) et réactivables à tout moment."
  },
  "admin": {
   "nav": {
@@ -1993,7 +2059,8 @@
    "record": "Enregistrer",
    "rejectNotice": "Un refus ou une suspension arrête le renouvellement de l'abonnement en fin de période. Les remboursements éventuels se font depuis Paiements.",
    "reports": "Signalements",
-   "internalNotes": "Notes internes"
+   "internalNotes": "Notes internes",
+   "freeUntil": "gratuite jusqu'au {date}"
   },
   "reports": {
    "title": "Signalements",

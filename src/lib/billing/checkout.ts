@@ -3,7 +3,10 @@ import * as Sentry from "@sentry/nextjs";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { env, isProductionDeployment, siteUrl } from "@/lib/env";
 import { errorKey, type ErrorKey } from "@/lib/errors";
+import { getTranslations } from "next-intl/server";
+import { formatMoneyMinor } from "@/lib/format";
 import { getStripe, stripeMode } from "./stripe";
+import { conversionTrialEnd, offerFirstPaidDay } from "./offer";
 
 const STRIPE_LOCALES: Record<string, "fr" | "en" | "es" | "auto"> = { fr: "fr", en: "en", es: "es", ar: "auto" };
 
@@ -13,14 +16,25 @@ interface Prepared {
   plan: { id: string; currency: string; unit_amount: number; tax_behavior: "exclusive" | "inclusive"; stripe_price_id: string | null };
   stripe_customer_id: string | null;
   sessions_to_expire: string[];
+  /** Launch offer: the advert is online for free until then; the subscription starts with a trial ending then. */
+  trial_until: string | null;
 }
 
 /**
  * Creates a Stripe Checkout Session (mode=subscription, one subscription per
  * advert). The advert is NOT activated here nor on the success URL: only the
  * signed webhook events do that.
+ *
+ * Launch offer: for an advert online for free, the subscription starts with a trial ending
+ * at the end of its free period (nothing charged before), only with the explicit
+ * authorisation of that first charge (`chargeConsented`).
  */
-export async function createJobCheckout(actor: { id: string; email: string; name: string }, jobId: string, locale: string): Promise<{ ok: true; url: string } | { ok: false; error: ErrorKey }> {
+export async function createJobCheckout(
+  actor: { id: string; email: string; name: string },
+  jobId: string,
+  locale: string,
+  opts: { chargeConsented?: boolean; now?: Date } = {},
+): Promise<{ ok: true; url: string } | { ok: false; error: ErrorKey }> {
   const stripe = getStripe();
   if (!stripe) return { ok: false, error: "billing_unavailable" };
   // Never take real payments with test keys in production (and vice versa).
@@ -30,6 +44,8 @@ export async function createJobCheckout(actor: { id: string; email: string; name
   const { data, error } = await admin.rpc("billing_prepare_checkout", { p_actor: actor.id, p_job_id: jobId });
   if (error) return { ok: false, error: errorKey(error) };
   const prep = data as unknown as Prepared;
+  const trialEnd = prep.trial_until ? conversionTrialEnd(prep.trial_until, opts.now ?? new Date()) : null;
+  if (trialEnd && !opts.chargeConsented) return { ok: false, error: "consent_required" };
 
   for (const sessionId of prep.sessions_to_expire ?? []) {
     try {
@@ -63,13 +79,21 @@ export async function createJobCheckout(actor: { id: string; email: string; name
             product_data: { name: env().STRIPE_PRODUCT_NAME, metadata: { plan_id: prep.plan.id } },
           },
         };
+    const firstChargeNotice = trialEnd ? await firstChargeMessage(locale, trialEnd, prep.plan) : null;
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
       client_reference_id: prep.job.id,
       line_items: [lineItem],
       metadata,
-      subscription_data: { metadata, description: `${prep.job.title} (${prep.job.public_id})` },
+      subscription_data: {
+        metadata,
+        description: `${prep.job.title} (${prep.job.public_id})`,
+        // Launch offer: free until the end of the free period, then the monthly price.
+        ...(trialEnd ? { trial_end: Math.floor(trialEnd.getTime() / 1000), trial_settings: { end_behavior: { missing_payment_method: "cancel" as const } } } : {}),
+      },
+      ...(trialEnd ? { payment_method_collection: "always" as const } : {}),
+      ...(firstChargeNotice ? { custom_text: { submit: { message: firstChargeNotice } } } : {}),
       automatic_tax: { enabled: env().STRIPE_AUTOMATIC_TAX },
       // The price shown on Tamurt Jobs (and in the terms) is the price charged: no currency
       // conversion by Stripe (Adaptive Pricing would add conversion fees and another currency).
@@ -89,6 +113,14 @@ export async function createJobCheckout(actor: { id: string; email: string; name
     reportStripeError("checkout", e);
     return { ok: false, error: "generic" };
   }
+}
+
+/** Shown by Stripe above the subscribe button: when the first charge happens, and how much. */
+async function firstChargeMessage(locale: string, trialEnd: Date, plan: Prepared["plan"]) {
+  const t = await getTranslations({ locale, namespace: "billing" });
+  const firstCharge = offerFirstPaidDay(trialEnd, locale);
+  const price = t(plan.tax_behavior === "inclusive" ? "priceInclTax" : "priceExclTax", { price: formatMoneyMinor(plan.unit_amount, plan.currency, locale) });
+  return `${t("convertFirstCharge", { firstCharge })} ${t("convertConsent", { price, firstCharge })}`.slice(0, 1200);
 }
 
 /** Stripe Customer Portal: update payment method, download invoices, cancel. */

@@ -64,10 +64,11 @@ export const getCountries = cache(async () => {
   return data ?? [];
 });
 
-export async function getJobPrice(country?: string | null) {
+/** Tarif catalogue d'un pays (ou par défaut) ; mis en cache pour la requête en cours. */
+export const getJobPrice = cache(async (country?: string | null) => {
   const { data } = await createPublicClient().rpc("get_job_price", { p_country: country ?? undefined } as never);
   return data as { plan_id: string; currency: string; unit_amount: number; interval: string; tax_behavior: string } | null;
-}
+});
 
 export async function getPublicSetting<T>(key: string, fallback: T): Promise<T> {
   const { data } = await createPublicClient().from("platform_settings").select("value").eq("key", key).maybeSingle();

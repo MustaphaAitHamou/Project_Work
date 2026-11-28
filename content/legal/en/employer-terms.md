@@ -1,6 +1,6 @@
 # Employer terms
 
-**Draft of 6 November 2026 — to be reviewed by legal counsel (commercial, consumer, tax and data protection law) in every country where paid publishing is opened. Text in square brackets must be completed or validated.**
+**Draft of 6 November 2026, completed on 28 November 2026 (launch offer, article 3) — to be reviewed by legal counsel (commercial, consumer, tax and data protection law) in every country where paid publishing is opened. Text in square brackets must be completed or validated.**
 
 These commercial terms (the "Terms") apply to companies that publish job offers on Tamurt Jobs. They supplement the [terms of use](/en/legal/terms). The service is provided by Tamurt Services LLC (see the [legal notice](/en/legal/notice)).
 
@@ -19,6 +19,14 @@ The representative guarantees that the information provided is accurate and that
 ## 3. Service and price
 
 Publishing is charged **per active job offer and per month**. The applicable price is the one displayed on the payment page before any confirmation, depending on the country of the position and the billing currency. The reference price is **€5.95 excluding taxes per offer and per month**; local prices in other currencies (USD, CAD, DZD, CHF, GBP) may apply and are then displayed before payment.
+
+**Launch offer.** [TO VALIDATE: legal wording of the offer, pre-contractual information, compliance with the rules on price-reduction announcements and promotional offers in each open country.] Until **31 December 2026 at 23:59:59 (Paris time)**, publishing a job offer is free for every company, without providing a payment method, under the same verification, compliance and moderation rules as paid offers. This end date is common to all companies; it is not an individual trial period.
+
+- From **1 January 2027 at 00:00 (Paris time)**, every new publication requires the monthly subscription described above.
+- An offer published for free can be converted at any time before that date: the subscription takes effect at the end of the offer's free period, **with no charge before that date**, and the company expressly authorises this first charge when subscribing. It can cancel before that date at no cost. If the subscription is taken within the 48 hours before the end of the offer, the first charge may be postponed by a few hours (a technical constraint of the payment provider), never brought forward.
+- **Nothing is charged merely because the offer ends.** A free offer that has not been converted is paused at the end of the offer: it is no longer visible, listed in search results or open to applications, but it is not deleted. The offer and its applications remain available in the recruiter area, under the retention terms of article 8, and the offer can be put back online at any time by taking out the subscription.
+- The company is informed by e-mail about 30 days and 7 days before the end of the offer, then when its offers are paused, unless it has turned off billing e-mails.
+- Tamurt Jobs may extend the offer; an extension applies to the offers already published for free. [TO VALIDATE: whether and how the offer may be shortened.]
 
 Prices may change. A price change does not apply to subscriptions in progress. [TO VALIDATE: prior notice of price changes for existing subscriptions.]
 

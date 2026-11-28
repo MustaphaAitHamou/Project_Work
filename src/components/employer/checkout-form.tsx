@@ -10,7 +10,11 @@ import { SubmitButton } from "@/components/forms/submit-button";
 import { FormMessage } from "@/components/forms/form-message";
 import { startCheckoutAction } from "@/app/[locale]/employer/billing-actions";
 
-export function CheckoutForm({ jobId, disabled }: { jobId: string; disabled: boolean }) {
+/**
+ * `chargeConsent`: subscription taken during the launch offer — an explicit authorisation of
+ * the first charge, at the end of the free period, is required on top of the terms.
+ */
+export function CheckoutForm({ jobId, disabled, chargeConsent = null, submitLabel }: { jobId: string; disabled: boolean; chargeConsent?: string | null; submitLabel?: string }) {
   const t = useTranslations("billing");
   const locale = useLocale();
   const [state, action] = useActionState(startCheckoutAction, initialActionState);
@@ -31,9 +35,15 @@ export function CheckoutForm({ jobId, disabled }: { jobId: string; disabled: boo
           })}
         </span>
       </label>
+      {chargeConsent && (
+        <label className="flex items-start gap-2 text-sm">
+          <Checkbox name="acceptCharge" className="mt-0.5" required />
+          <span>{chargeConsent}</span>
+        </label>
+      )}
       <SubmitButton size="lg" className="w-full" disabled={disabled} pendingLabel={t("redirecting")}>
         <Lock aria-hidden />
-        {t("payButton")}
+        {submitLabel ?? t("payButton")}
       </SubmitButton>
       <p className="text-center text-xs text-muted-foreground">{t("securedByStripe")}</p>
     </ActionForm>

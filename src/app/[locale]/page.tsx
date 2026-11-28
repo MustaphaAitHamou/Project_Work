@@ -7,6 +7,9 @@ import { MARKETS } from "@/lib/domain";
 import { formatMoneyMinor } from "@/lib/format";
 import { getCountryNamer } from "@/lib/i18n/names-server";
 import { getSessionUser } from "@/lib/auth/session";
+import { getLaunchOffer } from "@/lib/billing/launch-offer";
+import { offerFirstPaidDay, offerLastDay } from "@/lib/billing/offer";
+import { LaunchOfferBanner } from "@/components/billing/launch-offer-banner";
 import { SearchBar } from "@/components/jobs/search-bar";
 import { JobCard } from "@/components/jobs/job-card";
 import { Button } from "@/components/ui/button";
@@ -43,15 +46,19 @@ export default async function HomePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const [t, tNav, user, jobs, price, regionNames, countryName] = await Promise.all([
+  const [t, tNav, tOffer, user, jobs, price, regionNames, countryName, offer] = await Promise.all([
     getTranslations("home"),
     getTranslations("nav"),
+    getTranslations("launchOffer"),
     getSessionUser(),
     getLatestJobs(6),
     getJobPrice(null),
     getRegionNames(),
     getCountryNamer(),
+    getLaunchOffer(),
   ]);
+  // Launch offer (free publication): shown while the database accepts it.
+  const launch = offer?.open ? { lastDay: offerLastDay(offer.freeUntil, locale), startDay: offerFirstPaidDay(offer.freeUntil, locale) } : null;
   const now = new Date();
   // Signed-in users are never sent to the sign-up page: they go to their own space.
   const candidateCta = !user
@@ -101,6 +108,7 @@ export default async function HomePage({
   ];
   return (
     <>
+      <LaunchOfferBanner />
       {/* Brand band (fixed in both themes): work-blue gradient, white text, original illustration. */}
       <section className="relative overflow-hidden bg-[image:var(--brand-gradient)] text-white">
         <div
@@ -280,6 +288,7 @@ export default async function HomePage({
             </p>
             <ul className="mt-6 space-y-3 text-base">
               {[
+                ...(launch ? [t("recruitersPointLaunch", { lastDay: launch.lastDay })] : []),
                 t("recruitersPoint1"),
                 t("recruitersPoint2"),
                 t("recruitersPoint3"),
@@ -298,7 +307,34 @@ export default async function HomePage({
                 aria-hidden
                 className="pointer-events-none absolute -end-14 -top-16 size-44 rounded-full bg-white/10"
               />
-              {price ? (
+              {launch ? (
+                <div className="relative">
+                  <p className="inline-flex rounded-full bg-highlight px-2.5 py-0.5 text-xs font-bold text-highlight-foreground">
+                    {tOffer("badge")}
+                  </p>
+                  <p className="mt-2 text-4xl font-extrabold">{tOffer("free")}</p>
+                  <p className="text-sm font-semibold">
+                    {tOffer("freeUntil", { lastDay: launch.lastDay })}
+                  </p>
+                  {price ? (
+                    <p className="mt-1 text-sm text-white/85">
+                      {tOffer(
+                        price.tax_behavior === "inclusive"
+                          ? "thenInclusive"
+                          : "then",
+                        {
+                          price: formatMoneyMinor(
+                            price.unit_amount,
+                            price.currency,
+                            locale,
+                          ),
+                          startDay: launch.startDay,
+                        },
+                      )}
+                    </p>
+                  ) : null}
+                </div>
+              ) : price ? (
                 <div className="relative">
                   <p className="text-sm">{t("priceFrom")}</p>
                   <p className="text-4xl font-extrabold">

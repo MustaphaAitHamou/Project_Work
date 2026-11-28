@@ -46,6 +46,9 @@
   );
   --brand-deep: #172b73;
   --brand-on: #ffffff;
+  /* Yellow touch (launch offer, highlights): on night blue or as a background under dark text. */
+  --highlight: #f6c445;
+  --highlight-foreground: #1d1607;
   /* Chart series colour, validated (contrast >= 3:1) for the light surface. */
   --chart-1: #2747b0;
 }
@@ -112,6 +115,8 @@
   --color-chart-1: var(--chart-1);
   --color-brand-deep: var(--brand-deep);
   --color-brand-on: var(--brand-on);
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
   /* Jobs corners: 4 px for buttons, fields and chips, 6 px for cards, 8 px for floating panels. */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

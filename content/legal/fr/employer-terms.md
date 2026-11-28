@@ -1,6 +1,6 @@
 # Conditions commerciales recruteurs
 
-**Projet du 6 novembre 2026 — à faire valider par un conseil juridique (droit commercial, consommation, fiscalité et protection des données) dans chaque pays où la publication payante est ouverte. Les passages entre crochets sont à compléter ou à valider.**
+**Projet du 6 novembre 2026, complété le 28 novembre 2026 (offre de lancement, article 3) — à faire valider par un conseil juridique (droit commercial, consommation, fiscalité et protection des données) dans chaque pays où la publication payante est ouverte. Les passages entre crochets sont à compléter ou à valider.**
 
 Les présentes conditions commerciales (« Conditions ») s'appliquent aux entreprises qui publient des offres d'emploi sur Tamurt Jobs. Elles complètent les [conditions générales d'utilisation](/fr/legal/terms). Le service est fourni par Tamurt Services LLC (voir les [mentions légales](/fr/legal/notice)).
 
@@ -19,6 +19,14 @@ Le représentant garantit l'exactitude des informations fournies et disposer du 
 ## 3. Offre de service et prix
 
 La publication est facturée **par annonce active et par mois**. Le prix applicable est celui affiché sur la page de paiement avant toute validation, selon le pays du poste et la devise de facturation. Le tarif de référence est de **5,95 € hors taxes par annonce et par mois** ; des tarifs locaux en d'autres devises (USD, CAD, DZD, CHF, GBP) peuvent s'appliquer et sont alors affichés avant le paiement.
+
+**Offre de lancement.** [À VALIDER : rédaction juridique de l'offre, information précontractuelle, conformité aux règles sur les annonces de réduction de prix et sur les offres promotionnelles dans chaque pays ouvert.] Jusqu'au **31 décembre 2026 à 23 h 59 min 59 s (heure de Paris)**, la publication d'une annonce est gratuite pour toutes les entreprises, sans moyen de paiement à fournir, aux mêmes conditions de vérification, de conformité et de modération que les annonces payantes. Cette date de fin est commune à toutes les entreprises ; il ne s'agit pas d'une période d'essai individuelle.
+
+- À partir du **1er janvier 2027 à 0 h (heure de Paris)**, toute nouvelle publication nécessite l'abonnement mensuel décrit ci-dessus.
+- Une annonce publiée gratuitement peut être convertie à tout moment avant cette date : l'abonnement souscrit prend effet à la fin de la gratuité de l'annonce, **sans aucun prélèvement avant cette date**, et l'entreprise autorise expressément ce premier prélèvement au moment de la souscription. Elle peut résilier avant cette date sans frais. Si la souscription intervient dans les 48 heures précédant la fin de l'offre, le premier prélèvement peut être décalé de quelques heures au-delà (contrainte technique du prestataire de paiement), jamais avancé.
+- **Aucun prélèvement n'a lieu du seul fait de la fin de l'offre.** Une annonce gratuite non convertie est mise en pause à la fin de l'offre : elle n'est plus visible, ni proposée dans la recherche, ni ouverte aux candidatures, mais elle n'est pas supprimée. L'annonce et ses candidatures restent accessibles dans l'espace recruteur, dans les conditions de conservation de l'article 8, et l'annonce peut être remise en ligne à tout moment en souscrivant l'abonnement.
+- L'entreprise est informée par e-mail environ 30 jours et 7 jours avant la fin de l'offre, puis lors de la mise en pause de ses annonces, si elle n'a pas désactivé les e-mails de facturation.
+- Tamurt Jobs peut prolonger l'offre ; une prolongation s'applique aux annonces déjà publiées gratuitement. [À VALIDER : possibilité et modalités d'un raccourcissement.]
 
 Les prix peuvent évoluer. Une modification de prix ne s'applique pas aux abonnements en cours. [À VALIDER : modalités d'information préalable en cas d'évolution tarifaire pour les abonnements existants.]
 

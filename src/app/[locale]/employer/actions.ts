@@ -14,6 +14,8 @@ import { companyProfileSchema, companySchema, jobSchema } from "@/lib/validation
 import { runCompanyVerification } from "@/lib/companies/verification/service";
 import { flushOutboxQuietly } from "@/lib/email/outbox";
 import { cancelSubscriptionsAtPeriodEnd, resumeRenewal } from "@/lib/billing/subscriptions";
+import { getLaunchOffer } from "@/lib/billing/launch-offer";
+import { offerLastDay } from "@/lib/billing/offer";
 import { rateLimit } from "@/lib/security/rate-limit";
 import { routing } from "@/i18n/routing";
 
@@ -306,6 +308,11 @@ export async function saveJobAction(_prev: ActionState, formData: FormData): Pro
     }
     const status = (submitted as { status: string }).status;
     if (status === "pending_payment") redirect(`/${locale}/employer/checkout/${jobId}`);
+    // Launch offer: published at once, without payment.
+    if (status === "active") {
+      revalidatePath(`/${locale}/employer`, "layout");
+      redirect(`/${locale}/employer/jobs/${jobId}?published=free`);
+    }
     redirect(`/${locale}/employer/jobs/${jobId}?submitted=review`);
   }
   if (!existingId) redirect(`/${locale}/employer/jobs/${jobId}?saved=1`);
@@ -342,6 +349,11 @@ export async function reopenJobAction(locale: string, jobId: string): Promise<Ac
     }
   }
   revalidatePath(`/${L(locale)}/employer`, "layout");
+  if (!subId) {
+    // Reopened for free during the launch offer.
+    const offer = await getLaunchOffer();
+    if (offer) return success(t("reopenedFree", { lastDay: offerLastDay(offer.freeUntil, L(locale)) }));
+  }
   return success(t("reopened"));
 }
 

@@ -1,6 +1,14 @@
 import { createHash, randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
-import { createCompany, createDraftJob, createReadyCandidate, createTestUser, grantAdminRole, resetRateLimits, serviceClient, sql, type TestUser } from "../helpers/supabase";
+import { createCompany, createDraftJob, createReadyCandidate, createTestUser, grantAdminRole, resetRateLimits, serviceClient, sql, endFreePeriod, restoreFreePeriod, type TestUser } from "../helpers/supabase";
+
+// Paid model (from 1 January 2027): the launch offer is simulated as over for this file.
+test.beforeAll(async () => {
+  await endFreePeriod();
+});
+test.afterAll(async () => {
+  await restoreFreePeriod();
+});
 
 test.beforeEach(async () => {
   await resetRateLimits();

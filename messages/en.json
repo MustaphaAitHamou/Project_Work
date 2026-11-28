@@ -177,7 +177,8 @@
    "tooManyAttempts": "Too many attempts have been made. Please try again later.",
    "server": "A technical error occurred. Please try again later.",
    "technicalDetail": "Technical detail (shown outside production only): {code}"
-  }
+  },
+  "employerFreeLaunch": "Creating the account and verification are free. Launch offer: job ads are free to publish until {lastDay}."
  },
  "forms": {
   "selected": "Selected items",
@@ -861,7 +862,8 @@
   "priceFrom": "List price",
   "pricePer": "per month per active job ad",
   "priceTaxes": "excluding any applicable taxes",
-  "ctaRecruiter": "Discover the recruiter space"
+  "ctaRecruiter": "Discover the recruiter space",
+  "recruitersPointLaunch": "Free publication until {lastDay}, no bank card"
  },
  "companies": {
   "title": "Companies hiring",
@@ -909,6 +911,7 @@
   "perJobPerMonth": "per month per active job ad, automatic renewal",
   "taxExclusive": "Price excluding taxes. The exact amount, including any taxes, is shown on the payment page before you confirm.",
   "taxInclusive": "Price including all taxes.",
+  "taxShort": "excl. tax",
   "f1": "Unlimited applications on the job ad",
   "f2": "CVs downloadable securely",
   "f3": "No commitment: cancel at any time",
@@ -1061,6 +1064,18 @@
    "subject": "Job ad expired: {job}",
    "body": "The subscription for the job ad “{job}” has ended: it is no longer published. The history of applications remains available in your space.",
    "cta": "My job ads"
+  },
+  "free_period_ended": {
+   "subject": "Job ad paused: {job}",
+   "body": "The launch offer has ended: the job ad “{job}” is no longer visible and no longer accepts applications. The job ad and its applications are kept in your space.",
+   "body2": "To put it back online, take out the subscription from the job ad page: it is reactivated as soon as the payment is confirmed. Nothing is charged without your subscription.",
+   "cta": "Reactivate the job ad"
+  },
+  "free_period_ending": {
+   "subject": "Launch offer: free until {lastDay}",
+   "body": "The Tamurt Jobs launch offer ends on {lastDay} at midnight, Paris time (in {days, plural, one {# day} other {# days}}).",
+   "body2": "To keep a job ad online afterwards, take out its subscription from your space: nothing is charged before {startDay}. Without a subscription, your free job ads will be paused on {startDay}: they will no longer be visible, but neither they nor their applications will be deleted, and you can reactivate them at any time.",
+   "cta": "Manage my job ads"
   },
   "account_suspended": {
    "subject": "Your Tamurt Jobs account is suspended",
@@ -1624,8 +1639,23 @@
     "payment_failed": "payment failed",
     "moderation": "moderation",
     "company_suspended": "company suspended",
-    "admin": "administration"
-   }
+    "admin": "administration",
+    "free_period_ended": "end of the launch offer"
+   },
+   "freeBadge": "Free until {lastDay}",
+   "pausedBadge": "Paused since the end of the offer",
+   "publishedFreeTitle": "Job ad published for free",
+   "publishedFreeText": "Your job ad is online and can receive applications. It is free until {lastDay} (launch offer).",
+   "freeActiveTitle": "Online for free until {lastDay}",
+   "freeActiveText": "To keep it online after that date, take out the subscription: nothing is charged before {startDay}. Without a subscription, it will be paused on {startDay} (neither it nor its applications will be deleted).",
+   "freeEndedTitle": "Job ad paused: the launch offer has ended",
+   "freeEndedText": "It is no longer visible and no longer accepts applications. The job ad and its applications are kept. Take out the subscription to put it back online as soon as the payment is confirmed.",
+   "keepOnline": "Keep online after the offer",
+   "reactivate": "Reactivate the job ad",
+   "firstChargeOn": "Subscription taken out: first charge on {date}",
+   "closeTextFree": "The job ad will be withdrawn and will no longer accept applications. You can reopen it for free until {lastDay}.",
+   "reopenedFree": "Job ad reopened: free until {lastDay}.",
+   "inReviewTextLaunch": "The automatic check found wording to review. A moderator will examine the job ad; you will be notified by e-mail. During the launch offer, it will be published for free once approved."
   },
   "jobForm": {
    "newTitle": "New job ad",
@@ -1713,7 +1743,8 @@
     "salary_currency": "Specify the salary currency and period.",
     "remote_scope": "Specify where remote work is allowed from.",
     "remote_countries": "Choose at least one country."
-   }
+   },
+   "newDescriptionLaunch": "Save a draft at any time. Launch offer: free publication until {lastDay}, after the usual checks."
   },
   "applications": {
    "title": "Applications — {job}",
@@ -1826,7 +1857,42 @@
   "pendingTitle": "Confirming…",
   "pendingText": "We are waiting for Stripe's confirmation (usually a few seconds).",
   "pendingLong": "Confirmation is taking longer than expected. You will receive an e-mail as soon as the job ad is published; you can close this page.",
-  "goToJob": "See the job ad"
+  "goToJob": "See the job ad",
+  "priceExclTax": "{price} excl. tax",
+  "priceInclTax": "{price} incl. tax",
+  "convertTitle": "Keep the job ad online after the launch offer",
+  "convertDescription": "The job ad stays free until {lastDay}, then the subscription takes over, without interruption.",
+  "convertFirstCharge": "Nothing is charged before {firstCharge}. First charge on that date, then every month on the same date, until cancelled.",
+  "convertTrialNote": "On the payment page, Stripe presents the remaining period as a “free trial”: it is the end of the launch offer.",
+  "convertActivation": "The job ad stays online throughout.",
+  "convertConsent": "I authorise the subscription to be charged ({price} per month) from {firstCharge}. I can cancel it before that date without paying anything.",
+  "convertConsentRequired": "Tick the charge authorisation to continue.",
+  "convertButton": "Take out the subscription",
+  "reactivateTitle": "Reactivate the job ad",
+  "reactivateDescription": "The launch offer has ended: the subscription puts the job ad back online as soon as Stripe confirms the payment.",
+  "reactivateButton": "Pay and reactivate",
+  "trialActiveTitle": "Subscription registered",
+  "trialActiveText": "Your job ad stays online. Nothing is charged before {date}; you can cancel until then from billing."
+ },
+ "launchOffer": {
+  "badge": "Launch offer",
+  "banner": "Launch offer: post your job ads for free until {lastDay}.",
+  "bannerPrice": "Standard price from {startDay}: {price} excl. tax per month per active job ad.",
+  "bannerPriceInclusive": "Standard price from {startDay}: {price} incl. tax per month per active job ad.",
+  "bannerCta": "Post a job ad",
+  "free": "Free",
+  "freeUntil": "until {lastDay}",
+  "fromDay": "From {startDay}",
+  "noCard": "No bank card required during the offer.",
+  "then": "Then {price} excl. tax per month per active job ad from {startDay}.",
+  "thenInclusive": "Then {price} incl. tax per month per active job ad from {startDay}.",
+  "afterEnd": "On {startDay}, a free job ad without a subscription is paused: it is no longer visible or open to applications, but it is not deleted. You put it back online by taking out the subscription.",
+  "noAutoCharge": "No automatic charge when the offer ends: a subscription is only created if you take it out yourself.",
+  "compliance": "Company verification, country compliance and moderation apply just as for a paid job ad.",
+  "stepTitle": "Publish for free",
+  "stepText": "Until {lastDay}, the job ad is published without payment after the checks; then, secure payment by Stripe.",
+  "faqQ": "What happens when the launch offer ends?",
+  "faqA": "Publishing is free until {lastDay} inclusive. From {startDay} at 00:00 (Paris time), a new job ad requires a subscription at {price} per month. Your free job ads can be converted at any time: the subscription then takes over without interruption and the first charge only happens when the free period ends. Without a subscription, they are paused (not deleted) and can be reactivated at any time."
  },
  "admin": {
   "nav": {
@@ -1993,7 +2059,8 @@
    "record": "Save",
    "rejectNotice": "A refusal or suspension stops the subscription renewal at the end of the period. Any refunds are made from Payments.",
    "reports": "Reports",
-   "internalNotes": "Internal notes"
+   "internalNotes": "Internal notes",
+   "freeUntil": "free until {date}"
   },
   "reports": {
    "title": "Reports",

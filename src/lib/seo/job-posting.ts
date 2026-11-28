@@ -23,6 +23,8 @@ export interface JobPostingInput {
   published_at: string | null;
   application_deadline: string | null;
   paid_through: string | null;
+  /** Launch offer: end (exclusive) of the free publication, null when a subscription covers it. */
+  free_until?: string | null;
   city: string | null;
   postal_code: string | null;
   address_line: string | null;
@@ -67,7 +69,7 @@ export function buildJobPostingJsonLd(job: JobPostingInput, opts: { url: string;
   if (job.missions) descriptionParts.push(`<h3>${escapeHtml(opts.sectionTitles.missions)}</h3>${plainTextToHtml(job.missions)}`);
   if (job.profile_sought) descriptionParts.push(`<h3>${escapeHtml(opts.sectionTitles.profile)}</h3>${plainTextToHtml(job.profile_sought)}`);
 
-  const validThrough = job.application_deadline ? `${job.application_deadline}T23:59:59Z` : (job.paid_through ?? undefined);
+  const validThrough = job.application_deadline ? `${job.application_deadline}T23:59:59Z` : (job.free_until ?? job.paid_through ?? undefined);
   const data: Record<string, unknown> = {
     "@context": "https://schema.org/",
     "@type": "JobPosting",

@@ -1,9 +1,17 @@
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
-import { createReadyCandidate, serviceClient, sql, uniqueEmail } from "../helpers/supabase";
+import { createReadyCandidate, serviceClient, sql, uniqueEmail, endFreePeriod, restoreFreePeriod } from "../helpers/supabase";
 import { resetRateLimits } from "../helpers/supabase";
 import { checkoutSession, event, sign } from "../helpers/stripe-events";
 import { signUpAndConfirm } from "./helpers";
+
+// Paid model (from 1 January 2027): the launch offer is simulated as over for this file.
+test.beforeAll(async () => {
+  await endFreePeriod();
+});
+test.afterAll(async () => {
+  await restoreFreePeriod();
+});
 
 test.beforeEach(async () => {
   await resetRateLimits();

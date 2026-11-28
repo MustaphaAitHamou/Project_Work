@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { BadgeCheck, CreditCard, FileText, Inbox, Search, XCircle } from "lucide-react";
+import { BadgeCheck, CreditCard, FileText, Gift, Inbox, Search, XCircle } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { getJobPrice } from "@/lib/jobs/queries";
 import { getSessionUser } from "@/lib/auth/session";
 import { formatMoneyMinor } from "@/lib/format";
+import { getLaunchOffer } from "@/lib/billing/launch-offer";
+import { offerFirstPaidDay, offerLastDay } from "@/lib/billing/offer";
+import { LaunchOfferBanner } from "@/components/billing/launch-offer-banner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -17,17 +20,30 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function RecruitersPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const [t, price, user] = await Promise.all([getTranslations("recruiters"), getJobPrice(null), getSessionUser()]);
+  const [t, tOffer, price, user, offer] = await Promise.all([
+    getTranslations("recruiters"),
+    getTranslations("launchOffer"),
+    getJobPrice(null),
+    getSessionUser(),
+    getLaunchOffer(),
+  ]);
+  // Launch offer: free publication while the database accepts it, then the catalogue price.
+  const launch = offer?.open ? { lastDay: offerLastDay(offer.freeUntil, locale), startDay: offerFirstPaidDay(offer.freeUntil, locale) } : null;
+  const priceLabel = price ? formatMoneyMinor(price.unit_amount, price.currency, locale) : null;
   const steps = [
     { icon: FileText, title: t("s1Title"), text: t("s1Text") },
     { icon: BadgeCheck, title: t("s2Title"), text: t("s2Text") },
     { icon: Search, title: t("s3Title"), text: t("s3Text") },
-    { icon: CreditCard, title: t("s4Title"), text: t("s4Text") },
+    launch
+      ? { icon: Gift, title: tOffer("stepTitle"), text: tOffer("stepText", { lastDay: launch.lastDay }) }
+      : { icon: CreditCard, title: t("s4Title"), text: t("s4Text") },
     { icon: Inbox, title: t("s5Title"), text: t("s5Text") },
   ];
   const examples = [1, 2, 5, 10];
   const cta = user?.accountType === "employer" ? { href: "/employer", label: t("ctaDashboard") } : { href: "/signup/employer", label: t("ctaSignup") };
   return (
+    <>
+    <LaunchOfferBanner cta={false} />
     <div className="container-page py-14">
       <div className="mx-auto max-w-3xl text-center">
         <h1 className="text-3xl font-bold sm:text-4xl">{t("title")}</h1>
@@ -41,14 +57,36 @@ export default async function RecruitersPage({ params }: { params: Promise<{ loc
         <h2 id="pricing" className="text-center text-2xl font-bold">
           {t("pricingTitle")}
         </h2>
+        {launch && (
+          <div className="relative mt-6 overflow-hidden rounded-xl bg-brand-deep p-6 text-brand-on shadow-sm sm:p-8" data-testid="launch-offer-pricing">
+            <div aria-hidden className="pointer-events-none absolute -end-16 -top-20 size-56 rounded-full bg-highlight/15" />
+            <div className="relative grid gap-6 md:grid-cols-[auto_1fr] md:items-center">
+              <div>
+                <p className="inline-flex items-center gap-1.5 rounded-full bg-highlight px-2.5 py-0.5 text-xs font-bold text-highlight-foreground">
+                  <Gift className="size-3.5" aria-hidden />
+                  {tOffer("badge")}
+                </p>
+                <p className="mt-3 text-5xl font-extrabold">{tOffer("free")}</p>
+                <p className="mt-1 font-semibold">{tOffer("freeUntil", { lastDay: launch.lastDay })}</p>
+              </div>
+              <ul className="space-y-2 text-sm text-brand-on/90">
+                <li>✓ {tOffer("noCard")}</li>
+                <li>✓ {tOffer("compliance")}</li>
+                <li>✓ {tOffer("noAutoCharge")}</li>
+                <li>✓ {tOffer("afterEnd", { startDay: launch.startDay })}</li>
+              </ul>
+            </div>
+          </div>
+        )}
         {price && (
           <div className="mt-6 grid gap-6 md:grid-cols-[1fr_1.2fr]">
             <Card className="border-primary/40">
               <CardHeader>
                 <CardTitle>{t("planName")}</CardTitle>
+                {launch && <p className="text-sm font-medium text-muted-foreground">{tOffer("fromDay", { startDay: launch.startDay })}</p>}
               </CardHeader>
               <CardContent className="space-y-2">
-                <p className="text-4xl font-bold text-primary">{formatMoneyMinor(price.unit_amount, price.currency, locale)}</p>
+                <p className="text-4xl font-bold text-primary">{priceLabel}</p>
                 <p className="text-sm text-muted-foreground">{t("perJobPerMonth")}</p>
                 <p className="text-xs text-muted-foreground">{price.tax_behavior === "exclusive" ? t("taxExclusive") : t("taxInclusive")}</p>
                 <ul className="mt-3 space-y-1 text-sm">
@@ -113,6 +151,14 @@ export default async function RecruitersPage({ params }: { params: Promise<{ loc
         <h2 id="faq" className="text-2xl font-bold">
           {t("faqTitle")}
         </h2>
+        {launch && priceLabel && (
+          <details className="rounded-lg border border-highlight/60 bg-card p-4" open>
+            <summary className="cursor-pointer font-medium">{tOffer("faqQ")}</summary>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {tOffer("faqA", { lastDay: launch.lastDay, startDay: launch.startDay, price: price?.tax_behavior === "inclusive" ? priceLabel : `${priceLabel} ${t("taxShort")}` })}
+            </p>
+          </details>
+        )}
         {["q1", "q2", "q3", "q4", "q5", "q6"].map((q) => (
           <details key={q} className="rounded-lg border bg-card p-4">
             <summary className="cursor-pointer font-medium">{t(`faq.${q}`)}</summary>
@@ -129,5 +175,6 @@ export default async function RecruitersPage({ params }: { params: Promise<{ loc
         <p className="mt-2 text-sm text-muted-foreground">{t("notText")}</p>
       </section>
     </div>
+    </>
   );
 }

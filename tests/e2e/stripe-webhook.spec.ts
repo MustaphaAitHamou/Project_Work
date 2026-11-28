@@ -5,9 +5,17 @@
  */
 import { randomUUID } from "node:crypto";
 import { expect, test, type APIRequestContext } from "@playwright/test";
-import { createCompany, createDraftJob, serviceClient, sql } from "../helpers/supabase";
+import { createCompany, createDraftJob, serviceClient, sql, endFreePeriod, restoreFreePeriod } from "../helpers/supabase";
 import { resetRateLimits } from "../helpers/supabase";
 import { checkoutSession, event, invoice, refund, sign, subscription } from "../helpers/stripe-events";
+
+// Paid model (from 1 January 2027): the launch offer is simulated as over for this file.
+test.beforeAll(async () => {
+  await endFreePeriod();
+});
+test.afterAll(async () => {
+  await restoreFreePeriod();
+});
 
 async function post(request: APIRequestContext, evt: object, signature?: string) {
   const payload = JSON.stringify(evt);

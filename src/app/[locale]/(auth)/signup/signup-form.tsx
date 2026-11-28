@@ -14,7 +14,8 @@ import { FormMessage } from "@/components/forms/form-message";
 import { Turnstile } from "@/components/forms/turnstile";
 import { signUpAction, type SignupResultData } from "../actions";
 
-export function SignupForm({ accountType }: { accountType: "candidate" | "employer" }) {
+/** `freeNote`: pricing note computed by the page (launch offer), instead of the default one. */
+export function SignupForm({ accountType, freeNote }: { accountType: "candidate" | "employer"; freeNote?: string }) {
   const t = useTranslations("auth");
   const locale = useLocale();
   const [state, action] = useActionState(
@@ -110,7 +111,7 @@ export function SignupForm({ accountType }: { accountType: "candidate" | "employ
       <SubmitButton className="w-full" pendingLabel={t("creating")}>
         {t("createAccount")}
       </SubmitButton>
-      <p className="text-xs text-muted-foreground">{accountType === "employer" ? t("employerFree") : t("candidateFree")}</p>
+      <p className="text-xs text-muted-foreground">{accountType === "employer" ? (freeNote ?? t("employerFree")) : t("candidateFree")}</p>
     </ActionForm>
   );
 }

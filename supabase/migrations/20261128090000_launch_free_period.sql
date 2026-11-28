@@ -26,14 +26,19 @@ on conflict (key) do nothing;
 
 create or replace function app.free_publication_until()
 returns timestamptz
-language sql stable
+language plpgsql stable
 security definer
 set search_path = ''
 as $$
-  select coalesce(
-    (select (value #>> '{}')::timestamptz from public.platform_settings where key = 'billing.free_publication_until'),
-    timestamptz '2027-01-01 00:00:00+01'
-  )
+declare
+  v_raw text;
+begin
+  select value #>> '{}' into v_raw from public.platform_settings where key = 'billing.free_publication_until';
+  return coalesce(v_raw::timestamptz, timestamptz '2027-01-01 00:00:00+01');
+exception when others then
+  -- Unreadable value (admin_update_setting validates it; this is a last safety net).
+  return timestamptz '2027-01-01 00:00:00+01';
+end;
 $$;
 
 -- Pure helper (explicit instant): used by tests with exact boundary instants.
@@ -92,7 +97,8 @@ select
   j.status, j.published_at, j.closed_at, j.expired_at, j.updated_at, j.paid_through,
   l.country_code, l.region_code, l.city, l.postal_code, l.address_line, l.latitude, l.longitude,
   c.id as company_id, c.slug as company_slug, coalesce(c.display_name, c.legal_name) as company_name,
-  c.logo_path as company_logo_path, c.website as company_website
+  c.logo_path as company_logo_path, c.website as company_website,
+  j.free_until
 from public.jobs j
 join public.job_locations l on l.job_id = j.id and l.is_primary
 join public.companies c on c.id = j.company_id
@@ -618,9 +624,10 @@ begin
     raise exception 'forbidden' using errcode = '42501';
   end if;
   -- Payable: awaiting payment; online for free (conversion before the end of the launch
-  -- offer: the subscription starts with a trial ending with it); suspended at its end.
+  -- offer: the subscription starts with a trial ending with it); free period over, whether
+  -- the maintenance has already recorded the suspension or not yet.
   if not (v_job.status = 'pending_payment'
-          or (v_job.status = 'active' and v_job.free_until is not null and v_job.free_until > now())
+          or (v_job.status = 'active' and v_job.free_until is not null)
           or (v_job.status = 'suspended' and v_job.suspension_reason = 'free_period_ended')) then
     raise exception 'job_not_payable' using errcode = 'P0001';
   end if;
@@ -715,7 +722,6 @@ declare
   v_expired integer := 0;
   v_anonymized integer := 0;
   v_retention_months integer := app.setting_int('retention.applications_months', 24);
-  v_free_until timestamptz := app.free_publication_until();
   v_free_ended integer := 0;
   v_free_reminders integer := 0;
   v_milestone text;
@@ -743,19 +749,20 @@ begin
     v_free_ended := v_free_ended + 1;
   end loop;
 
-  -- 0 bis. Reminders 30 and 7 days before the end, once per company and milestone.
-  if now() < v_free_until and v_free_until <= now() + interval '30 days' then
-    v_milestone := case when v_free_until <= now() + interval '7 days' then 'd7' else 'd30' end;
-    for r in
-      select distinct j.company_id from public.jobs j
-       where j.status = 'active' and j.free_until is not null and j.free_until > now()
-    loop
-      perform app.enqueue_company_email(r.company_id, 'free_period_ending',
-        jsonb_build_object('free_until', v_free_until, 'days_left', ceil(extract(epoch from v_free_until - now()) / 86400)),
-        'free_period_ending:' || v_milestone || ':' || r.company_id, 'billing');
-      v_free_reminders := v_free_reminders + 1;
-    end loop;
-  end if;
+  -- 0 bis. Reminders 30 and 7 days before the end of a company's free adverts, once per
+  -- company, milestone and end date (an extended offer gets its own reminders).
+  for r in
+    select j.company_id, min(j.free_until) as until from public.jobs j
+     where j.status = 'active' and j.free_until is not null
+       and j.free_until > now() and j.free_until <= now() + interval '30 days'
+     group by j.company_id
+  loop
+    v_milestone := case when r.until <= now() + interval '7 days' then 'd7' else 'd30' end;
+    perform app.enqueue_company_email(r.company_id, 'free_period_ending',
+      jsonb_build_object('free_until', r.until, 'days_left', ceil(extract(epoch from r.until - now()) / 86400)),
+      'free_period_ending:' || v_milestone || ':' || r.company_id || ':' || extract(epoch from r.until)::bigint, 'billing');
+    v_free_reminders := v_free_reminders + 1;
+  end loop;
 
   -- 1. Payment grace period elapsed -> suspend the advert (reactivated automatically when paid)
   for r in
@@ -831,5 +838,94 @@ begin
     'resume_files_to_delete', v_resume_purge,
     'verification_documents_to_delete', v_doc_purge
   );
+end;
+$$;
+
+-- -----------------------------------------------------------------------------
+-- Back-office: the end of the offer is an explicit instant with its UTC offset. Extending
+-- it extends the adverts already online for free; shortening it only applies to new
+-- publications (what was announced to the published adverts is kept).
+-- -----------------------------------------------------------------------------
+create or replace function public.admin_update_setting(p_key text, p_value jsonb)
+returns void
+language plpgsql volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_until timestamptz;
+begin
+  perform app.require_permission('settings.manage');
+  if p_key = 'billing.free_publication_until' then
+    if jsonb_typeof(p_value) is distinct from 'string'
+       or (p_value #>> '{}') !~ '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}(:?\d{2})?)$' then
+      raise exception 'invalid_input' using errcode = 'P0001';
+    end if;
+    begin
+      v_until := (p_value #>> '{}')::timestamptz;
+    exception when others then
+      raise exception 'invalid_input' using errcode = 'P0001';
+    end;
+  end if;
+  update public.platform_settings set value = p_value, updated_by = auth.uid(), updated_at = now() where key = p_key;
+  if not found then
+    raise exception 'not_found' using errcode = 'P0001';
+  end if;
+  if v_until is not null then
+    update public.jobs set free_until = v_until
+     where status = 'active' and free_until is not null and free_until > now() and free_until < v_until;
+  end if;
+  perform app.audit('setting.update', 'setting', p_key, jsonb_build_object('value', p_value));
+end;
+$$;
+
+-- -----------------------------------------------------------------------------
+-- Checkout completed without payment (trial of a launch-offer conversion): recorded as
+-- 'trialing', so that the recruiter is told "nothing charged before", not "payment confirmed".
+-- -----------------------------------------------------------------------------
+create or replace function public.billing_checkout_completed(p jsonb)
+returns jsonb
+language plpgsql volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_sub public.subscriptions;
+  v_job_id uuid := nullif(p ->> 'job_id', '')::uuid;
+  v_result text := 'linked';
+begin
+  select * into v_sub from public.subscriptions where stripe_checkout_session_id = p ->> 'session_id' for update;
+  if v_sub.id is null and p ->> 'subscription_id' is not null then
+    select * into v_sub from public.subscriptions where stripe_subscription_id = p ->> 'subscription_id' for update;
+  end if;
+  if v_sub.id is null then
+    if v_job_id is null or not exists (select 1 from public.jobs where id = v_job_id) then
+      raise exception 'unknown_checkout_session' using errcode = 'P0001';
+    end if;
+    insert into public.subscriptions (company_id, job_id, stripe_checkout_session_id, status)
+    select j.company_id, j.id, p ->> 'session_id', 'incomplete' from public.jobs j where j.id = v_job_id
+    returning * into v_sub;
+  end if;
+
+  update public.subscriptions set
+    stripe_subscription_id = coalesce(p ->> 'subscription_id', stripe_subscription_id),
+    stripe_customer_id = coalesce(p ->> 'customer_id', stripe_customer_id),
+    livemode = (p ->> 'livemode')::boolean,
+    status = case when status in ('checkout_pending', 'checkout_expired') then 'incomplete' else status end
+  where id = v_sub.id;
+
+  if p ->> 'customer_id' is not null then
+    perform public.billing_upsert_customer(v_sub.company_id, p ->> 'customer_id');
+  end if;
+
+  if p ->> 'payment_status' in ('paid', 'no_payment_required') then
+    -- Nothing to pay at checkout: a subscription starting with a trial (launch offer
+    -- conversion, first charge at the end of the free period). Stripe's own subscription
+    -- events then keep the exact status.
+    update public.subscriptions set status = case when p ->> 'payment_status' = 'no_payment_required' then 'trialing' else 'active' end
+     where id = v_sub.id and status in ('incomplete', 'checkout_pending', 'checkout_expired');
+    v_result := app.billing_activate_job(v_sub.job_id, null);
+  end if;
+  return jsonb_build_object('subscription_id', v_sub.id, 'job_id', v_sub.job_id, 'job_result', v_result);
 end;
 $$;

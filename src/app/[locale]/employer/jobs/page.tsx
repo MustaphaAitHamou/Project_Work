@@ -7,6 +7,7 @@ import { getMyCompany } from "@/lib/employer/queries";
 import { createClient } from "@/lib/supabase/server";
 import { JOB_STATUS_VARIANT } from "@/lib/domain";
 import { formatDate } from "@/lib/format";
+import { offerLastDay } from "@/lib/billing/offer";
 import { PageHeader } from "@/components/layout/dashboard-shell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,11 +22,19 @@ export default async function EmployerJobsPage({ params }: { params: Promise<{ l
   const [t, te] = await Promise.all([getTranslations("employer.jobs"), getTranslations("enums")]);
   const supabase = await createClient();
   const [{ data: jobs }, { data: apps }] = await Promise.all([
-    supabase.from("jobs").select("id, title, status, published_at, updated_at, job_locations(city, country_code)").eq("company_id", mine.company.id).order("updated_at", { ascending: false }),
+    supabase.from("jobs").select("id, title, status, published_at, updated_at, free_until, suspension_reason, job_locations(city, country_code)").eq("company_id", mine.company.id).order("updated_at", { ascending: false }),
     // Recruiters do not read the applications table: counts come from a dedicated function.
     supabase.rpc("recruiter_application_counts"),
   ]);
   const counts = new Map<string, { total: number; fresh: number }>((apps ?? []).map((a) => [a.job_id, { total: a.total, fresh: a.fresh }]));
+  const now = new Date();
+  // Launch offer: when the free period of an advert ends, or that it is paused since then.
+  const offerNote = (j: { status: string; free_until: string | null; suspension_reason: string | null }) =>
+    j.status === "active" && j.free_until && new Date(j.free_until) > now
+      ? t("freeBadge", { lastDay: offerLastDay(j.free_until, locale) })
+      : (j.status === "suspended" && j.suspension_reason === "free_period_ended") || (j.status === "active" && j.free_until)
+        ? t("pausedBadge")
+        : null;
   return (
     <div>
       <PageHeader
@@ -72,6 +81,7 @@ export default async function EmployerJobsPage({ params }: { params: Promise<{ l
                   </TD>
                   <TD>
                     <Badge variant={JOB_STATUS_VARIANT[j.status]}>{te(`jobStatus.${j.status}`)}</Badge>
+                    {offerNote(j) && <p className="mt-1 text-xs text-muted-foreground">{offerNote(j)}</p>}
                   </TD>
                   <TD>
                     <Link href={`/employer/jobs/${j.id}/applications`} className="hover:underline">

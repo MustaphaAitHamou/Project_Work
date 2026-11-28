@@ -9,6 +9,7 @@ import { JOB_STATUS_VARIANT, type JobStatus } from "@/lib/domain";
 import { formatDate } from "@/lib/format";
 import { PageHeader } from "@/components/layout/dashboard-shell";
 import { VerificationBanner } from "@/components/employer/verification-banner";
+import { LaunchOfferBanner } from "@/components/billing/launch-offer-banner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,6 +44,7 @@ export default async function EmployerHome({ params }: { params: Promise<{ local
         }
       />
       <VerificationBanner status={mine.company.verification_status} message={mine.company.verification_message} />
+      <LaunchOfferBanner variant="card" cta={false} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { label: t("activeJobs"), value: byStatus("active"), href: "/employer/jobs" },
