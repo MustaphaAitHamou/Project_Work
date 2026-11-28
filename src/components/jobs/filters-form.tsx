@@ -12,8 +12,8 @@ import { Button } from "@/components/ui/button";
 
 function Fieldset({ legend, children }: { legend: string; children: React.ReactNode }) {
   return (
-    <fieldset className="space-y-2 border-b pb-4 last:border-0">
-      <legend className="mb-2 text-sm font-semibold">{legend}</legend>
+    <fieldset className="space-y-2.5 border-b pb-5 last:border-0 last:pb-0">
+      <legend className="font-display mb-2.5 text-[15px] font-bold">{legend}</legend>
       {children}
     </fieldset>
   );

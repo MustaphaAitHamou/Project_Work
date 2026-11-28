@@ -20,12 +20,12 @@ export async function SiteHeader({ user }: { user: SessionUser | null }) {
     { href: "/recruiters", label: t("recruiterSpace") },
   ];
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75">
-      <div className="container-page flex h-16 items-center gap-4">
+    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
+      <div className="container-page flex h-16 items-center gap-4 lg:h-[72px]">
         <Link href="/" className="shrink-0 rounded-md" aria-label={t("homeAria")}>
           <Logo />
         </Link>
-        <nav aria-label={t("mainNav")} className="hidden flex-1 items-center gap-1 lg:flex">
+        <nav aria-label={t("mainNav")} className="hidden flex-1 items-center gap-0.5 lg:ms-4 lg:flex">
           {links.map((l) => (
             <NavLink key={l.href} href={l.href} exact={l.exact}>
               {l.label}
@@ -46,7 +46,7 @@ export async function SiteHeader({ user }: { user: SessionUser | null }) {
               }}
             />
           ) : (
-            <Button asChild size="sm" className="hidden sm:inline-flex">
+            <Button asChild size="sm" className="hidden rounded-full px-4 sm:inline-flex">
               <Link href="/login">{t("login")}</Link>
             </Button>
           )}

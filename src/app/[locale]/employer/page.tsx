@@ -52,9 +52,9 @@ export default async function EmployerHome({ params }: { params: Promise<{ local
           { label: t("newApplications"), value: newApps ?? 0, href: "/employer/jobs" },
           { label: t("totalApplications"), value: totalApps ?? 0, href: "/employer/jobs" },
         ].map((k) => (
-          <Link key={k.label} href={k.href} className="rounded-xl border bg-card p-5 hover:shadow-sm">
+          <Link key={k.label} href={k.href} className="rounded-2xl border bg-card p-5 shadow-xs transition hover:border-primary/30 hover:shadow-md">
             <p className="text-sm text-muted-foreground">{k.label}</p>
-            <p className="mt-1 text-2xl font-bold">{k.value}</p>
+            <p className="font-display mt-1 text-3xl font-extrabold tabular-nums">{k.value}</p>
           </Link>
         ))}
       </div>

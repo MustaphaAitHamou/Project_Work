@@ -17,7 +17,7 @@ export function NativeSelect({
     <div className={cn("relative w-full", className)}>
       <select
         className={cn(
-          "h-10 w-full appearance-none rounded-lg border border-input bg-background ps-3 pe-9 text-sm shadow-xs focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive",
+          "h-11 w-full cursor-pointer appearance-none rounded-lg ps-3.5 pe-9 text-[15px] border border-input/70 bg-card shadow-xs transition-[border-color,box-shadow] placeholder:text-muted-foreground/80 hover:border-input focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:focus-visible:ring-destructive/20",
           selectClassName,
         )}
         {...props}

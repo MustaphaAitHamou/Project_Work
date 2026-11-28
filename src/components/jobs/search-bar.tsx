@@ -43,9 +43,15 @@ export function SearchBar({
   return (
     <form action={`/${locale}/jobs`} method="get" role="search" aria-label={t("searchForm")} className="w-full">
       {Object.entries(hidden).map(([k, v]) => (v ? <input key={k} type="hidden" name={k} value={v} /> : null))}
-      <div className={size === "lg" ? "grid gap-2 rounded-2xl border bg-card p-2 shadow-lg sm:grid-cols-[1.4fr_1fr_auto]" : "grid gap-2 sm:grid-cols-[1.4fr_1fr_auto]"}>
+      <div
+        className={
+          size === "lg"
+            ? "grid gap-2 rounded-2xl border bg-card p-2 shadow-xl ring-1 ring-black/[0.02] sm:grid-cols-[1.4fr_1fr_auto] sm:gap-0 sm:divide-x sm:divide-border rtl:sm:divide-x-reverse"
+            : "grid gap-2 sm:grid-cols-[1.4fr_1fr_auto]"
+        }
+      >
         <div className="relative">
-          <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          <Search className={size === "lg" ? "pointer-events-none absolute start-3.5 top-1/2 size-[18px] -translate-y-1/2 text-primary" : "pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"} aria-hidden />
           <label htmlFor="search-q" className="sr-only">
             {t("keywordLabel")}
           </label>
@@ -58,7 +64,7 @@ export function SearchBar({
             list="search-suggestions"
             autoComplete="off"
             maxLength={120}
-            className={size === "lg" ? "h-12 border-0 ps-9 shadow-none" : "ps-9"}
+            className={size === "lg" ? "h-12 border-0 bg-muted/60 ps-10 text-base shadow-none hover:border-0 focus-visible:ring-primary/25 sm:bg-transparent" : "ps-9"}
           />
           <datalist id="search-suggestions">
             {suggestions.map((s) => (
@@ -70,9 +76,14 @@ export function SearchBar({
           <label htmlFor="search-city" className="sr-only">
             {t("locationLabel")}
           </label>
-          <CityCombobox inputId="search-city" defaultText={defaultCity} defaultId={defaultNear ?? null} />
+          <CityCombobox
+            inputId="search-city"
+            defaultText={defaultCity}
+            defaultId={defaultNear ?? null}
+            inputClassName={size === "lg" ? "h-12 border-0 bg-muted/60 ps-10 text-base shadow-none hover:border-0 focus-visible:ring-primary/25 sm:bg-transparent" : undefined}
+          />
         </div>
-        <Button type="submit" size={size === "lg" ? "lg" : "default"}>
+        <Button type="submit" size={size === "lg" ? "lg" : "default"} className={size === "lg" ? "h-12 rounded-xl px-7 sm:ms-2" : undefined}>
           <Search aria-hidden />
           {t("submit")}
         </Button>

@@ -110,34 +110,36 @@ export default async function HomePage({
     <>
       <LaunchOfferBanner />
       {/* Brand band (fixed in both themes): work-blue gradient, white text, original illustration. */}
-      <section className="relative overflow-hidden bg-[image:var(--brand-gradient)] text-white">
+      <section className="relative overflow-hidden bg-[image:var(--brand-gradient)] text-white [--ring:var(--highlight)]">
+        {/* Fine grid fading out from the top: texture without noise. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-40 end-[-12%] size-[38rem] rounded-full bg-[#3A62E0] opacity-50 blur-3xl"
+          className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(ellipse_80%_70%_at_30%_0%,#000_40%,transparent_100%)]"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -bottom-48 start-[-14%] size-[34rem] rounded-full bg-[#0E1A4D] opacity-70 blur-3xl"
+          className="pointer-events-none absolute -bottom-40 start-[-10%] size-[30rem] rounded-full bg-teal-bright opacity-[0.12] blur-3xl"
         />
-        <div className="container-page relative grid items-center gap-10 pt-14 pb-24 sm:pt-20 sm:pb-28 lg:grid-cols-[1.08fr_0.92fr]">
-          <div>
-            <p className="mb-5 inline-flex items-center gap-2 rounded-md border border-white/25 bg-white/10 px-3 py-1 text-xs font-medium">
-              <ShieldCheck className="size-3.5" aria-hidden />
+        <div className="container-page relative grid items-center gap-10 pt-10 pb-20 sm:pt-16 sm:pb-24 lg:grid-cols-[1.08fr_0.92fr] lg:pt-20 lg:pb-28">
+          <div className="min-w-0">
+            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs font-medium backdrop-blur-sm">
+              <ShieldCheck className="size-3.5 text-teal-bright" aria-hidden />
               {t("badge")}
             </p>
-            <h1 className="text-4xl font-extrabold sm:text-5xl lg:text-[3.4rem] lg:leading-[1.08]">
+            <h1 className="text-[2.4rem] leading-[1.06] font-extrabold sm:text-5xl lg:text-[3.6rem]">
               {t("title")}
             </h1>
-            <p className="mt-4 max-w-xl text-lg">{t("subtitle")}</p>
+            <div aria-hidden className="mt-5 h-1 w-16 rounded-full bg-highlight" />
+            <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/85">{t("subtitle")}</p>
             <nav
               aria-label={t("countriesLabel")}
-              className="mt-8 flex flex-wrap gap-2"
+              className="-mx-4 mt-8 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
             >
               {MARKETS.map((c) => (
                 <Link
                   key={c}
                   href={`/jobs?country=${c}`}
-                  className="inline-flex items-center gap-2 rounded-md border border-white/25 bg-white/10 px-3 py-1.5 text-sm transition-colors hover:border-white/60 hover:bg-white/20"
+                  className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-sm font-medium backdrop-blur-sm transition-colors hover:border-white/50 hover:bg-white/20"
                 >
                   <CountryFlag code={c} />
                   {countryName(c)}
@@ -165,18 +167,19 @@ export default async function HomePage({
         >
           {t("promisesTitle")}
         </h2>
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
+        <div aria-hidden className="mx-auto mt-4 h-1 w-12 rounded-full bg-highlight" />
+        <div className="mt-10 grid gap-5 md:grid-cols-2 lg:gap-6">
           {promises.map((p) => (
             <article
               key={p.title}
-              className="grid items-center gap-6 rounded-xl border bg-card p-6 transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg motion-reduce:transition-none motion-reduce:hover:translate-y-0 sm:grid-cols-[184px_1fr]"
+              className="group grid items-center gap-6 rounded-3xl border bg-card p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg motion-reduce:transition-none motion-reduce:hover:translate-y-0 sm:grid-cols-[176px_1fr] sm:p-6"
             >
-              <div className="grid h-40 place-items-center rounded-md bg-secondary px-3">
+              <div className="grid h-40 place-items-center rounded-2xl bg-[linear-gradient(160deg,var(--secondary),color-mix(in_oklab,var(--secondary)_40%,var(--card)))] px-3 ring-1 ring-primary/5">
                 {p.art}
               </div>
               <div>
                 <h3 className="text-xl font-bold">{p.title}</h3>
-                <p className="mt-2 text-base leading-relaxed text-muted-foreground">
+                <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
                   {p.text}
                 </p>
               </div>
@@ -235,7 +238,7 @@ export default async function HomePage({
       </section>
 
       {/* How it works: a tinted band, one illustration per step. */}
-      <section className="bg-secondary/70" aria-labelledby="how">
+      <section className="border-y bg-[linear-gradient(180deg,color-mix(in_oklab,var(--secondary)_70%,var(--background)),var(--background))]" aria-labelledby="how">
         <div className="container-page py-16 sm:py-20">
           <h2
             id="how"
@@ -246,11 +249,11 @@ export default async function HomePage({
           <ol className="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
             {steps.map((s, i) => (
               <li key={s.title}>
-                <div className="relative grid h-48 place-items-center rounded-xl border bg-card p-5 shadow-sm">
+                <div className="relative grid h-48 place-items-center rounded-3xl border bg-card p-5 shadow-sm">
                   {s.art}
                   <span
                     aria-hidden
-                    className="absolute -top-5 start-5 grid size-12 place-items-center rounded-full bg-primary text-xl font-extrabold text-primary-foreground shadow-lg"
+                    className="font-display absolute -top-5 start-5 grid size-12 place-items-center rounded-2xl bg-brand-deep text-xl font-extrabold text-brand-on shadow-lg ring-4 ring-highlight/80"
                   >
                     {i + 1}
                   </span>
@@ -278,7 +281,7 @@ export default async function HomePage({
         className="container-page py-16 sm:py-20"
         aria-labelledby="recruiters"
       >
-        <div className="grid items-center gap-10 rounded-2xl border bg-card p-6 sm:p-10 lg:grid-cols-[1fr_1.05fr]">
+        <div className="grid items-center gap-10 rounded-3xl border bg-card p-6 shadow-sm sm:p-10 lg:grid-cols-[1fr_1.05fr]">
           <div>
             <h2 id="recruiters" className="text-3xl font-extrabold">
               {t("recruitersTitle")}
@@ -302,7 +305,7 @@ export default async function HomePage({
                 </li>
               ))}
             </ul>
-            <div className="relative mt-8 flex flex-col gap-5 overflow-hidden rounded-xl bg-[image:var(--brand-gradient)] p-6 text-white sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative mt-8 flex flex-col gap-5 overflow-hidden rounded-2xl bg-[image:var(--brand-gradient)] p-6 text-white shadow-lg [--ring:var(--highlight)] sm:flex-row sm:items-center sm:justify-between">
               <div
                 aria-hidden
                 className="pointer-events-none absolute -end-14 -top-16 size-44 rounded-full bg-white/10"
@@ -354,7 +357,7 @@ export default async function HomePage({
               </Button>
             </div>
           </div>
-          <div className="rounded-xl bg-secondary p-4 sm:p-6">
+          <div className="rounded-2xl bg-[linear-gradient(160deg,var(--secondary),color-mix(in_oklab,var(--secondary)_40%,var(--card)))] p-4 ring-1 ring-primary/5 sm:p-6">
             <DashboardSpot className="w-full" />
           </div>
         </div>

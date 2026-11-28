@@ -8,7 +8,9 @@
 // What it does:
 //   1. project settings: Node.js 22, Paris region (cdg1);
 //   2. public settings (APP_ENV=preprod, site address, Supabase URL and publishable key,
-//      Cloudflare's public TEST anti-robot keys, registries, ads in placeholder mode…);
+//      registries, ads in placeholder mode…). Anti-robot (Turnstile) keys are only created
+//      when missing, with Cloudflare's public TEST keys: real keys entered by the owner are
+//      never replaced;
 //   3. generated secrets, stored as "sensitive" (write-only) variables: CRON_SECRET;
 //   4. Stripe TEST webhook to /api/stripe/webhook (with Vercel's automation bypass, the site
 //      being protected by Vercel Authentication), its signing secret copied straight into
@@ -87,10 +89,6 @@ const plain = {
   APP_ENV: "preprod",
   NEXT_PUBLIC_SITE_URL: siteUrl,
   NEXT_PUBLIC_SUPABASE_URL: supabaseUrl,
-  // Cloudflare's documented TEST keys (always pass): the integration is exercised end to end
-  // without a Cloudflare account. Production uses real keys.
-  NEXT_PUBLIC_TURNSTILE_SITE_KEY: "1x00000000000000000000AA",
-  TURNSTILE_SECRET_KEY: "1x0000000000000000000000000000000AA",
   REGISTRY_FR_ENABLED: "true",
   REGISTRY_VIES_ENABLED: "true",
   STRIPE_AUTOMATIC_TAX: "false",
@@ -98,6 +96,11 @@ const plain = {
 };
 if (publishableKey) plain.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = publishableKey;
 for (const [key, value] of Object.entries(plain)) console.log(`  ${key}: ${await setEnv(key, value)}`);
+// Anti-robot keys: Cloudflare's documented TEST keys only if nothing is configured yet. Once
+// the owner has entered the keys of the real widget, they are kept as they are (never
+// overwritten, never printed). The secret is stored as "sensitive" (write-only).
+console.log(`  NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${await setEnv("NEXT_PUBLIC_TURNSTILE_SITE_KEY", "1x00000000000000000000AA", "plain", { onlyIfMissing: true })}`);
+console.log(`  TURNSTILE_SECRET_KEY: ${await setEnv("TURNSTILE_SECRET_KEY", "1x0000000000000000000000000000000AA", "sensitive", { onlyIfMissing: true })}`);
 // E-mails: configured once Resend exists; until then, nothing is sent by the application.
 console.log(`  EMAIL_PROVIDER: ${await setEnv("EMAIL_PROVIDER", "none", "plain", { onlyIfMissing: true })}`);
 

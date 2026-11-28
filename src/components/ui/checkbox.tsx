@@ -6,7 +6,7 @@ export function Checkbox({ className, ...props }: Omit<React.InputHTMLAttributes
     <input
       type="checkbox"
       className={cn(
-        "size-4 shrink-0 cursor-pointer rounded border-input accent-[var(--primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed",
+        "size-[18px] shrink-0 cursor-pointer rounded-[5px] border-input accent-[var(--primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed",
         className,
       )}
       {...props}

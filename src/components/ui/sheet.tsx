@@ -17,10 +17,10 @@ export function SheetContent({
 }: React.ComponentProps<typeof SheetPrimitive.Content> & { closeLabel?: string }) {
   return (
     <SheetPrimitive.Portal>
-      <SheetPrimitive.Overlay className="fixed inset-0 z-50 bg-black/50" />
+      <SheetPrimitive.Overlay className="fixed inset-0 z-50 bg-[#050a1c]/60 backdrop-blur-[2px]" />
       <SheetPrimitive.Content
         className={cn(
-          "fixed inset-y-0 end-0 z-50 flex h-full w-[85%] max-w-sm flex-col gap-4 overflow-y-auto border-s bg-background p-6 shadow-lg",
+          "fixed inset-y-0 end-0 z-50 flex h-full w-[85%] max-w-sm flex-col gap-4 overflow-y-auto border-s bg-background p-6 shadow-xl",
           className,
         )}
         {...props}

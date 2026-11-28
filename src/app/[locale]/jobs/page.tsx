@@ -63,12 +63,12 @@ export default async function JobsPage({ params, searchParams }: Props) {
       <SearchBar defaultQ={p.q} defaultCity={city?.name ?? p.city} defaultNear={p.near} hidden={{ country: p.country, remoteFrom: p.remoteFrom }} />
       <div className="mt-8 grid gap-8 lg:grid-cols-[280px_1fr]">
         <aside className="hidden lg:block" aria-label={t("filters")}>
-          <div className="sticky top-20 max-h-[calc(100dvh-6rem)] overflow-y-auto pe-1">{filters}</div>
+          <div className="sticky top-24 max-h-[calc(100dvh-7rem)] overflow-y-auto rounded-2xl border bg-card p-5 shadow-sm">{filters}</div>
         </aside>
         <section aria-labelledby="results-heading" className="min-w-0 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 id="results-heading" className="text-lg font-semibold" aria-live="polite">
+              <h2 id="results-heading" className="text-xl font-bold" aria-live="polite">
                 {t("resultsCount", { count: total, formatted: formatNumber(total, locale) })}
               </h2>
               {p.remoteFrom && <p className="text-sm text-muted-foreground">{t("remoteFromActive", { country: countryName(p.remoteFrom) })}</p>}
@@ -98,7 +98,7 @@ export default async function JobsPage({ params, searchParams }: Props) {
           </div>
 
           {items.length === 0 ? (
-            <div className="rounded-xl border border-dashed p-10 text-center">
+            <div className="rounded-2xl border border-dashed bg-card/60 p-10 text-center">
               <p className="font-medium">{t("noResults")}</p>
               <p className="mt-1 text-sm text-muted-foreground">{t("noResultsHint")}</p>
               <Button asChild variant="outline" className="mt-4">

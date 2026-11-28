@@ -34,8 +34,9 @@ export function DashboardNav({ items, label }: { items: DashboardNavItem[]; labe
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-                  active && "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary",
+                  "flex items-center gap-2.5 rounded-full border border-transparent px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:rounded-xl",
+                  "max-lg:border-border max-lg:bg-card",
+                  active && "border-primary/15 bg-secondary text-secondary-foreground hover:bg-secondary hover:text-secondary-foreground max-lg:border-primary/25 max-lg:bg-secondary",
                 )}
               >
                 <Icon className="size-4" aria-hidden />

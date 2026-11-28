@@ -23,7 +23,7 @@ export async function LaunchOfferBanner({ variant = "strip", cta = true, classNa
   const link = cta ? (
     <Link
       href="/recruiters#pricing"
-      className="inline-flex shrink-0 items-center gap-1 rounded-full font-semibold text-highlight underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-highlight"
+      className="ms-11 inline-flex shrink-0 items-center gap-1 rounded-full font-semibold text-highlight underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-highlight sm:ms-0"
     >
       {t("bannerCta")}
       <ArrowRight className="size-4 rtl:rotate-180" aria-hidden />
@@ -32,8 +32,8 @@ export async function LaunchOfferBanner({ variant = "strip", cta = true, classNa
 
   if (variant === "card") {
     return (
-      <aside aria-label={t("badge")} className={cn("relative overflow-hidden rounded-xl border border-highlight/40 bg-brand-deep p-5 text-brand-on shadow-sm", className)} data-testid="launch-offer">
-        <div aria-hidden className="pointer-events-none absolute -end-10 -top-12 size-36 rounded-full bg-highlight/15" />
+      <aside aria-label={t("badge")} className={cn("relative overflow-hidden rounded-2xl border border-highlight/30 bg-brand-deep p-5 text-brand-on shadow-md [--ring:var(--highlight)] sm:p-6", className)} data-testid="launch-offer">
+        <div aria-hidden className="pointer-events-none absolute -end-24 -top-24 size-72 rounded-full bg-[radial-gradient(circle,rgba(246,196,69,0.20),transparent_65%)]" />
         <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
             <p className="inline-flex items-center gap-1.5 rounded-full bg-highlight px-2.5 py-0.5 text-xs font-bold text-highlight-foreground">
@@ -50,15 +50,16 @@ export async function LaunchOfferBanner({ variant = "strip", cta = true, classNa
   }
 
   return (
-    <aside aria-label={t("badge")} className={cn("border-b border-white/10 bg-brand-deep text-brand-on", className)} data-testid="launch-offer">
-      <div className="container-page flex flex-col gap-1.5 py-2.5 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-x-4">
-        <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="inline-flex items-center gap-1 rounded-full bg-highlight px-2 py-0.5 text-xs font-bold text-highlight-foreground">
-            <Gift className="size-3.5" aria-hidden />
-            {t("badge")}
-          </span>
-          <span className="font-semibold">{t("banner", { lastDay })}</span>
-          {priceText && <span className="text-brand-on/80">{priceText}</span>}
+    <aside aria-label={t("badge")} className={cn("relative border-b border-white/10 bg-brand-deep text-brand-on [--ring:var(--highlight)]", className)} data-testid="launch-offer">
+      <div aria-hidden className="pointer-events-none absolute inset-y-0 end-0 w-1/3 bg-[radial-gradient(60%_120%_at_100%_50%,rgba(246,196,69,0.16),transparent)]" />
+      <div className="container-page relative flex flex-wrap items-start gap-x-3 gap-y-1 py-2.5 text-[13px] leading-snug sm:flex-nowrap sm:items-center sm:text-sm">
+        {/* Decorative: the message itself starts with « Offre de lancement ». */}
+        <span aria-hidden className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full bg-highlight px-2 py-0.5 text-xs font-bold text-highlight-foreground sm:mt-0">
+          <Gift className="size-3.5" />
+          <span className="max-sm:hidden">{t("badge")}</span>
+        </span>
+        <p className="min-w-0 flex-1 basis-[calc(100%-3rem)] sm:basis-auto">
+          <span className="font-semibold">{t("banner", { lastDay })}</span> {priceText && <span className="text-brand-on/75">{priceText}</span>}
         </p>
         {link}
       </div>

@@ -27,7 +27,7 @@ export default async function CvPage({ params }: { params: Promise<{ locale: str
       <p className="mt-3 text-lg text-muted-foreground">{t("subtitle")}</p>
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {points.map((p) => (
-          <div key={p.title} className="rounded-xl border bg-card p-5">
+          <div key={p.title} className="rounded-2xl border bg-card p-5 shadow-xs">
             <p.icon className="size-6 text-primary" aria-hidden />
             <h2 className="mt-3 font-semibold">{p.title}</h2>
             <p className="mt-1 text-sm text-muted-foreground">{p.text}</p>

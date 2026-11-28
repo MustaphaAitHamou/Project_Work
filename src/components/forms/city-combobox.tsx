@@ -27,6 +27,7 @@ export function CityCombobox({
   onSelect,
   inputId,
   placeholder,
+  inputClassName,
   ...aria
 }: {
   idName?: string;
@@ -37,6 +38,8 @@ export function CityCombobox({
   onSelect?: (city: CityOption | null) => void;
   inputId?: string;
   placeholder?: string;
+  /** Extra classes for the text field (e.g. borderless inside the home search bar). */
+  inputClassName?: string;
   "aria-describedby"?: string;
   "aria-invalid"?: boolean;
   required?: boolean;
@@ -95,7 +98,7 @@ export function CityCombobox({
         aria-controls={listId}
         aria-autocomplete="list"
         aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
-        className="ps-9"
+        className={cn("ps-9", inputClassName)}
         onChange={(e) => {
           setText(e.target.value);
           if (selectedId) {
@@ -123,7 +126,7 @@ export function CityCombobox({
       />
       <input type="hidden" name={idName} value={selectedId ?? ""} />
       {open && items.length > 0 && (
-        <ul id={listId} role="listbox" className="absolute z-30 mt-1 max-h-72 w-full overflow-auto rounded-lg border bg-popover p-1 shadow-md">
+        <ul id={listId} role="listbox" className="absolute z-30 mt-1.5 max-h-72 w-full overflow-auto rounded-xl border bg-popover p-1.5 shadow-lg">
           {items.map((c, i) => (
             <li
               key={c.id}
@@ -134,7 +137,7 @@ export function CityCombobox({
                 e.preventDefault();
                 choose(c);
               }}
-              className={cn("cursor-pointer rounded-md px-3 py-2 text-sm", i === active ? "bg-muted" : "hover:bg-muted")}
+              className={cn("cursor-pointer rounded-lg px-3 py-2 text-sm", i === active ? "bg-secondary text-secondary-foreground" : "hover:bg-muted")}
             >
               <span className="font-medium">{c.name}</span>
               <span className="text-muted-foreground">

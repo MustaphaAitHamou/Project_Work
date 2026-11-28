@@ -56,3 +56,4 @@ supabase/.env
 # pre-production acceptance accounts (scripts/preprod-seed.mjs)
 *.local.txt
 preprod-accounts*
+visual-captures/

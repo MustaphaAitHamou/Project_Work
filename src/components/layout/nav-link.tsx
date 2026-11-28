@@ -10,8 +10,8 @@ export function NavLink({ href, exact, children, className }: { href: string; ex
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-        active && "text-foreground",
+        "rounded-full px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+        active && "bg-secondary text-secondary-foreground hover:bg-secondary hover:text-secondary-foreground",
         className,
       )}
     >

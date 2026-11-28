@@ -18,10 +18,10 @@ export function MobileNav({ links, loggedIn }: { links: { href: string; label: s
         </Button>
       </SheetTrigger>
       <SheetContent closeLabel={tc("close")}>
-        <SheetTitle className="text-base font-semibold">{t("menu")}</SheetTitle>
+        <SheetTitle className="font-display text-lg font-bold">{t("menu")}</SheetTitle>
         <nav aria-label={t("mainNav")} className="flex flex-col gap-1">
           {links.map((l) => (
-            <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="rounded-md px-3 py-2.5 font-medium hover:bg-muted">
+            <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="rounded-xl px-3.5 py-3 text-[15px] font-medium transition-colors hover:bg-muted">
               {l.label}
             </Link>
           ))}

@@ -5,10 +5,17 @@ name: Préproduction (Vercel)
 # vercel.json, so untested code never reaches the pre-production site.
 #
 # GitHub → Settings → Environments → "preprod":
-#   variables VERCEL_ORG_ID, VERCEL_PROJECT_ID, PREPROD_URL (https://preprod.<domain>)
-#   secret    VERCEL_TOKEN
-# Runtime settings and secrets (Supabase, Stripe test, Resend, Turnstile, PREPROD_BASIC_AUTH…)
-# are set in the Vercel project, not here.
+#   variables VERCEL_ORG_ID (team id), VERCEL_PROJECT_ID, PREPROD_URL (https://<project>.vercel.app)
+#   secrets   VERCEL_TOKEN (token limited to the Vercel team of the project)
+#             VERCEL_AUTOMATION_BYPASS_SECRET (optional: Vercel → Settings → Deployment Protection →
+#             Protection Bypass for Automation; lets this workflow call /api/health through
+#             Vercel Authentication, which stays enabled)
+# Runtime settings and secrets (Supabase, Stripe test, Resend, Turnstile…) are set in the
+# Vercel project, not here.
+#
+# A run only counts as a deployment when the "Deploy" step ran and the deployment is READY
+# on the commit of the run: when the GitHub environment is not configured the job FAILS
+# (it never reports success without deploying).
 
 on:
   push:
@@ -42,34 +49,68 @@ jobs:
     steps:
       - name: Vercel access configured
         run: |
-          if [ -z "$VERCEL_PROJECT_ID" ] || [ -z "$VERCEL_TOKEN" ]; then
-            echo "::warning::Pre-production not deployed: VERCEL_PROJECT_ID / VERCEL_TOKEN not set in the GitHub environment 'preprod'."
-            echo "SKIP=1" >> "$GITHUB_ENV"
+          missing=""
+          [ -n "$VERCEL_ORG_ID" ] || missing="$missing VERCEL_ORG_ID"
+          [ -n "$VERCEL_PROJECT_ID" ] || missing="$missing VERCEL_PROJECT_ID"
+          [ -n "$VERCEL_TOKEN" ] || missing="$missing VERCEL_TOKEN"
+          if [ -n "$missing" ]; then
+            echo "::error::Pre-production NOT deployed: missing in the GitHub environment 'preprod':$missing"
+            { echo "### Préproduction NON déployée"; echo "Manquant dans l'environnement GitHub « preprod » :$missing"; } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
           fi
       - uses: actions/checkout@v5
-        if: env.SKIP != '1'
       - uses: actions/setup-node@v5
-        if: env.SKIP != '1'
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-        if: env.SKIP != '1'
       - name: Project settings from Vercel
-        if: env.SKIP != '1'
         run: npx --yes "$VERCEL_CLI" pull --yes --environment=production --token="$VERCEL_TOKEN"
       - name: Build
-        if: env.SKIP != '1'
         run: npx --yes "$VERCEL_CLI" build --prod --token="$VERCEL_TOKEN"
       - name: Deploy
-        if: env.SKIP != '1'
-        run: npx --yes "$VERCEL_CLI" deploy --prebuilt --prod --token="$VERCEL_TOKEN"
-      - name: Pre-production answers
-        if: env.SKIP != '1' && vars.PREPROD_URL != ''
+        id: deploy
         run: |
+          url=$(npx --yes "$VERCEL_CLI" deploy --prebuilt --prod --meta "commit=$GITHUB_SHA" --token="$VERCEL_TOKEN")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Deployment: $url"
+      - name: Deployment READY on this commit (Vercel API)
+        env:
+          URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          host="${URL#https://}"
+          for i in $(seq 1 60); do
+            json=$(curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v13/deployments/$host?teamId=$VERCEL_ORG_ID")
+            state=$(echo "$json" | jq -r '.readyState')
+            if [ "$state" = "READY" ]; then break; fi
+            if [ "$state" = "ERROR" ] || [ "$state" = "CANCELED" ]; then echo "::error::Deployment $state"; exit 1; fi
+            sleep 5
+          done
+          if [ "$state" != "READY" ]; then echo "::error::Deployment not READY after 5 minutes (state: $state)"; exit 1; fi
+          commit=$(echo "$json" | jq -r '.meta.commit // empty')
+          if [ "$commit" != "$GITHUB_SHA" ]; then echo "::error::Deployed commit '$commit' is not $GITHUB_SHA"; exit 1; fi
+          { echo "### Préproduction déployée"; echo "- Déploiement : $URL ($(echo "$json" | jq -r '.id'))"; echo "- État : READY"; echo "- Commit : $commit"; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Protection still on, site healthy
+        env:
+          URL: ${{ steps.deploy.outputs.url }}
+          BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          # Without the bypass, Vercel Authentication must refuse the visitor.
+          code=$(curl -s -o /dev/null -w "%{http_code}" "$URL/fr")
+          case "$code" in 401|403|302|307) echo "Vercel Authentication active ($code)";; *) echo "::error::The pre-production answers $code without authentication"; exit 1;; esac
+          if [ -z "$BYPASS" ]; then
+            echo "::warning::/api/health not checked: secret VERCEL_AUTOMATION_BYPASS_SECRET not set (the site stays protected)."
+            echo "- Santé HTTP : non vérifiée (secret de contournement absent)" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           for i in $(seq 1 10); do
-            if curl -fsS --max-time 10 "${{ vars.PREPROD_URL }}/api/health" | tee /tmp/health.json | grep -q '"database":"ok"'; then cat /tmp/health.json; exit 0; fi
+            if curl -fsS --max-time 10 -H "x-vercel-protection-bypass: $BYPASS" "$URL/api/health" | tee /tmp/health.json | grep -q '"database":"ok"'; then
+              robots=$(curl -sI -H "x-vercel-protection-bypass: $BYPASS" "$URL/fr" | tr -d '\r' | grep -i '^x-robots-tag:' || true)
+              echo "$robots" | grep -qi noindex || { echo "::error::noindex header missing on the pre-production"; exit 1; }
+              { echo "- Santé HTTP : $(cat /tmp/health.json)"; echo "- Indexation : $robots"; } >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
             sleep 6
           done
-          echo "::error::Pre-production does not answer: ${{ vars.PREPROD_URL }}/api/health"
+          echo "::error::Pre-production does not answer: $URL/api/health"
           exit 1

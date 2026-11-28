@@ -11,7 +11,7 @@ export function CompanyAvatar({ name, logoPath, className }: { name: string; log
     .map((w) => w[0]?.toUpperCase())
     .join("");
   return (
-    <div className={cn("flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-secondary text-sm font-semibold text-secondary-foreground", className)}>
+    <div className={cn("font-display flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-primary/10 bg-secondary text-sm font-bold text-secondary-foreground", className)}>
       {url ? (
         // eslint-disable-next-line @next/next/no-img-element -- small public logo, no optimisation needed
         <img src={url} alt="" className="size-full object-contain" loading="lazy" />

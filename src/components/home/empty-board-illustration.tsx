@@ -30,7 +30,7 @@ export function EmptyBoardIllustration({ className }: { className?: string }) {
       />
 
       {[
-        { x: 26, y: 56, r: -4, pin: "#F8BA3C" },
+        { x: 26, y: 56, r: -4, pin: "#F6C445" },
         { x: 84, y: 60, r: 3, pin: "var(--primary)" },
         { x: 142, y: 54, r: -2, pin: "var(--primary)" },
       ].map((c) => (
@@ -112,7 +112,7 @@ export function EmptyBoardIllustration({ className }: { className?: string }) {
       <path
         transform="translate(226 22)"
         d="M0-9C1.6-1.6 1.6-1.6 9 0C1.6 1.6 1.6 1.6 0 9C-1.6 1.6-1.6 1.6-9 0C-1.6-1.6-1.6-1.6 0-9Z"
-        fill="#F8BA3C"
+        fill="#F6C445"
       />
     </svg>
   );

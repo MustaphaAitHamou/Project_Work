@@ -4,90 +4,98 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Tamurt Jobs design tokens (Tamurt Services art direction).
- * - Work blue ("bleu de travail") #2747b0 / #93a9f4: the app colour (actions, links, brand).
- * - Warm neutrals shared by the whole Tamurt family.
- * - Status colours from the family palette; gold (--brand-warm) only for rating stars.
- * - Tamurt red is reserved for the yaz button (link to the parent company).
- * Colours meet WCAG 2.2 AA contrast for text on their intended backgrounds (both themes).
+ * Tamurt Jobs design tokens — refonte « premium » de novembre 2026.
+ * - Bleu roi (--primary) pour les actions et les liens ; bleu nuit (--brand-deep) pour les
+ *   grandes surfaces de marque (bandeaux, pied de page) ; noir d'encre et blanc pour le texte.
+ * - Touches de jaune (--highlight : offre de lancement, mises en avant) et de turquoise
+ *   (--teal : vérification, éléments décoratifs).
+ * - Neutres froids, accordés au bleu. Contrastes WCAG 2.2 AA vérifiés dans les deux thèmes
+ *   (texte ≥ 4,5:1, bordures de champs et anneau de focus ≥ 3:1).
+ * - Le rouge Tamurt reste réservé au bouton yaz (lien vers la maison mère) et au logo.
  */
 :root {
-  --radius: 0.375rem;
-  --background: #f6f5f2;
-  --foreground: #1d1b19;
+  --radius: 0.75rem;
+  --background: #f6f8fc;
+  --foreground: #0d1430;
   --card: #ffffff;
-  --card-foreground: #1d1b19;
+  --card-foreground: #0d1430;
   --popover: #ffffff;
-  --popover-foreground: #1d1b19;
-  --primary: #2747b0;
+  --popover-foreground: #0d1430;
+  --primary: #2446d6;
   --primary-foreground: #ffffff;
-  --primary-hover: #2340a0;
-  --secondary: #e8edfb;
-  --secondary-foreground: #172b73;
-  --muted: #ebe9e4;
-  --muted-foreground: #5c5852;
-  --accent: #e8edfb;
-  --accent-foreground: #172b73;
-  --destructive: #b8261a;
+  --primary-hover: #1c39b8;
+  --secondary: #ebf0ff;
+  --secondary-foreground: #172c82;
+  --muted: #eef1f7;
+  --muted-foreground: #4a5470;
+  --accent: #ebf0ff;
+  --accent-foreground: #172c82;
+  --destructive: #c02626;
   --destructive-foreground: #ffffff;
-  --success: #0b6e5b;
-  --warning: #8a5300;
-  --border: #dedbd4;
-  --input: #8a857c;
-  --ring: #1d1b19;
-  --brand: #2747b0;
+  --success: #0b7a5e;
+  --warning: #8f5300;
+  --border: #e1e6f0;
+  --input: #7b86a0;
+  --ring: #2446d6;
+  --brand: #2446d6;
   --brand-warm: #b87a00;
-  /* Fixed in both themes: the brand band and the family red. */
-  --brand-gradient: linear-gradient(
-    57deg,
-    #172b73 0%,
-    #2747b0 42%,
-    #3a62e0 100%
-  );
-  --brand-deep: #172b73;
+  /* Fixed in both themes: the night-blue brand surfaces. */
+  --brand-gradient: radial-gradient(120% 90% at 85% 0%, #3557e8 0%, rgba(53, 87, 232, 0) 55%),
+    linear-gradient(135deg, #0b1640 0%, #142a86 52%, #2446d6 100%);
+  --brand-deep: #0b1640;
   --brand-on: #ffffff;
   /* Yellow touch (launch offer, highlights): on night blue or as a background under dark text. */
   --highlight: #f6c445;
   --highlight-foreground: #1d1607;
+  /* Turquoise touch: text-safe on light surfaces. */
+  --teal: #0e7c74;
+  --teal-bright: #2dd4bf;
   /* Chart series colour, validated (contrast >= 3:1) for the light surface. */
-  --chart-1: #2747b0;
+  --chart-1: #2446d6;
+  /* Soft, blue-tinted elevation. */
+  --shadow-color: 222 60% 20%;
 }
 
 .dark {
-  --background: #141312;
-  --foreground: #f4f1ec;
-  --card: #1f1d1b;
-  --card-foreground: #f4f1ec;
-  --popover: #24221f;
-  --popover-foreground: #f4f1ec;
-  --primary: #93a9f4;
-  --primary-foreground: #0a1433;
-  --primary-hover: #8599de;
-  --secondary: #141f45;
-  --secondary-foreground: #a2b5f6;
-  --muted: #2a2724;
-  --muted-foreground: #b5afa6;
-  --accent: #141f45;
-  --accent-foreground: #a2b5f6;
-  --destructive: #ff8f85;
+  --background: #070b1a;
+  --foreground: #eef2ff;
+  --card: #0e1430;
+  --card-foreground: #eef2ff;
+  --popover: #121a3a;
+  --popover-foreground: #eef2ff;
+  --primary: #8ca6ff;
+  --primary-foreground: #0a1233;
+  --primary-hover: #a3b8ff;
+  --secondary: #16214d;
+  --secondary-foreground: #c3d0ff;
+  --muted: #151c3a;
+  --muted-foreground: #a7b0cc;
+  --accent: #16214d;
+  --accent-foreground: #c3d0ff;
+  --destructive: #ff8a80;
   --destructive-foreground: #3d1512;
-  --success: #5fd3bb;
+  --success: #4fd1b5;
   --warning: #f8ba3c;
-  --border: #35322e;
-  --input: #8a847b;
-  --ring: #f4f1ec;
-  --brand: #a2b5f6;
+  --border: #232c52;
+  --input: #6e7aa0;
+  --ring: #8ca6ff;
+  --brand: #8ca6ff;
   --brand-warm: #f8ba3c;
+  --teal: #2dd4bf;
   /* Dark-mode chart colour: its own validated step, not an automatic flip. */
-  --chart-1: #93a9f4;
+  --chart-1: #8ca6ff;
+  --shadow-color: 230 70% 2%;
 }
 
 @theme inline {
-  /* Bitter for everything (square serifs, like a typed contract or a newspaper ad).
-     Noto Serif fills the Kabyle letters Bitter lacks (ɛ, ɣ); Noto Naskh Arabic covers the Arabic locale. */
+  /* Inter for text and interface; Plus Jakarta Sans for headings (it lacks ɛ and ɣ, which then
+     come from Inter); Noto Sans Arabic for the Arabic locale. */
   --font-sans:
-    var(--font-bitter), var(--font-noto-serif), var(--font-naskh), Georgia,
-    "Times New Roman", serif, "Apple Color Emoji", "Segoe UI Emoji";
+    var(--font-inter), var(--font-arabic), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-display:
+    var(--font-jakarta), var(--font-inter), var(--font-arabic), ui-sans-serif, system-ui,
+    -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -117,12 +125,21 @@
   --color-brand-on: var(--brand-on);
   --color-highlight: var(--highlight);
   --color-highlight-foreground: var(--highlight-foreground);
-  /* Jobs corners: 4 px for buttons, fields and chips, 6 px for cards, 8 px for floating panels. */
+  --color-teal: var(--teal);
+  --color-teal-bright: var(--teal-bright);
+  /* Corners: 8 px for small controls, 10 px for buttons and fields, 14–20 px for cards and panels. */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: calc(var(--radius) - 2px);
-  --radius-xl: var(--radius);
-  --radius-2xl: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 2px);
+  --radius-2xl: calc(var(--radius) + 6px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  /* Elevation tinted with the brand blue (light) or near-black (dark). */
+  --shadow-xs: 0 1px 2px 0 hsl(var(--shadow-color) / 0.06);
+  --shadow-sm: 0 1px 2px 0 hsl(var(--shadow-color) / 0.06), 0 2px 6px -1px hsl(var(--shadow-color) / 0.08);
+  --shadow-md: 0 2px 4px -1px hsl(var(--shadow-color) / 0.06), 0 8px 20px -4px hsl(var(--shadow-color) / 0.12);
+  --shadow-lg: 0 4px 8px -2px hsl(var(--shadow-color) / 0.06), 0 18px 40px -8px hsl(var(--shadow-color) / 0.18);
+  --shadow-xl: 0 8px 16px -4px hsl(var(--shadow-color) / 0.08), 0 28px 60px -12px hsl(var(--shadow-color) / 0.24);
 }
 
 @layer base {
@@ -138,7 +155,37 @@
     font-family: var(--font-sans);
     font-feature-settings:
       "rlig" 1,
-      "calt" 1;
+      "calt" 1,
+      "cv11" 1;
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  h4,
+  h5,
+  h6 {
+    text-wrap: balance;
+  }
+  /* Arabic is a joined script: no letter-spacing (it would break the joins). */
+  :lang(ar) :is(h1, h2, h3, .font-display) {
+    letter-spacing: normal;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  /* Figures that line up in tables, prices and counters. */
+  table,
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 22%, transparent);
   }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-ring;

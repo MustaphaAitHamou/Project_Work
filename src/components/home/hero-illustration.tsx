@@ -25,16 +25,16 @@ function Pin({ x, y, index }: { x: number; y: number; index: number }) {
       <circle
         r="6"
         fill="none"
-        stroke="#F8BA3C"
+        stroke="#F6C445"
         strokeWidth="1.5"
         className="tj-pulse"
         style={{ animationDelay: `${index * 0.27}s` }}
       />
       <path
         d="M0 0C-5-6-7-9-7-12a7 7 0 1 1 14 0c0 3-2 6-7 12Z"
-        fill={index % 3 === 0 ? "#F8BA3C" : "#FFFFFF"}
+        fill={index % 3 === 0 ? "#F6C445" : "#FFFFFF"}
       />
-      <circle cy="-12" r="2.6" fill="#172B73" />
+      <circle cy="-12" r="2.6" fill="#0B1640" />
     </g>
   );
 }
@@ -43,7 +43,7 @@ function Sparkle({
   x,
   y,
   size,
-  color = "#F8BA3C",
+  color = "#F6C445",
 }: {
   x: number;
   y: number;
@@ -108,7 +108,7 @@ export function HeroIllustration({ className }: { className?: string }) {
           filter="url(#tj-hero-shadow)"
         >
           <rect width="200" height="150" rx="6" fill="#FFFFFF" />
-          <rect x="18" y="20" width="40" height="40" rx="4" fill="#2747B0" />
+          <rect x="18" y="20" width="40" height="40" rx="4" fill="#2446D6" />
           <path
             d="M33 33v-3a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v3"
             fill="none"
@@ -117,32 +117,32 @@ export function HeroIllustration({ className }: { className?: string }) {
             strokeLinecap="round"
           />
           <rect x="27" y="33" width="22" height="16" rx="2.5" fill="#FFFFFF" />
-          <path d="M27 40h22" stroke="#2747B0" strokeWidth="1.6" />
+          <path d="M27 40h22" stroke="#2446D6" strokeWidth="1.6" />
           <rect
             x="70"
             y="24"
             width="104"
             height="10"
             rx="2"
-            fill="#1D1B19"
+            fill="#0D1430"
             fillOpacity="0.88"
           />
           <rect x="70" y="42" width="72" height="7" rx="2" fill="#C9CFE6" />
           <path
             d="M24 84c-3.6-4.3-5-6.5-5-8.6a5 5 0 1 1 10 0c0 2.1-1.4 4.3-5 8.6Z"
-            fill="#2747B0"
+            fill="#2446D6"
           />
           <rect x="36" y="73" width="84" height="7" rx="2" fill="#C9CFE6" />
           <rect x="18" y="98" width="74" height="22" rx="4" fill="#FFF3D6" />
           <rect x="28" y="106" width="54" height="6" rx="2" fill="#B87A00" />
-          <rect x="100" y="98" width="58" height="22" rx="4" fill="#E8EDFB" />
-          <rect x="110" y="106" width="38" height="6" rx="2" fill="#2747B0" />
+          <rect x="100" y="98" width="58" height="22" rx="4" fill="#EBF0FF" />
+          <rect x="110" y="106" width="38" height="6" rx="2" fill="#2446D6" />
           <rect x="18" y="130" width="164" height="6" rx="2" fill="#EEF1FB" />
           <circle
             cx="196"
             cy="4"
             r="18"
-            fill="#0B6E5B"
+            fill="#0E9F8E"
             stroke="#FFFFFF"
             strokeWidth="3"
           />
@@ -187,10 +187,10 @@ export function HeroIllustration({ className }: { className?: string }) {
           filter="url(#tj-hero-shadow)"
         >
           <rect width="236" height="206" rx="6" fill="#FFFFFF" />
-          <circle cx="46" cy="46" r="27" fill="#E8EDFB" />
+          <circle cx="46" cy="46" r="27" fill="#EBF0FF" />
           <path
             d="M46 31.5 50.2 40.6 60.1 41.7 52.8 48.4 54.8 58.2 46 53.2 37.2 58.2 39.2 48.4 31.9 41.7 41.8 40.6Z"
-            fill="#F8BA3C"
+            fill="#F6C445"
           />
           <rect
             x="84"
@@ -198,14 +198,14 @@ export function HeroIllustration({ className }: { className?: string }) {
             width="112"
             height="10"
             rx="2"
-            fill="#1D1B19"
+            fill="#0D1430"
             fillOpacity="0.88"
           />
           <rect x="84" y="48" width="78" height="7" rx="2" fill="#C9CFE6" />
           {[
-            [86, 114, "#2747B0"],
-            [110, 86, "#2747B0"],
-            [134, 124, "#3A62E0"],
+            [86, 114, "#2446D6"],
+            [110, 86, "#2446D6"],
+            [134, 124, "#3557E8"],
           ].map(([y, w, color]) => (
             <g key={y as number}>
               <rect
@@ -222,7 +222,7 @@ export function HeroIllustration({ className }: { className?: string }) {
                 width="130"
                 height="9"
                 rx="4.5"
-                fill="#E8EDFB"
+                fill="#EBF0FF"
               />
               <rect
                 x="86"
@@ -240,15 +240,15 @@ export function HeroIllustration({ className }: { className?: string }) {
             [158, 58],
           ].map(([x, w]) => (
             <g key={x}>
-              <rect x={x} y="160" width={w} height="24" rx="4" fill="#E8EDFB" />
-              <circle cx={x + 11} cy="172" r="4" fill="#2747B0" />
+              <rect x={x} y="160" width={w} height="24" rx="4" fill="#EBF0FF" />
+              <circle cx={x + 11} cy="172" r="4" fill="#2446D6" />
               <rect
                 x={x + 20}
                 y="169"
                 width={w - 28}
                 height="6"
                 rx="2"
-                fill="#2747B0"
+                fill="#2446D6"
                 fillOpacity="0.45"
               />
             </g>
@@ -267,7 +267,7 @@ export function HeroIllustration({ className }: { className?: string }) {
             fill="#FFFFFF"
             filter="url(#tj-hero-shadow)"
           />
-          <circle cx="27" cy="24" r="12" fill="#2747B0" />
+          <circle cx="27" cy="24" r="12" fill="#2446D6" />
           <path
             d="M21.5 24.5l4 4 7.5-8"
             fill="none"
@@ -276,18 +276,18 @@ export function HeroIllustration({ className }: { className?: string }) {
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          <rect x="48" y="18" width="88" height="11" rx="2" fill="#2747B0" />
+          <rect x="48" y="18" width="88" height="11" rx="2" fill="#2446D6" />
           <g transform="translate(126 30)">
             <path
               d="M-8-8l-7-7M2-11v-9M-11 2h-9"
-              stroke="#F8BA3C"
+              stroke="#F6C445"
               strokeWidth="3"
               strokeLinecap="round"
             />
             <path
               d="M0 0v28l7.5-7.2 5.2 12 5.6-2.4-5.2-11.8H24Z"
               fill="#FFFFFF"
-              stroke="#1D1B19"
+              stroke="#0D1430"
               strokeWidth="2.2"
               strokeLinejoin="round"
             />

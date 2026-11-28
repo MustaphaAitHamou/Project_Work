@@ -38,34 +38,37 @@ export async function SiteFooter() {
     },
   ];
   return (
-    <footer className="mt-16 border-t bg-muted/30">
-      <div className="container-page grid gap-10 py-12 md:grid-cols-4">
-        <div className="space-y-3">
-          <Logo />
-          <p className="text-sm text-muted-foreground">{t("tagline")}</p>
+    <footer className="relative mt-20 overflow-hidden bg-brand-deep text-brand-on [--ring:var(--highlight)]">
+      {/* Night blue in both themes, with a thin yellow and turquoise line on top. */}
+      <div aria-hidden className="h-1 bg-[linear-gradient(90deg,var(--highlight)_0%,var(--highlight)_33%,var(--teal-bright)_33%,var(--teal-bright)_66%,#3557e8_66%)]" />
+      <div aria-hidden className="pointer-events-none absolute -end-32 -top-40 size-[28rem] rounded-full bg-[#2446d6] opacity-25 blur-3xl" />
+      <div className="container-page relative grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div className="space-y-4">
+          <Logo onDark />
+          <p className="max-w-xs text-sm leading-relaxed text-brand-on/75">{t("tagline")}</p>
         </div>
         {columns.map((col) => (
-          <nav key={col.title} aria-label={col.title} className="space-y-3">
-            <h2 className="text-sm font-semibold">{col.title}</h2>
-            <ul className="space-y-2 text-sm">
+          <nav key={col.title} aria-label={col.title} className="space-y-4">
+            <h2 className="text-sm font-bold tracking-[-0.01em] text-brand-on">{col.title}</h2>
+            <ul className="space-y-2.5 text-sm">
               {col.links.map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-muted-foreground hover:text-foreground">
+                  <Link href={l.href} className="text-brand-on/70 transition-colors hover:text-brand-on hover:underline hover:underline-offset-4">
                     {l.label}
                   </Link>
                 </li>
               ))}
               {col.title === t("about") && ads.enabled && ads.mode !== "placeholder" && (
                 <li>
-                  <CookieSettingsLink label={t("cookieSettings")} className="text-muted-foreground hover:text-foreground" />
+                  <CookieSettingsLink label={t("cookieSettings")} className="text-brand-on/70 transition-colors hover:text-brand-on" />
                 </li>
               )}
             </ul>
           </nav>
         ))}
       </div>
-      <div className="border-t">
-        <div className="container-page flex flex-col gap-2 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+      <div className="relative border-t border-white/10">
+        <div className="container-page flex flex-col gap-2 py-6 text-xs text-brand-on/65 sm:flex-row sm:items-center sm:justify-between">
           <p>{t("copyright", { year })}</p>
           <p>{t("notAnAgency")}</p>
         </div>

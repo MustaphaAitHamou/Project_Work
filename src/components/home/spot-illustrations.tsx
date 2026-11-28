@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
  * They use theme tokens (--card, --border, --secondary, --primary, --success...), so they follow
  * light and dark modes. Decorative only: the text next to them carries the meaning.
  */
-const GOLD = "#F8BA3C";
+const GOLD = "#F6C445";
 const LINE = "var(--muted-foreground)";
 
 function Sparkle({
@@ -208,7 +208,7 @@ export function OneClickSpot({ className }: { className?: string }) {
         <path
           d="M0 0v26l7-6.7 4.8 11.2 5.2-2.2-4.8-11H22Z"
           fill="#FFFFFF"
-          stroke="#1D1B19"
+          stroke="#0D1430"
           strokeWidth="2"
           strokeLinejoin="round"
         />

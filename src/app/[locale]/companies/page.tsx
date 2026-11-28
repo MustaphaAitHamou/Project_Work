@@ -53,7 +53,7 @@ export default async function CompaniesPage({ params, searchParams }: { params: 
       ) : (
         <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {companies.map((c) => (
-            <li key={c.id} className="relative flex gap-4 rounded-xl border bg-card p-5 hover:shadow-sm">
+            <li key={c.id} className="relative flex gap-4 rounded-2xl border bg-card p-5 shadow-xs transition hover:border-primary/30 hover:shadow-md">
               <CompanyAvatar name={c.name ?? ""} logoPath={c.logo_path} />
               <div className="min-w-0">
                 <h2 className="font-semibold">

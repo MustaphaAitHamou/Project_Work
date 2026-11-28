@@ -46,7 +46,7 @@ export default async function RecruitersPage({ params }: { params: Promise<{ loc
     <LaunchOfferBanner cta={false} />
     <div className="container-page py-14">
       <div className="mx-auto max-w-3xl text-center">
-        <h1 className="text-3xl font-bold sm:text-4xl">{t("title")}</h1>
+        <h1 className="text-3xl font-extrabold sm:text-[2.6rem] sm:leading-tight">{t("title")}</h1>
         <p className="mt-3 text-lg text-muted-foreground">{t("subtitle")}</p>
         <Button asChild size="lg" className="mt-6">
           <Link href={cta.href}>{cta.label}</Link>
@@ -58,8 +58,8 @@ export default async function RecruitersPage({ params }: { params: Promise<{ loc
           {t("pricingTitle")}
         </h2>
         {launch && (
-          <div className="relative mt-6 overflow-hidden rounded-xl bg-brand-deep p-6 text-brand-on shadow-sm sm:p-8" data-testid="launch-offer-pricing">
-            <div aria-hidden className="pointer-events-none absolute -end-16 -top-20 size-56 rounded-full bg-highlight/15" />
+          <div className="relative mt-6 overflow-hidden rounded-3xl bg-brand-deep p-6 text-brand-on shadow-lg [--ring:var(--highlight)] sm:p-8" data-testid="launch-offer-pricing">
+            <div aria-hidden className="pointer-events-none absolute -end-24 -top-24 size-72 rounded-full bg-[radial-gradient(circle,rgba(246,196,69,0.20),transparent_65%)]" />
             <div className="relative grid gap-6 md:grid-cols-[auto_1fr] md:items-center">
               <div>
                 <p className="inline-flex items-center gap-1.5 rounded-full bg-highlight px-2.5 py-0.5 text-xs font-bold text-highlight-foreground">
@@ -137,7 +137,7 @@ export default async function RecruitersPage({ params }: { params: Promise<{ loc
         </h2>
         <ol className="mt-8 grid gap-4 md:grid-cols-5">
           {steps.map((s, i) => (
-            <li key={s.title} className="rounded-xl border bg-card p-5">
+            <li key={s.title} className="rounded-2xl border bg-card p-5 shadow-xs">
               <span className="text-xs font-semibold text-primary">{i + 1}</span>
               <s.icon className="mt-2 size-6 text-primary" aria-hidden />
               <h3 className="mt-2 font-semibold">{s.title}</h3>
@@ -152,7 +152,7 @@ export default async function RecruitersPage({ params }: { params: Promise<{ loc
           {t("faqTitle")}
         </h2>
         {launch && priceLabel && (
-          <details className="rounded-lg border border-highlight/60 bg-card p-4" open>
+          <details className="rounded-2xl border border-highlight/60 bg-card p-5 shadow-xs" open>
             <summary className="cursor-pointer font-medium">{tOffer("faqQ")}</summary>
             <p className="mt-2 text-sm text-muted-foreground">
               {tOffer("faqA", { lastDay: launch.lastDay, startDay: launch.startDay, price: price?.tax_behavior === "inclusive" ? priceLabel : `${priceLabel} ${t("taxShort")}` })}
@@ -160,7 +160,7 @@ export default async function RecruitersPage({ params }: { params: Promise<{ loc
           </details>
         )}
         {["q1", "q2", "q3", "q4", "q5", "q6"].map((q) => (
-          <details key={q} className="rounded-lg border bg-card p-4">
+          <details key={q} className="rounded-2xl border bg-card p-5 shadow-xs">
             <summary className="cursor-pointer font-medium">{t(`faq.${q}`)}</summary>
             <p className="mt-2 text-sm text-muted-foreground">{t(`faq.${q}a`)}</p>
           </details>

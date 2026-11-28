@@ -102,8 +102,8 @@ export default async function JobPage({ params }: Props) {
   return (
     <div className="container-page py-8">
       {jsonLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }} />}
-      <nav aria-label={t("breadcrumb")} className="mb-4 text-sm text-muted-foreground">
-        <Link href="/jobs" className="hover:underline">
+      <nav aria-label={t("breadcrumb")} className="mb-5 truncate text-sm text-muted-foreground">
+        <Link href="/jobs" className="font-medium text-primary hover:underline">
           {t("allJobs")}
         </Link>{" "}
         / <span className="text-foreground">{job.title}</span>
@@ -117,13 +117,14 @@ export default async function JobPage({ params }: Props) {
         </Alert>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
-        <article className="min-w-0 space-y-8">
-          <header className="space-y-4">
-            <div className="flex items-start gap-4">
-              <CompanyAvatar name={job.company_name ?? ""} logoPath={job.company_logo_path} className="size-14" />
-              <div className="min-w-0 space-y-1">
-                <h1 className="text-2xl font-bold leading-tight sm:text-3xl">{job.title}</h1>
+      <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+        <article className="min-w-0 space-y-9">
+          <header className="relative space-y-5 overflow-hidden rounded-3xl border bg-card p-6 shadow-sm sm:p-8">
+            <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[linear-gradient(180deg,var(--secondary),transparent)]" />
+            <div className="relative flex items-start gap-4">
+              <CompanyAvatar name={job.company_name ?? ""} logoPath={job.company_logo_path} className="size-14 rounded-2xl bg-card text-base shadow-sm" />
+              <div className="min-w-0 space-y-1.5">
+                <h1 className="text-2xl leading-tight font-extrabold sm:text-[2rem]">{job.title}</h1>
                 <p className="flex flex-wrap items-center gap-x-2 text-muted-foreground">
                   <Link href={`/companies/${job.company_slug}`} className="font-medium text-foreground hover:underline">
                     {job.company_name}
@@ -135,9 +136,11 @@ export default async function JobPage({ params }: Props) {
                 </p>
               </div>
             </div>
-            <JobBadges contractType={job.contract_type!} workMode={job.work_mode!} workTime={job.work_time!} experienceLevel={job.experience_level!} />
+            <div className="relative">
+              <JobBadges contractType={job.contract_type!} workMode={job.work_mode!} workTime={job.work_time!} experienceLevel={job.experience_level!} />
+            </div>
             {job.published_at && (
-              <p className="text-sm text-muted-foreground">
+              <p className="relative text-sm text-muted-foreground">
                 {t("published", { when: format.relativeTime(new Date(job.published_at), new Date()) })}
                 {job.application_deadline && <> · {t("deadline", { date: formatDate(job.application_deadline, locale) })}</>}
               </p>
@@ -145,14 +148,14 @@ export default async function JobPage({ params }: Props) {
           </header>
 
           <section aria-labelledby="desc" className="space-y-2">
-            <h2 id="desc" className="text-lg font-semibold">
+            <h2 id="desc" className="text-xl font-bold">
               {t("description")}
             </h2>
             <RichText text={job.description} />
           </section>
           {job.missions && (
             <section aria-labelledby="missions" className="space-y-2">
-              <h2 id="missions" className="text-lg font-semibold">
+              <h2 id="missions" className="text-xl font-bold">
                 {t("missions")}
               </h2>
               <RichText text={job.missions} />
@@ -160,7 +163,7 @@ export default async function JobPage({ params }: Props) {
           )}
           {job.profile_sought && (
             <section aria-labelledby="profile" className="space-y-2">
-              <h2 id="profile" className="text-lg font-semibold">
+              <h2 id="profile" className="text-xl font-bold">
                 {t("profile")}
               </h2>
               <RichText text={job.profile_sought} />
@@ -168,7 +171,7 @@ export default async function JobPage({ params }: Props) {
           )}
           {(job.required_skills?.length ?? 0) + (job.optional_skills?.length ?? 0) > 0 && (
             <section aria-labelledby="skills" className="space-y-3">
-              <h2 id="skills" className="text-lg font-semibold">
+              <h2 id="skills" className="text-xl font-bold">
                 {t("skills")}
               </h2>
               {job.required_skills && job.required_skills.length > 0 && (
@@ -199,14 +202,14 @@ export default async function JobPage({ params }: Props) {
           )}
           {job.benefits && (
             <section aria-labelledby="benefits" className="space-y-2">
-              <h2 id="benefits" className="text-lg font-semibold">
+              <h2 id="benefits" className="text-xl font-bold">
                 {t("benefits")}
               </h2>
               <RichText text={job.benefits} />
             </section>
           )}
-          <section aria-labelledby="conditions" className="space-y-3 rounded-xl border bg-muted/30 p-5">
-            <h2 id="conditions" className="text-lg font-semibold">
+          <section aria-labelledby="conditions" className="space-y-3 rounded-2xl border bg-card p-6 shadow-xs">
+            <h2 id="conditions" className="text-xl font-bold">
               {t("conditions")}
             </h2>
             <MetaLine icon={ShieldCheck}>
@@ -230,8 +233,9 @@ export default async function JobPage({ params }: Props) {
         </article>
 
         <aside className="space-y-4">
-          <Card className="lg:sticky lg:top-20">
-            <CardContent className="space-y-4 pt-5">
+          <Card className="overflow-hidden lg:sticky lg:top-24">
+            <div aria-hidden className="h-1.5 bg-[image:var(--brand-gradient)]" />
+            <CardContent className="space-y-4 pt-5 sm:pt-6">
               <MetaLine icon={MapPin}>
                 <LocationText city={job.city} country={job.country_code} regionName={regionName} />
                 {job.address_line && <span className="block text-muted-foreground">{job.address_line}</span>}
@@ -260,13 +264,13 @@ export default async function JobPage({ params }: Props) {
 
       {similar.length > 0 && (
         <section aria-labelledby="similar" className="mt-12 space-y-4">
-          <h2 id="similar" className="text-lg font-semibold">
+          <h2 id="similar" className="text-xl font-bold">
             {t("similar")}
           </h2>
           <ul className="grid gap-3 sm:grid-cols-2">
             {similar.map((s) => (
-              <li key={s.id} className="rounded-xl border bg-card p-4">
-                <Link href={jobPath(s.slug, s.public_id)} className="font-semibold hover:text-primary">
+              <li key={s.id} className="group relative rounded-2xl border bg-card p-5 shadow-xs transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+                <Link href={jobPath(s.slug, s.public_id)} className="font-display font-bold after:absolute after:inset-0 after:rounded-2xl group-hover:text-primary">
                   {s.title}
                 </Link>
                 <p className="text-sm text-muted-foreground">

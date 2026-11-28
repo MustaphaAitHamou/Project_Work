@@ -8,7 +8,7 @@ export function Pagination({ page, totalPages, hrefFor }: { page: number; totalP
   if (totalPages <= 1) return null;
   const pages = new Set<number>([1, totalPages, page - 1, page, page + 1].filter((p) => p >= 1 && p <= totalPages));
   const sorted = [...pages].sort((a, b) => a - b);
-  const linkCls = "inline-flex h-9 min-w-9 items-center justify-center rounded-md border px-3 text-sm hover:bg-muted";
+  const linkCls = "inline-flex h-10 min-w-10 items-center justify-center rounded-lg border bg-card px-3 text-sm font-medium shadow-xs transition-colors hover:border-input hover:bg-muted";
   return (
     <nav aria-label={t("pagination")} className="flex items-center justify-center gap-1.5">
       {page > 1 && (
