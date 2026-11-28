@@ -181,6 +181,13 @@ Gravité : **bloquant** (empêche le lancement), **majeur** (gêne fortement), *
     - dans Supabase → Authentication → Attack Protection → Turnstile, pour la connexion, l'inscription, le mot de passe oublié et le renvoi.
 
     Je peux le contrôler sans afficher aucun secret, en comparant leurs empreintes SHA-256 (l'API de Supabase ne renvoie que l'empreinte).
+  - **Constat du 28/11 (cause de l'échec de connexion avec « Succès ! »)** :
+    - la clé de site compilée est bien celle de Vercel ;
+    - le secret de Vercel est valide et fonctionne (signalement) ;
+    - le secret enregistré dans Supabase est un secret Turnstile **valide** : un jeton forgé y est refusé avec `invalid-input-response`, et non `invalid-input-secret` ;
+    - mais son empreinte **diffère** de celle du secret de Vercel.
+
+    C'est donc le secret d'un autre widget (ou d'une autre génération de clé). Les jetons du widget affiché sont refusés, quel que soit le compte, administrateur compris. Correction : coller dans Supabase la clé secrète du widget `0x4AAAAAAG…`.
   - **Dans une fenêtre privée**, sur `https://tamurt-jobs-preprod.vercel.app/fr/login` :
     1. le bouton « Se connecter » reste grisé, sous « Vérification anti-robot en cours… », jusqu'au « Succès ! » du widget ;
     2. connexion d'un compte de recette candidat, recruteur, puis administrateur : l'espace s'ouvre (pour l'administrateur, le code de l'application d'authentification est ensuite demandé) ;
