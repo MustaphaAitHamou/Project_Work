@@ -96,6 +96,27 @@ Gravité : **bloquant** (empêche le lancement), **majeur** (gêne fortement), *
 - [ ] **R-16 Remboursement.** Après un remboursement fait par l'administration, le montant remboursé est visible.
 - [ ] **R-17 Paramètres et suppression du compte.**
 
+- [ ] **R-18 Pendant l'offre de lancement**, R-06 à R-08 (paiement direct) se testent sur une annonce dont la gratuité est terminée (voir L-04), ou avec la conversion (L-03).
+
+## E. Offre de lancement (jusqu'au 31/12/2026)
+
+- [ ] **L-01 Bandeau.**
+  - Accueil, page recruteurs et tableau de bord recruteur : « Offre de lancement : publiez gratuitement vos annonces jusqu'au 31 décembre 2026. » et le tarif normal de 5,95 € HT à compter du 1er janvier 2027.
+  - Absent de la recherche d'emploi et des pages d'offre. Lisible sur mobile, en arabe et en thème sombre.
+- [ ] **L-02 Publication gratuite.** Nouvelle annonce d'une entreprise vérifiée : « Annonce publiée gratuitement », aucune carte demandée, annonce visible et ouverte aux candidatures. Une mention discriminatoire passe toujours en modération.
+- [ ] **L-03 Conversion.**
+  - Bouton « Garder en ligne après l'offre » ; page de paiement : « Aucun prélèvement avant le 1er janvier 2027 », case d'autorisation obligatoire en plus des conditions.
+  - Page Stripe : période d'essai jusqu'à la fin de l'offre, rien à payer aujourd'hui (carte 4242).
+  - Retour : « Abonnement enregistré », puis « premier prélèvement le 1er janvier 2027 » sur la page de l'annonce.
+- [ ] **L-04 Fin d'offre simulée** (préproduction uniquement, ne jamais le faire en production).
+  1. Back-office → Paramètres → `billing.free_publication_until` = un instant dans 5 minutes, avec fuseau (ex. `2026-12-01T10:05:00+01:00`).
+  2. Publier une nouvelle annonce (elle est gratuite jusqu'à cet instant).
+  3. Après l'instant : l'annonce n'est plus dans la recherche ni accessible publiquement, avant toute tâche planifiée.
+  4. Lancer la maintenance (`node scripts/preprod-run-cron.mjs maintenance`) : « Annonce en pause » dans l'espace recruteur, candidatures conservées.
+  5. « Réactiver l'annonce » (carte 4242) : de nouveau en ligne.
+  6. Remettre le réglage à `2027-01-01T00:00:00+01:00`.
+- [ ] **L-05 E-mails** (une fois Resend configuré) : rappel avant la fin et e-mail de mise en pause, dans la langue du recruteur.
+
 ## C. Administration
 
 - [ ] **A-01 Rôles.** Un modérateur ne voit que ses sections ; un candidat est refusé ; les remboursements sont réservés à la finance.

@@ -1,15 +1,16 @@
-# État du projet — 25 novembre 2026
+# État du projet — 28 novembre 2026
 
 Ce document distingue strictement ce qui est **implémenté et vérifié par des tests**, ce qui est **implémenté mais non validé contre le service réel** (faute d'accès ou de clés depuis l'environnement de développement), et ce qui **reste à faire ou à décider**.
 
 ## Résultats des tests
 
-| Suite | Résultat | Portée |
+| Suite | Résultat (28/11) | Portée |
 |---|---|---|
-| Unitaires (`npm run test:unit`) | 131/131 (25/11) | validation des identifiants d'entreprise (formats, clés de contrôle), moteur de vérification, analyse des fichiers (PDF/DOCX malveillants), extraction du texte des CV, masquage des données personnelles (FR, EN, ES), validation et erreurs d'inscription, paramètres de recherche, données structurées d'offre, rendu des e-mails, parité des permissions SQL/TypeScript, traductions (clés et structure ICU identiques dans les 4 langues) |
-| Intégration SQL (`npm run test:integration`) | 49/49 (25/11) | RLS et droits (accès croisés, base de CV inaccessible, élévation de privilèges, fonctions réservées), candidature en un clic (atomicité, doublons concurrents, quotas, accord préalable, statut « consultée »), **candidatures anonymes** (profil chargé de données personnelles, vue recruteur avant accord, contournements par table, historique, fichier et identifiant, demande, acceptation, refus, expiration, retrait, changements de statut, rétention, export), cycle de vie annonce/abonnement/paiement, décisions d'administration et notifications |
-| Bout en bout (`npm run test:e2e`) | 43/43 (25/11, serveur autonome de production derrière Nginx) + 5/5 parcours Stripe réels en mode test | parcours candidat complet (dont vérification du CV anonymisé, réponse à une demande d'identité, retrait de l'accès), parcours recruteur complet (profil anonyme, CV original verrouillé, demande puis levée de l'anonymat), inscription (champs manquants, e-mail invalide, mot de passe faible, adresse déjà inscrite, trop de tentatives, hors ligne, erreur serveur, confirmation par e-mail, utilisateur déjà connecté), webhook Stripe, back-office (8 scénarios), tâches planifiées, accessibilité (axe, WCAG 2.2 A/AA, FR/AR, thème sombre, nouveaux écrans compris) |
-| Qualité | OK | `tsc` strict, ESLint sans erreur, `supabase db lint` sans erreur, `npm audit` (production) sans vulnérabilité, `next build` réussi |
+| Unitaires (`npm run test:unit`) | 149/149 | identifiants d'entreprise, vérification, fichiers, CV, masquage, inscription, recherche, données structurées, e-mails (dont offre de lancement), permissions, traductions, Turnstile, offre de lancement (dates de Paris, essai Stripe, consentement au premier prélèvement) |
+| Intégration SQL (`npm run test:integration`) | 64/64 | RLS et droits, candidature en un clic, candidatures anonymes, cycle de vie annonce/abonnement/paiement (modèle payant 2027), décisions d'administration, **offre de lancement** (15 tests : instants limites de Paris, transition, webhooks en double et désordonnés, priorité des e-mails, réglage du back-office) |
+| Bout en bout (`npm run test:e2e`) | 44 réussis, 0 échec, 7 ignorés (serveur de production local, version refondue) | parcours candidat, recruteur, inscription, back-office, tâches planifiées, webhook Stripe signé, publicités, accessibilité axe (FR/AR, sombre), **offre de lancement** (bandeau, publication gratuite, conversion, fin simulée). Ignorés : 6 parcours Stripe réels (suite à part) et le test `ads.txt` (sans identifiant AdSense) |
+| Stripe réel, mode test (`STRIPE_REAL=1`) | 6/6 parcours réels + 3/4 tests du webhook | dont la **conversion d'une annonce gratuite** avec horloge de test Stripe. Le 4e test du webhook (« garde de renouvellement ») exige un serveur **sans** clé Stripe : il passe dans la suite standard, échoue avec clé (limite connue, [STRIPE_TESTING.md](STRIPE_TESTING.md)) |
+| Qualité | OK | `tsc` strict, ESLint, `next build` sans avertissement, décalage de mise en page 0 à 0,02 |
 
 Les tests d'intégration et E2E s'exécutent contre une pile Supabase locale réelle (PostgreSQL, Auth, Storage, Mailpit) et le vrai serveur Next.js (en CI : build de production). La **CI GitHub Actions est verte** sur `main` : audit des dépendances, typage, lint, tests unitaires, migrations appliquées sur une base vierge, lint SQL, cohérence des types générés, tests d'intégration, build de production et tests E2E. Les tests E2E n'interrogent pas les registres d'entreprises (services tiers), pour rester déterministes.
 
@@ -36,9 +37,9 @@ Les tests d'intégration et E2E s'exécutent contre une pile Supabase locale ré
 | **Stripe** | **Validé contre le vrai Stripe de test le 25/11** (voir [STRIPE_TESTING.md](STRIPE_TESTING.md)) : tarif, Checkout, abonnement, activation par webhook, renouvellement, échec, grâce, suspension, régularisation, résiliation, remboursement, 3D Secure, refus, portail client, événements dans le désordre | saisie de carte et écran du portail à vérifier à la main en préprod ; compte live, webhook live et Stripe Tax au lancement, après accord |
 | **Resend** | fournisseur implémenté selon l'API documentée | clé API et domaine vérifié ; le chemin SMTP est, lui, testé de bout en bout avec Mailpit |
 | **Registres d'entreprises** | France, VIES, Companies House, Zefix, OpenCorporates implémentés selon leurs contrats publiés, testés sur des réponses types | accès réseau et clés (Companies House, Zefix, OpenCorporates) ; en leur absence la vérification bascule en revue manuelle, comportement vérifié |
-| **Cloudflare Turnstile** | widget, vérification serveur, transmission à Supabase Auth | clés et activation dans Supabase ; non testé |
-| **Supabase hébergé** | migrations vérifiées sur base vierge (25/11), réglages d'authentification documentés ([EMAIL.md](EMAIL.md)) | projets préprod et production non créés (accès du propriétaire) |
-| **Vercel (préproduction)** | workflow « CI puis déploiement », `vercel.json`, protection et non-indexation | projet, offre (Pro requise pour un usage commercial) et jeton |
+| **Cloudflare Turnstile** | widget, vérification serveur, jetons transmis à Supabase Auth (inscription, connexion, mot de passe, renvoi de confirmation : tests unitaires) ; vraies clés du widget dans Vercel (préproduction) | le vrai widget pose un défi interactif aux navigateurs automatisés : recette manuelle T-10 à faire, puis activation de la protection dans Supabase ([RECETTE.md](RECETTE.md)) |
+| **Supabase hébergé (préproduction)** | projet `tamurt-jobs-preprod` : 26 migrations appliquées (dont l'offre de lancement, le 28/11), adresse du site et redirections réglées | modèles d'e-mails d'authentification et captcha (choix du propriétaire) ; projet de production non créé |
+| **Vercel (préproduction)** | déployée et protégée (Vercel Authentication, `noindex`, robots `Disallow`), tâches planifiées quotidiennes (offre Hobby) | le workflow GitHub n'a encore jamais déployé : l'environnement GitHub « preprod » n'est pas configuré (il échoue désormais explicitement) ; déploiements faits par l'API Vercel |
 | **Iglao (production)** | serveur autonome, Nginx, systemd, cron, déploiement et retour arrière ([deploy/iglao](../deploy/iglao/README.md)), rejoués dans une simulation Ubuntu 24.04 avec E2E 43/43 | VPS réel, domaine, certificat |
 
 ## Reste à faire ou à décider
@@ -49,8 +50,12 @@ Les tests d'intégration et E2E s'exécutent contre une pile Supabase locale ré
 - Comptes et clés : Stripe live (et Stripe Tax), fournisseur d'e-mail, Turnstile, registres, projets Supabase et Vercel.
 - Choix de la région d'hébergement et encadrement des transferts de données.
 
-**Identité visuelle (DA Tamurt Services, novembre 2026)**
-- Couleurs, police Bitter, coins, logos, favicons et bouton yaz appliqués. Accueil refait avec un bandeau de marque illustré et des drapeaux en SVG. Chaque section a ses illustrations : engagements, état vide des offres, étapes, tableau de bord recruteur. Les textes sont agrandis pour la lecture. La frise « peigne » a été retirée : en pleine largeur, elle ressemblait à un défaut d'affichage. Vérifié : typecheck, lint, tests unitaires (64/64) et build. Rendu contrôlé en français et en arabe, en clair et en sombre.
+**Offre de lancement (28 novembre 2026)** — publication gratuite pour toutes les entreprises jusqu'au 31/12/2026 23:59:59 (Paris), puis 5,95 € HT par mois et par annonce ; mise en pause sans suppression des annonces non converties, conversion sans prélèvement avant la fin, rappels par e-mail. Détails et tests : [LAUNCH_OFFER.md](LAUNCH_OFFER.md). Clause des CGV recruteurs **à valider** par un conseil.
+
+**Refonte visuelle premium (28 novembre 2026)** — Inter et Plus Jakarta Sans (plus de police à empattements), bleu roi, bleu nuit, touches de jaune et de turquoise, composants, pages et espaces revus, contrastes AA, CLS 0 à 0,02 : [DESIGN.md](DESIGN.md).
+
+**Identité visuelle (DA Tamurt Services, novembre 2026, remplacée par la refonte du 28/11 pour la typographie et la palette)**
+- Couleurs, police Bitter (abandonnée le 28/11), coins, logos, favicons et bouton yaz appliqués. Accueil refait avec un bandeau de marque illustré et des drapeaux en SVG. Chaque section a ses illustrations : engagements, état vide des offres, étapes, tableau de bord recruteur. Les textes sont agrandis pour la lecture. La frise « peigne » a été retirée : en pleine largeur, elle ressemblait à un défaut d'affichage. Vérifié : typecheck, lint, tests unitaires (64/64) et build. Rendu contrôlé en français et en arabe, en clair et en sombre.
 - Tests d'intégration et E2E relancés le 16 novembre 2026 avec la pile Supabase locale : verts (voir ci-dessus).
 - Bouton yaz masqué tant que `TAMURT_SERVICES_URL` est vide, puisque le site Tamurt Services n'est pas encore en ligne.
 
