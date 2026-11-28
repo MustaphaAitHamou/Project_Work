@@ -84,6 +84,17 @@ GIT_REPOSITORY=MustaphaAitHamou/Project_Work GIT_REF=claude/jobs-lancement GIT_S
 Il faut aussi `VERCEL_TOKEN`, `VERCEL_ORG_ID` et `VERCEL_PROJECT_ID` dans l'environnement du
 terminal. Le commit doit déjà être poussé sur GitHub.
 
+Depuis un poste dont le réseau ne joint que l'alias de préproduction (proxy d'entreprise, session de
+développement), ajoutez `SKIP_DEPLOYMENT_URL_CHECKS=1`. L'adresse unique du déploiement n'est alors
+pas contrôlée, et le résumé l'indique. Ne l'utilisez jamais dans GitHub Actions.
+
+Après un déploiement, les contrôles de la préproduction réelle se lancent ainsi (ils ne créent
+rien et n'envoient aucun e-mail) :
+
+```bash
+PREPROD_TURNSTILE_KEYS=real npx playwright test -c playwright.preprod.config.ts --trace off
+```
+
 ## 5. Entretien et sécurité
 
 - **Renouveler le jeton** avant son expiration : Vercel → Tokens → créer le nouveau, le coller dans

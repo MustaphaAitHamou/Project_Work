@@ -17,6 +17,9 @@
 #   VERCEL_AUTOMATION_BYPASS_SECRET   contournement « Protection Bypass for Automation » : permet
 #                                     de vérifier /api/health et noindex derrière Vercel
 #                                     Authentication, qui reste activée
+#   SKIP_DEPLOYMENT_URL_CHECKS=1      seulement depuis un poste dont le réseau ne joint que l'alias
+#                                     (proxy) : l'adresse unique du déploiement n'est alors pas
+#                                     contrôlée, et le résumé le dit. Jamais dans GitHub Actions.
 #   GITHUB_STEP_SUMMARY, GITHUB_OUTPUT (fournies par GitHub Actions)
 #
 # Code de sortie non nul dès qu'une vérification échoue : un déploiement n'est annoncé que s'il
@@ -104,17 +107,29 @@ if [ -n "${PREPROD_URL:-}" ]; then
   summary "- Alias : $PREPROD_URL → $id"
 fi
 
-# 6. Vercel Authentication refuse toujours un visiteur anonyme.
-for target in "$url" ${PREPROD_URL:+"$PREPROD_URL"}; do
-  code=$(curl -s -o /dev/null -w "%{http_code}" "$target/fr")
+# 6. Vercel Authentication refuse toujours un visiteur anonyme (alias et adresse du déploiement).
+targets=()
+[ -n "${PREPROD_URL:-}" ] && targets+=("$PREPROD_URL")
+if [ "${SKIP_DEPLOYMENT_URL_CHECKS:-}" = "1" ]; then
+  echo "::warning::Adresse unique du déploiement non contrôlée (SKIP_DEPLOYMENT_URL_CHECKS=1)."
+  summary "- Adresse unique du déploiement : non contrôlée depuis ce poste (réseau limité à l'alias)"
+else
+  targets+=("$url")
+fi
+[ "${#targets[@]}" -gt 0 ] || fail "Aucune adresse à contrôler"
+for target in "${targets[@]}"; do
+  code=$(curl -s -o /dev/null -w "%{http_code}" "$target/fr" || true)
   case "$code" in
     401 | 403 | 302 | 307) echo "Protection active sur $target ($code)" ;;
+    000 | "") fail "$target injoignable depuis ce poste (réseau ou proxy) : protection non vérifiée" ;;
     *) fail "$target/fr répond $code sans authentification : la protection Vercel n'est plus active" ;;
   esac
 done
-summary "- Protection Vercel Authentication : active"
+summary "- Protection Vercel Authentication : active (${targets[*]})"
 
-# 7. Santé et non-indexation, à travers la protection (contournement réservé à l'automatisation).
+# 7. Santé et non-indexation, à travers la protection (contournement réservé à l'automatisation),
+#    sur l'alias quand il est connu (il sert ce déploiement, vérifié au point 5).
+check_url=${PREPROD_URL:-$url}
 if [ -z "${VERCEL_AUTOMATION_BYPASS_SECRET:-}" ]; then
   echo "::warning::Santé non vérifiée : VERCEL_AUTOMATION_BYPASS_SECRET absent (le site reste protégé)."
   summary "- Santé HTTP : non vérifiée (secret de contournement absent)"
@@ -123,14 +138,14 @@ fi
 bypass=(-H "x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}")
 health=""
 for _ in $(seq 1 10); do
-  health=$(curl -sS --max-time 15 "${bypass[@]}" "$url/api/health" || true)
+  health=$(curl -sS --max-time 15 "${bypass[@]}" "$check_url/api/health" || true)
   if echo "$health" | jq -e '.database == "ok"' > /dev/null 2>&1; then break; fi
   health=""
   sleep 6
 done
-[ -n "$health" ] || fail "$url/api/health ne répond pas « database: ok »"
-robots=$(curl -sSI "${bypass[@]}" "$url/fr" | tr -d '\r' | grep -i '^x-robots-tag:' || true)
+[ -n "$health" ] || fail "$check_url/api/health ne répond pas « database: ok »"
+robots=$(curl -sSI "${bypass[@]}" "$check_url/fr" | tr -d '\r' | grep -i '^x-robots-tag:' || true)
 echo "$robots" | grep -qi noindex || fail "En-tête noindex absent sur la préproduction"
-summary "- Santé HTTP : $(echo "$health" | jq -c '{status, database}')"
+summary "- Santé HTTP ($check_url) : $(echo "$health" | jq -c '{status, database}')"
 summary "- Indexation : ${robots}"
 echo "Préproduction déployée et vérifiée : $url"
