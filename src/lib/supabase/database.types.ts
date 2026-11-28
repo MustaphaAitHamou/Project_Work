@@ -1730,6 +1730,7 @@ export type Database = {
           eligibility_notes: string | null;
           experience_level: Database["public"]["Enums"]["experience_level"];
           expired_at: string | null;
+          free_until: string | null;
           id: string;
           industry: string | null;
           missions: string | null;
@@ -1777,6 +1778,7 @@ export type Database = {
           eligibility_notes?: string | null;
           experience_level: Database["public"]["Enums"]["experience_level"];
           expired_at?: string | null;
+          free_until?: string | null;
           id?: string;
           industry?: string | null;
           missions?: string | null;
@@ -1823,6 +1825,7 @@ export type Database = {
           eligibility_notes?: string | null;
           experience_level?: Database["public"]["Enums"]["experience_level"];
           expired_at?: string | null;
+          free_until?: string | null;
           id?: string;
           industry?: string | null;
           missions?: string | null;
@@ -3166,6 +3169,7 @@ export type Database = {
         Returns: boolean;
       };
       hq_metrics: { Args: { p_from: string; p_to: string }; Returns: Json };
+      launch_offer: { Args: Record<PropertyKey, never>; Returns: Json };
       privacy_prepare_account_deletion: {
         Args: { p_user_id: string };
         Returns: Json;

@@ -2,13 +2,15 @@
  * Job publication lifecycle driven by verification, moderation and billing
  * events (SQL layer). The Stripe webhook adapter is covered separately.
  */
-import { describe, expect, it, beforeAll } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import {
   createCompany,
   createDraftJob,
   createReadyCandidate,
+  endFreePeriod,
   grantAdminRole,
+  restoreFreePeriod,
   serviceClient,
   setCountryPaidPublishing,
   sql,
@@ -37,12 +39,15 @@ async function payJob(jobId: string, actor: string) {
   return { sessionId, subscriptionId: `sub_${randomUUID().slice(0, 12)}` };
 }
 
+// Paid model (from 1 January 2027): the launch offer is simulated as over.
 describe("job lifecycle", () => {
   let company: TestCompany;
 
   beforeAll(async () => {
+    await endFreePeriod();
     company = await createCompany({ verified: false });
   });
+  afterAll(restoreFreePeriod);
 
   it("an unverified company cannot submit an advert for publication", async () => {
     const job = await createDraftJob(company);

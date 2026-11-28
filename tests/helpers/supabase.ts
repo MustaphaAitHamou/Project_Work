@@ -200,3 +200,17 @@ export async function resetRateLimits() {
 export async function grantAdminRole(userId: string, role: string) {
   await sql(`insert into public.admin_roles (user_id, role) values ($1, $2) on conflict do nothing`, [userId, role]);
 }
+
+/**
+ * Simulated clock of the launch offer: moves its (exclusive) end instead of the server clock.
+ * Default: 1 January 2027 00:00 Paris. Test files run one at a time and restore it.
+ */
+export const FREE_PUBLICATION_DEFAULT = "2027-01-01T00:00:00+01:00";
+export async function setFreePublicationUntil(at: Date | null) {
+  await sql(`update public.platform_settings set value = to_jsonb($1::text) where key = 'billing.free_publication_until'`, [
+    at ? at.toISOString() : FREE_PUBLICATION_DEFAULT,
+  ]);
+}
+/** The launch offer is over (paid model of 2027). */
+export const endFreePeriod = () => setFreePublicationUntil(new Date(Date.now() - 3600_000));
+export const restoreFreePeriod = () => setFreePublicationUntil(null);
