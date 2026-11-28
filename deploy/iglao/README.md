@@ -137,7 +137,7 @@ openssl rand -hex 32
 
 ## 5. HTTPS (Let's Encrypt)
 
-1. Le domaine pointe vers l'IP du VPS (enregistrement A).
+1. Le domaine **et** `www.<domaine>` pointent vers l'IP du VPS (enregistrements A, et AAAA si le VPS a une IPv6). `www` redirige ensuite vers le domaine principal, en une seule redirection (vérifié le 28/11 avec Nginx 1.24 et un certificat de test).
 2. Configuration de démarrage, puis certificat (remplacer `jobs.example.com`) :
 
 ```bash
@@ -145,7 +145,7 @@ sed 's/jobs.example.com/<domaine>/g' /root/iglao/nginx/tamurt-jobs-bootstrap.con
 ```
 
 ```bash
-certbot certonly --webroot -w /var/www/letsencrypt -d <domaine> --deploy-hook "systemctl reload nginx"
+certbot certonly --webroot -w /var/www/letsencrypt -d <domaine> -d www.<domaine> --deploy-hook "systemctl reload nginx"
 ```
 
 3. Configuration définitive :

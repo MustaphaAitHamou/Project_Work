@@ -46,8 +46,9 @@
    - AdSense est distinct de Google Ads : ton compte Google Ads ne suffit pas.
    - Le titulaire du compte reçoit les paiements. Il faut renseigner son identité et ses informations fiscales dans AdSense.
 2. **Donner l'identifiant éditeur** `ca-pub-…`. Il n'est pas secret : tu peux me le donner dans le chat.
-   - Je le mets dans Vercel → Settings → Environment Variables → `NEXT_PUBLIC_ADSENSE_CLIENT` (Production), puis je redéploie.
-   - La balise de vérification Google et `ads.txt` seront alors en place.
+   - Production (Iglao) : GitHub → Settings → Environments → `production` → variable `NEXT_PUBLIC_ADSENSE_CLIENT`, puis un déploiement Iglao (avec ton approbation). La valeur est inscrite dans le code **à la compilation** : la mettre seulement dans `/etc/tamurt-jobs/env` ne suffit pas.
+   - La balise de vérification Google (`google-adsense-account`) et `ads.txt` sont alors en place, **même si l'interrupteur `ads.enabled` reste à `false`** : Google peut vérifier le site sans qu'aucune annonce ne s'affiche.
+   - Préproduction (Vercel) : inutile pour l'approbation. Google ne peut pas examiner un site protégé par mot de passe et marqué `noindex`.
 3. **Si Jobs est sur un sous-domaine** (par exemple `jobs.exemple.com`), Google lit `ads.txt` sur le domaine racine. Il faut que `exemple.com/ads.txt` serve le même contenu, ou redirige vers `jobs.exemple.com/ads.txt`.
 4. **Message de consentement :** AdSense → Confidentialité et messages → « Réglementations européennes ».
    - Créer le message.
@@ -59,6 +60,27 @@
    - Me donner leurs identifiants `data-ad-slot`. Ils ne sont pas secrets.
 6. **Demander la validation du site** une fois le site en ligne sur son domaine final. Google la donne en quelques jours à quelques semaines ; elle n'est pas garantie. **Le lancement n'attend pas cette validation.**
 7. **Une fois le site approuvé et le message publié :** Back-office → Paramètres → `ads.enabled` = `true`.
+
+## Prêt pour la demande d'approbation ? (état au 28/11/2026)
+
+| Exigence de Google | État | Preuve ou action |
+| --- | --- | --- |
+| Site public sur son domaine final, en HTTPS | **À faire** (Iglao, `tamurtjobs.com`) | La préproduction ne peut pas servir : elle est protégée et marquée `noindex`. |
+| Propriété du site prouvée | Prêt | Balise `google-adsense-account` et `/ads.txt` générés dès que l'identifiant est défini (vérifié le 28/11 avec un identifiant factice). |
+| `ads.txt` à la racine du domaine | Prêt | `google.com, pub-…, DIRECT, f08c47fec0942fa0` (vérifié le 28/11). Si le site est sur un sous-domaine, voir l'étape 3. |
+| Robot AdSense autorisé | Prêt | En production, `robots.txt` autorise `Mediapartners-Google` sur les pages publiques, résultats de recherche compris (test unitaire `robots.test.ts`). Préproduction et développement restent fermés à tous les robots. |
+| Contenu original et suffisant | **À surveiller** | Google refuse souvent les sites à peu de contenu. Demander l'approbation quand des offres réelles sont en ligne (quelques dizaines au moins) et que les pages éditoriales (à propos, classement, entreprises) sont remplies. |
+| Navigation claire, pages légales | Prêt, **textes à valider** | Mentions légales, confidentialité et cookies en ligne. Les passages `[À VALIDER]` attendent le juriste (identité de l'éditeur notamment). |
+| Message de consentement (EEE, Royaume-Uni, Suisse) | **À faire dans AdSense** | Étape 4 ci-dessus. Le code charge la CMP de Google avec le script AdSense ; elle ne peut être testée qu'une fois le compte ouvert et le message publié. |
+| Emplacements conformes | Prêt | Étiquette « Publicité », jamais dans les espaces privés, l'authentification, le paiement ni les pages juridiques (E2E `ads.spec.ts`, modes `placeholder` et `test`). |
+| Aucune annonce réelle sans ton accord | Garanti | Hors production, `live` est ramené à `test`. En production, rien ne s'affiche tant que l'identifiant n'est pas défini **et** que l'interrupteur `ads.enabled` n'est pas passé à `true` par toi. |
+
+Vérifications du 28/11/2026 (compilation locale avec l'identifiant factice `ca-pub-0000000000000000` et `ADS_MODE=test`) :
+- `ads.spec.ts`, 3 sur 3 : interrupteur coupé, aucun emplacement ni script ; interrupteur allumé, emplacements étiquetés sur les seules pages publiques, avec `data-adtest="on"` ; `ads.txt` et politique de sécurité ;
+- `/ads.txt` exact, balise de vérification présente ;
+- en mode `placeholder` (par défaut hors production), aucune requête vers les serveurs de Google (suite E2E de la CI).
+
+**Non testable avant l'ouverture du compte :** l'affichage réel du message de consentement de Google, le lien « Paramètres des cookies » qui le rouvre, le remplissage des blocs et le décompte des revenus.
 
 ## Règles AdSense à respecter
 

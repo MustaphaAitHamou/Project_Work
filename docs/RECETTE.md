@@ -4,13 +4,36 @@ But : utiliser le site comme un candidat, un recruteur payant et un administrate
 
 ## Avant de commencer
 
-- **URL de préproduction :** voir [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md) (PRE-01).
-  - Le site demande un identifiant et un mot de passe de préproduction (`PREPROD_BASIC_AUTH`). Tu les as choisis et saisis toi-même dans Vercel.
+- **URL de préproduction :** `https://tamurt-jobs-preprod.vercel.app`.
+  - Le site est protégé par **Vercel Authentication** : il faut être connecté à ton compte Vercel, membre de l'équipe du projet. Cette protection reste toujours active.
 - **Comptes de test :** ils sont créés par `scripts/preprod-seed.mjs` (candidat, recruteur vérifié, administrateur) et leur liste est fournie à la livraison.
   - Ils n'existent qu'en préproduction.
   - Les données de démonstration sont marquées comme fictives.
 - **Paiements :** mode test Stripe uniquement. Les cartes de test sont dans [STRIPE_TESTING.md](STRIPE_TESTING.md) (section 3). Aucune vraie carte.
 - **E-mails :** ils arrivent dans la boîte de l'adresse utilisée. Pour les comptes de démonstration, se connecter avec les identifiants fournis.
+
+## Déjà couvert par les tests automatiques (28/11/2026)
+
+Ces étapes sont rejouées à chaque push par la CI (pile Supabase locale, serveur de production
+local). La recette manuelle reste utile pour le rendu réel, les appareils et les e-mails reçus,
+mais un échec y serait une régression :
+
+| Étapes | Tests |
+| --- | --- |
+| C-01 à C-03 (inscription, erreurs de connexion, mot de passe oublié, liens d'e-mail invalides) | `session.spec.ts`, `recette.spec.ts` |
+| C-04, C-05, C-08, C-09 (profil, CV, candidature, suivi) | `candidate-flow.spec.ts` |
+| C-06 (recherche dans les 9 marchés, filtres) | `recette.spec.ts` |
+| C-12 (notifications dans l'espace candidat) | `recette.spec.ts` |
+| C-14, A-13 (effacement d'un compte) | `admin.spec.ts` |
+| R-01, R-02, R-05, R-10, R-13 | `employer-flow.spec.ts`, `recette.spec.ts` |
+| R-06 à R-08, R-11, R-12, R-14 à R-16 (Stripe de test réel) | `stripe-real.spec.ts` (suite à part, `STRIPE_REAL=1`) |
+| R-09 (modification d'une annonce en ligne, retour en modération) | `recette.spec.ts` |
+| L-01 à L-04 (offre de lancement, fin simulée, notification de mise en pause) | `launch-offer.spec.ts` |
+| A-01, A-02, A-04 à A-06, A-10 à A-12, A-16 | `admin.spec.ts`, `admin-mfa.spec.ts` |
+| A-07 (signalement traité et journalisé), A-15 (réglage invalide refusé) | `recette.spec.ts` |
+| T-02, T-04, T-05, T-06 (langues, accessibilité, droits, 404 traduites) | `accessibility.spec.ts`, `recette.spec.ts` |
+| T-08 (emplacements publicitaires, modes `placeholder` et `test`) | `ads.spec.ts` |
+| T-10 (le CAPTCHA est exigé par Supabase et par l'application) | `tests/preprod/captcha-enforced.spec.ts` (préproduction réelle) |
 
 ## Signaler un bug
 
@@ -152,7 +175,18 @@ Gravité : **bloquant** (empêche le lancement), **majeur** (gêne fortement), *
   - emplacements étiquetés « Publicité » sur les pages publiques seulement ;
   - lien « Paramètres des cookies » en bas de page.
 - [ ] **T-09 E-mails.** Expéditeur, objet, liens et langue corrects ; pas de spam.
-- [ ] **T-10 Anti-robot avec les vraies clés Turnstile** (à faire **avant** d'activer « Enable Captcha protection » dans Supabase, puis juste après).
+- [ ] **T-10 Anti-robot avec les vraies clés Turnstile.**
+  - État au 28/11 :
+    - étapes 1 et 2 faites par toi : widget « Succès ! » sur la connexion, signalement envoyé ;
+    - protection CAPTCHA **active** dans Supabase ;
+    - vérifié automatiquement sur la préproduction réelle (`tests/preprod/captcha-enforced.spec.ts`, 4/4) : sans jeton valide, Supabase refuse la connexion, le mot de passe oublié, l'inscription et le renvoi de confirmation, et l'application refuse le signalement, avec le message « La vérification anti-robot a échoué. Réessayez. ». Aucun compte créé, aucun e-mail envoyé.
+  - **Reste l'étape 3**, avec le vrai widget, dans une fenêtre privée :
+    - connexion d'un compte de recette candidat, puis recruteur ;
+    - « Mot de passe oublié » vers **ton** adresse ;
+    - inscription d'une adresse à toi.
+
+    Sans SMTP configuré, Supabase n'envoie qu'aux membres de ton équipe Supabase, au plus 2 e-mails par heure (voir [EMAIL.md](EMAIL.md) § 3.3).
+  - Procédure d'origine :
   1. Ouvrir `/fr/login` dans un navigateur normal : le widget Cloudflare s'affiche, sans message « domaine non autorisé », et se valide (coche verte, parfois après un clic).
   2. Fiche d'une offre « (démo) » → **Signaler**, sans être connecté → envoyer. Le message « Merci, votre signalement a été transmis » prouve que la clé de site et la clé secrète du serveur forment bien une paire. La clé secrète est celle de `TURNSTILE_SECRET_KEY`.
   3. Activer la protection dans Supabase avec **la même clé secrète**, puis, dans une fenêtre privée :

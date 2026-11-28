@@ -97,9 +97,12 @@ Restent à saisir par le propriétaire, en *Sensitive* : `SUPABASE_SECRET_KEY` e
      - soit **l'authentification Vercel sur tous les déploiements**, retenue le 26/11 : seuls les comptes de ton équipe Vercel entrent. Stripe et les tests passent par le contournement réservé à l'automatisation ;
      - soit `PREPROD_BASIC_AUTH=identifiant:mot de passe` (*Sensitive*), si des testeurs extérieurs à l'équipe doivent entrer.
 3. Domaine `preprod.<domaine>` (enregistrement CNAME indiqué par Vercel), HTTPS automatique.
-4. GitHub → Settings → Environments → `preprod` :
+4. GitHub → Settings → Environments → `preprod` : guide pas à pas dans
+   [DEPLOYMENT_PREPROD.md](DEPLOYMENT_PREPROD.md).
    - variables `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` (Vercel → Settings → General) et `PREPROD_URL` ;
-   - secret `VERCEL_TOKEN` (jeton Vercel dédié au déploiement).
+   - secrets `VERCEL_TOKEN` (jeton Vercel dédié au déploiement, limité à l'équipe, avec une date
+     d'expiration) et `VERCEL_AUTOMATION_BYPASS_SECRET` (facultatif) ;
+   - le workflow demande à Vercel de compiler le commit testé (`scripts/vercel-deploy-preprod.sh`).
 5. Tâches planifiées (`vercel.json`) : **une exécution par jour** pour chacune (maintenance 03:07, file d'e-mails 04:15, alertes 05:35, en UTC), parce que l'offre Hobby refuse toute tâche plus fréquente (déploiement du 27/11 en échec : « Hobby accounts are limited to daily cron jobs »).
    - Rien n'est perdu : les e-mails partent juste après chaque action, la tâche ne sert qu'aux reprises.
    - Pour les tests, déclenchement manuel sécurisé, avec le secret des tâches et le contournement Vercel, lus dans `preprod-access.local.txt` :

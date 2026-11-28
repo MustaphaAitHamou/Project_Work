@@ -4,13 +4,16 @@ Ce document distingue strictement ce qui est **implémenté et vérifié par des
 
 ## Résultats des tests
 
-| Suite | Résultat (28/11) | Portée |
+| Suite | Résultat (28/11, fin de journée) | Portée |
 |---|---|---|
-| Unitaires (`npm run test:unit`) | 149/149 | identifiants d'entreprise, vérification, fichiers, CV, masquage, inscription, recherche, données structurées, e-mails (dont offre de lancement), permissions, traductions, Turnstile, offre de lancement (dates de Paris, essai Stripe, consentement au premier prélèvement) |
-| Intégration SQL (`npm run test:integration`) | 64/64 | RLS et droits, candidature en un clic, candidatures anonymes, cycle de vie annonce/abonnement/paiement (modèle payant 2027), décisions d'administration, **offre de lancement** (15 tests : instants limites de Paris, transition, webhooks en double et désordonnés, priorité des e-mails, réglage du back-office) |
-| Bout en bout (`npm run test:e2e`) | 44 réussis, 0 échec, 7 ignorés (serveur de production local, version refondue) | parcours candidat, recruteur, inscription, back-office, tâches planifiées, webhook Stripe signé, publicités, accessibilité axe (FR/AR, sombre), **offre de lancement** (bandeau, publication gratuite, conversion, fin simulée). Ignorés : 6 parcours Stripe réels (suite à part) et le test `ads.txt` (sans identifiant AdSense) |
-| Stripe réel, mode test (`STRIPE_REAL=1`) | 6/6 parcours réels + 3/4 tests du webhook | dont la **conversion d'une annonce gratuite** avec horloge de test Stripe. Le 4e test du webhook (« garde de renouvellement ») exige un serveur **sans** clé Stripe : il passe dans la suite standard, échoue avec clé (limite connue, [STRIPE_TESTING.md](STRIPE_TESTING.md)) |
-| Qualité | OK | `tsc` strict, ESLint, `next build` sans avertissement, décalage de mise en page 0 à 0,02 |
+| Unitaires (`npm run test:unit`) | 156/156 (25 fichiers) | identifiants d'entreprise, vérification, fichiers, CV, masquage, inscription, recherche, données structurées, e-mails et **notifications de chaque modèle dans les 4 langues**, permissions, traductions, Turnstile, offre de lancement, fournisseur Resend (adresses de test jamais envoyées), **robots.txt** (robot AdSense autorisé en production) |
+| Intégration (`npm run test:integration`) | 70/70 (10 fichiers) | RLS et droits, candidature en un clic, candidatures anonymes, cycle de vie annonce/abonnement/paiement, décisions d'administration, offre de lancement, **e-mails d'authentification** rendus par le vrai serveur d'authentification local et lus dans Mailpit (6 tests, 10 modèles, 4 langues) |
+| Bout en bout (`npm run test:e2e`) | 54 réussis, 0 échec, 11 ignorés (65) | 53 dans la suite complète, plus le seul échec, corrigé puis rejoué (`session.spec.ts` 12/12) : son attente était fausse, l'application avait raison (un lien réutilisé par une personne déjà connectée la ramène à son espace). Ignorés ici, car exécutés à part : 6 Stripe réels, 4 Turnstile avec clés de test, 1 `ads.txt` (voir les lignes suivantes). Couvre parcours candidat, recruteur, inscription, back-office, tâches planifiées, webhook Stripe signé, publicités, accessibilité, offre de lancement, **recette automatisée** (`recette.spec.ts`, 10 tests : 9 marchés et filtres, erreurs de connexion, mot de passe oublié, modification d'annonce et retour en modération, clôture et réouverture gratuites, signalement traité, réglage invalide refusé, langues et 404, notifications, permissions) |
+| Turnstile, clés de test Cloudflare (`TURNSTILE_E2E=1`) | 4/4 | jeton envoyé par chaque formulaire, nouveau jeton après une erreur, candidat et recruteur connectés, réinitialisation complète, signalement vérifié par Cloudflare |
+| Préproduction réelle (`playwright.preprod.config.ts`) | `captcha-enforced` 4/4 | vraies clés, CAPTCHA Supabase actif : sans jeton valide, connexion, mot de passe oublié, inscription, renvoi et signalement refusés ; aucun compte créé |
+| AdSense en mode `test` (identifiant factice) | 3/3 | `ads.txt`, politique de sécurité, emplacements `data-adtest`, balise de vérification |
+| Stripe réel, mode test (`STRIPE_REAL=1`) | 6/6 parcours réels + 3/4 tests du webhook (25-28/11) | non relancé le 28 au soir (aucun changement de paiement) ; limite connue du 4e test : [STRIPE_TESTING.md](STRIPE_TESTING.md) |
+| Qualité | OK | `tsc` strict, ESLint (0 erreur), `next build`, lint SQL, types générés à jour |
 
 Les tests d'intégration et E2E s'exécutent contre une pile Supabase locale réelle (PostgreSQL, Auth, Storage, Mailpit) et le vrai serveur Next.js (en CI : build de production). La **CI GitHub Actions est verte** sur `main` : audit des dépendances, typage, lint, tests unitaires, migrations appliquées sur une base vierge, lint SQL, cohérence des types générés, tests d'intégration, build de production et tests E2E. Les tests E2E n'interrogent pas les registres d'entreprises (services tiers), pour rester déterministes.
 
@@ -30,6 +33,29 @@ Les tests d'intégration et E2E s'exécutent contre une pile Supabase locale ré
 - Candidatures antérieures à la migration : l'identité est déplacée dans la table protégée (rien n'est supprimé) et reste visible du recruteur au titre du consentement donné à l'époque (demande d'origine « legacy_consent »), révocable par le candidat.
 - Correctif d'affichage : sur mobile, la barre d'onglets des espaces candidat, recruteur et back-office élargissait la page ; elle défile désormais dans sa propre zone.
 
+**Finalisation du lancement (28 novembre 2026, soir)**
+- Authentification :
+  - les liens des e-mails ne sont plus consommés par les filtres de messagerie : le jeton n'est utilisé qu'au clic sur la page de confirmation ;
+  - 10 modèles d'e-mails d'authentification, en 4 langues, à l'identité Tamurt ;
+  - Turnstile vérifié de bout en bout ;
+  - CAPTCHA Supabase vérifié sur la préproduction réelle.
+- Notifications dans les espaces candidat et recruteur (mêmes événements que les e-mails), avec « Tout marquer comme lu ».
+- Défauts trouvés par la recette et corrigés :
+  - une annonce en ligne proposait « Enregistrer le brouillon » (avec le message « Brouillon enregistré ») et « Soumettre pour publication », toujours refusé. Elle propose désormais « Enregistrer les modifications » et indique si la modification la renvoie en modération ;
+  - la clôture d'une annonce gratuite annonçait « le renouvellement est arrêté » alors qu'il n'y en a pas. Elle indique maintenant qu'on peut la rouvrir gratuitement jusqu'au 31 décembre 2026 ;
+  - une adresse inconnue sous une langue (`/es/…`) affichait une page 404 brute, sans traduction. Elle affiche maintenant la 404 traduite, avec l'en-tête du site.
+- Finitions visuelles :
+  - trait jaune ;
+  - image Open Graph ;
+  - police arabe chargée seulement en arabe ;
+  - aucun débordement de 320 à 1440 px ;
+  - logo et 9 pays sur mobile.
+- Déploiement :
+  - script de déploiement Vercel par l'API (commit testé, contrôles), branché dans le workflow GitHub ;
+  - guide des secrets : [DEPLOYMENT_PREPROD.md](DEPLOYMENT_PREPROD.md) ;
+  - Nginx de production : redirection `www` testée.
+- Plan de production : [PRODUCTION_PLAN.md](PRODUCTION_PLAN.md).
+
 ## Implémenté mais non validé contre le service réel
 
 | Intégration | Ce qui est fait | Ce qui manque |
@@ -37,12 +63,18 @@ Les tests d'intégration et E2E s'exécutent contre une pile Supabase locale ré
 | **Stripe** | **Validé contre le vrai Stripe de test le 25/11** (voir [STRIPE_TESTING.md](STRIPE_TESTING.md)) : tarif, Checkout, abonnement, activation par webhook, renouvellement, échec, grâce, suspension, régularisation, résiliation, remboursement, 3D Secure, refus, portail client, événements dans le désordre | saisie de carte et écran du portail à vérifier à la main en préprod ; compte live, webhook live et Stripe Tax au lancement, après accord |
 | **Resend** | fournisseur implémenté selon l'API documentée | clé API et domaine vérifié ; le chemin SMTP est, lui, testé de bout en bout avec Mailpit |
 | **Registres d'entreprises** | France, VIES, Companies House, Zefix, OpenCorporates implémentés selon leurs contrats publiés, testés sur des réponses types | accès réseau et clés (Companies House, Zefix, OpenCorporates) ; en leur absence la vérification bascule en revue manuelle, comportement vérifié |
-| **Cloudflare Turnstile** | widget, vérification serveur, jetons transmis à Supabase Auth (inscription, connexion, mot de passe, renvoi de confirmation : tests unitaires) ; vraies clés du widget dans Vercel (préproduction) | le vrai widget pose un défi interactif aux navigateurs automatisés : recette manuelle T-10 à faire, puis activation de la protection dans Supabase ([RECETTE.md](RECETTE.md)) |
-| **Supabase hébergé (préproduction)** | projet `tamurt-jobs-preprod` : 26 migrations appliquées (dont l'offre de lancement, le 28/11), adresse du site et redirections réglées | modèles d'e-mails d'authentification et captcha (choix du propriétaire) ; projet de production non créé |
-| **Vercel (préproduction)** | déployée et protégée (Vercel Authentication, `noindex`, robots `Disallow`), tâches planifiées quotidiennes (offre Hobby) | le workflow GitHub n'a encore jamais déployé : l'environnement GitHub « preprod » n'est pas configuré (il échoue désormais explicitement) ; déploiements faits par l'API Vercel |
-| **Iglao (production)** | serveur autonome, Nginx, systemd, cron, déploiement et retour arrière ([deploy/iglao](../deploy/iglao/README.md)), rejoués dans une simulation Ubuntu 24.04 avec E2E 43/43 | VPS réel, domaine, certificat |
+| **Cloudflare Turnstile** | vraies clés en préproduction ; widget validé à la main par le propriétaire (connexion, signalement) ; CAPTCHA Supabase actif et vérifié (refus sans jeton, 4/4) ; parcours complets vérifiés en local avec les clés de test (4/4) | étape 3 de T-10 à la main (connexions candidat et recruteur, mot de passe oublié et inscription vers une adresse du propriétaire) ; clés de production |
+| **Supabase hébergé (préproduction)** | projet `tamurt-jobs-preprod` : 26 migrations, adresse du site et redirections, CAPTCHA actif | modèles d'e-mails Tamurt (prêts, à appliquer : jeton temporaire ou copier-coller, [EMAIL.md](EMAIL.md) § 3.2) ; SMTP non configuré (2 e-mails par heure, aux seuls membres de l'équipe) ; **publication fermée dans les 9 pays** ; projet de production non créé |
+| **Vercel (préproduction)** | déployée et protégée (Vercel Authentication, `noindex`, robots `Disallow`), tâches planifiées quotidiennes (offre Hobby) ; déploiement du 28/11 fait par `scripts/vercel-deploy-preprod.sh`, le script du workflow | le workflow GitHub attend l'environnement `preprod` (jeton Vercel) : [DEPLOYMENT_PREPROD.md](DEPLOYMENT_PREPROD.md) ; il échoue explicitement d'ici là |
+| **Iglao (production)** | serveur autonome, Nginx (redirection `www` ajoutée et testée le 28/11), systemd, cron, déploiement et retour arrière ([deploy/iglao](../deploy/iglao/README.md)), rejoués dans une simulation Ubuntu 24.04 avec E2E 43/43 ; plan complet : [PRODUCTION_PLAN.md](PRODUCTION_PLAN.md) | VPS réel, domaine `tamurtjobs.com`, certificat |
 
 ## Reste à faire ou à décider
+
+**Bloquant avant l'ouverture publique de la bêta gratuite** (actions du propriétaire, détail dans [PRODUCTION_PLAN.md](PRODUCTION_PLAN.md))
+- Domaine `tamurtjobs.com`, VPS Iglao, projet Supabase de production (Pro, UE), Resend (domaine vérifié et SMTP de Supabase), clés Turnstile de production.
+- **Ouverture de la publication** dans les pays retenus (back-office → Pays, checklist ou dérogation motivée) : aujourd'hui fermée partout, même en préproduction, donc aucune annonce ne peut être publiée.
+- Validation juridique des textes et identité de l'exploitant ; adaptation de la mention « 9 pays » si seuls certains pays ouvrent.
+- Étape 3 de T-10 (connexion et e-mails réels avec le vrai widget) ; GO / NO GO.
 
 **Bloquant avant ouverture payante**
 - Validation juridique de tous les textes (`content/legal/`, mentions `[À COMPLÉTER]` / `[À VALIDER]`) et identification complète de Tamurt Services LLC.
