@@ -268,10 +268,18 @@ export async function saveJobAction(_prev: ActionState, formData: FormData): Pro
     positions_count: d.positionsCount,
   };
   let jobId = existingId;
+  // Status before and after the change: editing an advert already submitted saves it in place,
+  // and the automatic check can send it back to moderation (jobs_before_write).
+  let statusBefore: string | null = null;
+  let statusAfter: string | null = null;
   if (existingId) {
     if (!z.uuid().safeParse(existingId).success) return failure(te("invalid_input"));
-    const { error } = await supabase.from("jobs").update(row).eq("id", existingId);
+    const { data: before } = await supabase.from("jobs").select("status").eq("id", existingId).maybeSingle();
+    const { data: updated, error } = await supabase.from("jobs").update(row).eq("id", existingId).select("status").maybeSingle();
     if (error) return failure(te(errorKey(error)));
+    if (!updated) return failure(te("forbidden"));
+    statusBefore = before?.status ?? null;
+    statusAfter = updated.status;
   } else {
     const { data, error } = await supabase
       .from("jobs")
@@ -316,6 +324,11 @@ export async function saveJobAction(_prev: ActionState, formData: FormData): Pro
     redirect(`/${locale}/employer/jobs/${jobId}?submitted=review`);
   }
   if (!existingId) redirect(`/${locale}/employer/jobs/${jobId}?saved=1`);
+  if (statusBefore && ["active", "pending_payment", "in_review"].includes(statusBefore)) {
+    revalidatePath(`/${locale}/employer`, "layout");
+    const sentToReview = statusAfter === "in_review" && statusBefore !== "in_review";
+    return success(sentToReview ? t("changesInReview") : t("changesSaved"), { jobId });
+  }
   return success(t("saved"), { jobId });
 }
 
@@ -327,10 +340,14 @@ export async function closeJobAction(locale: string, jobId: string): Promise<Act
   const { data, error } = await supabase.rpc("close_job", { p_job_id: jobId });
   if (error) return failure(te(errorKey(error)));
   // Stop future renewals at Stripe (retried by the maintenance job on failure).
-  await cancelSubscriptionsAtPeriodEnd((data as { cancel_subscription_ids: string[] }).cancel_subscription_ids);
+  const subscriptionIds = (data as { cancel_subscription_ids: string[] }).cancel_subscription_ids ?? [];
+  await cancelSubscriptionsAtPeriodEnd(subscriptionIds);
   after(flushOutboxQuietly);
   revalidatePath(`/${L(locale)}/employer`, "layout");
-  return success(t("closed"));
+  if (subscriptionIds.length) return success(t("closed"));
+  // No subscription (free advert of the launch offer, or never paid): nothing to stop.
+  const offer = await getLaunchOffer();
+  return success(offer?.open ? t("closedFree", { lastDay: offerLastDay(offer.freeUntil, L(locale)) }) : t("closedNoRenewal"));
 }
 
 export async function reopenJobAction(locale: string, jobId: string): Promise<ActionState> {

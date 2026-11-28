@@ -1637,6 +1637,8 @@
    "closeTextPaid": "The job ad will be removed immediately and will no longer accept applications. No further charge will be made; the current period (until {date}) is not refunded and you can reopen the job ad until then.",
    "confirmClose": "Close the job ad",
    "closed": "Job ad closed: renewal stopped.",
+   "closedFree": "Job ad closed. You can reopen it for free until {lastDay}.",
+   "closedNoRenewal": "Job ad closed.",
    "reopened": "Job ad reopened: renewal reactivated.",
    "deleted": "Draft deleted",
    "inReviewTitle": "Job ad under review",
@@ -1722,6 +1724,9 @@
    "saveDraft": "Save draft",
    "submit": "Submit for publication",
    "saved": "Draft saved",
+   "saveChanges": "Save changes",
+   "changesSaved": "Changes saved.",
+   "changesInReview": "Changes saved. The automated check found wording to be reviewed: the job ad is withdrawn from search while a moderator reviews it. You will be informed by e-mail.",
    "flagsTitle": "Points to be checked by moderation",
    "flagsText": "The automated check spotted wording that will be reviewed by a human moderator before publication:",
    "flags": {

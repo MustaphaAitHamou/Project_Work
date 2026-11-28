@@ -1637,6 +1637,8 @@
    "closeTextPaid": "El anuncio se retirará de inmediato y dejará de aceptar candidaturas. No se realizará ningún nuevo cargo; el periodo en curso (hasta el {date}) no se reembolsa y podrá reabrir el anuncio hasta esa fecha.",
    "confirmClose": "Cerrar el anuncio",
    "closed": "Anuncio cerrado: la renovación se ha detenido.",
+   "closedFree": "Anuncio cerrado. Puede reabrirlo gratis hasta el {lastDay}.",
+   "closedNoRenewal": "Anuncio cerrado.",
    "reopened": "Anuncio reabierto: la renovación se ha reactivado.",
    "deleted": "Borrador eliminado",
    "inReviewTitle": "Anuncio en moderación",
@@ -1722,6 +1724,9 @@
    "saveDraft": "Guardar el borrador",
    "submit": "Enviar para publicación",
    "saved": "Borrador guardado",
+   "saveChanges": "Guardar los cambios",
+   "changesSaved": "Cambios guardados.",
+   "changesInReview": "Cambios guardados. El control automático ha detectado formulaciones que deben revisarse: el anuncio se retira de la búsqueda mientras un moderador lo examina. Se le avisará por correo.",
    "flagsTitle": "Aspectos que revisará la moderación",
    "flagsText": "El control automático ha detectado formulaciones que un moderador humano examinará antes de la publicación:",
    "flags": {

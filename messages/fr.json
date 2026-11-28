@@ -1637,6 +1637,8 @@
    "closeTextPaid": "L'annonce sera retirée immédiatement et n'acceptera plus de candidatures. Aucun nouveau prélèvement ne sera effectué ; la période en cours (jusqu'au {date}) n'est pas remboursée et vous pourrez rouvrir l'annonce d'ici là.",
    "confirmClose": "Clôturer l'annonce",
    "closed": "Annonce clôturée : le renouvellement est arrêté.",
+   "closedFree": "Annonce clôturée. Vous pouvez la rouvrir gratuitement jusqu'au {lastDay}.",
+   "closedNoRenewal": "Annonce clôturée.",
    "reopened": "Annonce rouverte : le renouvellement est réactivé.",
    "deleted": "Brouillon supprimé",
    "inReviewTitle": "Annonce en modération",
@@ -1722,6 +1724,9 @@
    "saveDraft": "Enregistrer le brouillon",
    "submit": "Soumettre pour publication",
    "saved": "Brouillon enregistré",
+   "saveChanges": "Enregistrer les modifications",
+   "changesSaved": "Modifications enregistrées.",
+   "changesInReview": "Modifications enregistrées. Le contrôle automatique a relevé des formulations à vérifier : l'annonce est retirée de la recherche le temps qu'un modérateur l'examine. Vous serez prévenu par e-mail.",
    "flagsTitle": "Points à vérifier par la modération",
    "flagsText": "Le contrôle automatique a repéré des formulations qui seront examinées par un modérateur humain avant publication :",
    "flags": {

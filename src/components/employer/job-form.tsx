@@ -72,6 +72,7 @@ export function JobForm({
   industries,
   publishableCountries,
   editable,
+  live = false,
   flags,
 }: {
   values: JobFormValues;
@@ -79,6 +80,8 @@ export function JobForm({
   industries: string[];
   publishableCountries: string[];
   editable: boolean;
+  /** Already submitted (online, awaiting payment or in moderation): changes are saved in place. */
+  live?: boolean;
   flags: string[];
 }) {
   const t = useTranslations("employer.jobForm");
@@ -367,14 +370,23 @@ export function JobForm({
 
       {editable && (
         <div className="sticky bottom-0 z-10 -mx-4 flex flex-wrap justify-end gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur">
-          <SubmitButton name="intent" value="draft" variant="outline">
-            <Save aria-hidden />
-            {t("saveDraft")}
-          </SubmitButton>
-          <SubmitButton name="intent" value="submit">
-            <Send aria-hidden />
-            {t("submit")}
-          </SubmitButton>
+          {live ? (
+            <SubmitButton name="intent" value="save">
+              <Save aria-hidden />
+              {t("saveChanges")}
+            </SubmitButton>
+          ) : (
+            <>
+              <SubmitButton name="intent" value="draft" variant="outline">
+                <Save aria-hidden />
+                {t("saveDraft")}
+              </SubmitButton>
+              <SubmitButton name="intent" value="submit">
+                <Send aria-hidden />
+                {t("submit")}
+              </SubmitButton>
+            </>
+          )}
         </div>
       )}
     </ActionForm>

@@ -152,9 +152,16 @@ test.describe("Sign-up checks", () => {
     await page.request.get(link);
     await openConfirmationLink(page, link);
     await expect(page).toHaveURL(/\/fr\/candidate/);
-    // The same link a second time: clearly expired, never a technical error.
+    // The same link a second time, still signed in: back to the person's space (the account is active).
     await openConfirmationLink(page, link);
-    await expect(page).toHaveURL(/\/fr\/login\?error=link_invalid/);
+    await expect(page).toHaveURL(/\/fr\/candidate/);
+    // The same link on another device (signed out): clearly expired, never a technical error.
+    const elsewhere = await page.context().browser()!.newContext({ locale: "fr-FR" });
+    const other = await elsewhere.newPage();
+    await openConfirmationLink(other, link);
+    await expect(other).toHaveURL(/\/fr\/login\?error=link_invalid/);
+    await expect(other.getByText("Ce lien est invalide ou a expiré.")).toBeVisible();
+    await elsewhere.close();
   });
 });
 

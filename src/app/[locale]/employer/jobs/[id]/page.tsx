@@ -123,6 +123,7 @@ export default async function EmployerJobPage({ params, searchParams }: { params
       </Card>
       <JobForm
         editable={editable}
+        live={["active", "pending_payment", "in_review"].includes(job.status)}
         flags={job.moderation_flags ?? []}
         regionsByCountry={ref.regionsByCountry}
         industries={ref.industries}

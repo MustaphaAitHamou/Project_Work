@@ -108,6 +108,11 @@ test("at the end of the offer: hidden at once, paused by the maintenance (not de
 
   // The recruiter still sees it, with its applications, and can reactivate it by subscribing.
   await login(page, company.owner.email, company.owner.password);
+  // The same notice is in the recruiter's notifications, with a link to the advert.
+  await page.goto("/fr/employer");
+  const notice = page.getByTestId("notifications").getByRole("listitem").filter({ hasText: "Annonce en pause : Conseiller·ère clientèle (offre de lancement)" });
+  await expect(notice).toBeVisible();
+  await expect(notice.getByRole("link", { name: "Réactiver l'annonce" })).toHaveAttribute("href", new RegExp(`/fr/employer/(jobs|checkout)/${jobId}`));
   await page.goto(`/fr/employer/jobs/${jobId}`);
   await expect(page.getByTestId("free-ended")).toContainText("Annonce en pause : l'offre de lancement est terminée");
   await expect(page.getByRole("link", { name: "1 candidature" })).toBeVisible();

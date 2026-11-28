@@ -15,6 +15,9 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: ["/api/", "/auth/", ...locales.flatMap((l) => PRIVATE.map((p) => `/${l}/${p}`)), "/*?*q="],
       },
+      // Google AdSense's crawler reads the public pages that carry an ad slot (search results
+      // included) to choose relevant ads; it does not index anything. Private spaces have no ads.
+      { userAgent: "Mediapartners-Google", allow: "/", disallow: ["/api/", "/auth/"] },
     ],
     sitemap: `${base}/sitemap.xml`,
   };
